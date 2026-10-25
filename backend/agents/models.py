@@ -25,6 +25,8 @@ class OpportunityFound(BaseModel):
     mba_eligible: YesNo = "Not clear"
     fit: Literal["strong", "possible", "weak", "unknown"] = "unknown"
     fit_reason: str = Field("", description="why, against the student's profile; one sentence")
+    posting_status: Literal["open", "opens_later", "closed", "rolling", "no_posting_yet", "unknown"] = Field(
+        "unknown", description="are applications open according to the text?")
     status_signal: Literal["none", "applied", "interview", "offer", "rejected"] = Field(
         "none", description="only if the text says the student applied, got an interview, an offer or a rejection")
     key_points: list[str] = Field(default_factory=list, description="up to 3 short things to keep in mind")

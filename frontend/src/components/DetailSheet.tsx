@@ -93,7 +93,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
 
         {app.verified_status && (
           <section className="sheet-section">
-            <h4>Official page · checked {formatDate(app.verified_on ?? "", false)}</h4>
+            <h4>Page you linked · read by the Opportunity scout {formatDate(app.verified_on ?? "", false)}</h4>
             <div className={`official official-lg os-${app.verified_status}`}>
               <span>
                 <b>{OFFICIAL_STATUS[app.verified_status]}</b>
@@ -107,7 +107,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
               </dl>
             )}
             {app.verified_evidence && <blockquote className="official-quote">“{app.verified_evidence}”</blockquote>}
-            {safeUrl(app.verified_url) && <a className="lead-link" href={safeUrl(app.verified_url)} target="_blank" rel="noreferrer">Open the official page ↗</a>}
+            {safeUrl(app.verified_url) && <a className="lead-link" href={safeUrl(app.verified_url)} target="_blank" rel="noopener noreferrer">Open the page ↗</a>}
           </section>
         )}
         {app.fit && app.fit !== "unknown" && (
@@ -153,7 +153,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
 
         {app.leads.length > 0 && (
           <section className="sheet-section">
-            <h4>Opportunities & tips · from Slack and official pages</h4>
+            <h4>Leads · deadlines, events and tips from what you added</h4>
             <ol className="timeline">
               {app.leads.map((l) => (
                 <li key={l.id}>
@@ -178,7 +178,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
 
         {app.found.length > 0 && (
           <section className="sheet-section">
-            <h4>People to approach · found on official pages</h4>
+            <h4>People to approach</h4>
             <ul className="people">
               {app.found.map((f) => (
                 <li key={f.id}>

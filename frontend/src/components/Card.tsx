@@ -100,7 +100,7 @@ export default function Card({ app, statusLabel, onOpen, drag }: Props) {
             <b>{OFFICIAL_STATUS[app.verified_status]}</b>
             {app.verified_summary}
             <small>
-              Official page · checked {formatDate(app.verified_on ?? "", false)}
+              Page you linked · read {formatDate(app.verified_on ?? "", false)}
               {app.verified_fit === "no" && live && <em className="fit fit-no">Not for MBAs</em>}
               {app.verified_fit === "check" && live && <em className="fit fit-check">Check fit</em>}
             </small>

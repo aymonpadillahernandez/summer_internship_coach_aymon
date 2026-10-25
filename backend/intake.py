@@ -74,9 +74,12 @@ def route_for(text: str, kind: str) -> list[str]:
 ORIGIN = {"scout": "posting", "network": "chat"}
 
 
-async def process(user_id: int, text: str, kind: str, label: str) -> dict:
+async def process(user_id: int, text: str, kind: str, label: str, page_url: str | None = None) -> dict:
+    """page_url: set when the text is a page the app fetched from a link the student gave (web.fetch)."""
     run = CoachRun(user_id, "intake")
     label = (label or "Pasted text").strip()[:80]
+    if page_url:
+        run.step("router", "page_fetched", f"Read the page you linked: {page_url[:200]}")
     hidden: list[str] = []
     if safety.looks_like_html(text):
         text, hidden = safety.visible_text(text)
@@ -91,12 +94,14 @@ async def process(user_id: int, text: str, kind: str, label: str) -> dict:
             return {**run.finish("ok", "LinkedIn export: no connections at tracked organisations"), "routes": [],
                     "flagged": [], "hidden": [], "saved": {}, "rejected": [],
                     "fields_not_found": ["None of these connections work at an organisation you track yet. Add opportunities first."]}
+    if page_url:
+        text = f"{text}\n\nSource page: {page_url}"  # so the posting's link is backed by the source text
     text, flagged = safety.quarantine(text)
     if flagged:
         run.step("shield", "instructions_quarantined",
                  f"{len(flagged)} line(s) read like instructions to an AI and were removed before any model saw them",
                  lines=flagged[:5])
-    routes = route_for(text, kind)
+    routes = ["scout"] if page_url and kind == "auto" else route_for(text, kind)
     run.step("router", "routed", "Sent to " + " and ".join({"scout": "Opportunity scout", "network": "Network intelligence"}[r] for r in routes))
 
     ref = merge.source_ref(text)
@@ -116,7 +121,7 @@ async def process(user_id: int, text: str, kind: str, label: str) -> dict:
             continue
         if route == "scout":
             good, bad = merge.validate_scout(out, text, user_id)
-            saved.update(merge.apply_scout(user_id, good, origin or ORIGIN[route], ref, label))
+            saved.update(merge.apply_scout(user_id, good, origin or ORIGIN[route], ref, label, page_url))
         else:
             good, bad = merge.validate_network(out, text, user_id)
             saved.update(merge.apply_network(user_id, good, origin or ORIGIN[route], ref, label))

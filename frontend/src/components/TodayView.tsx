@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
-  ApiError, fetchLatestPlan, fetchSamples, runIntake, runPlan,
+  ApiError, fetchLatestPlan, fetchSamples, runIntake, runIntakeLink, runPlan,
   type Candidate, type CoachPlan, type IntakeResult, type Sample, type TraceStep, type Usage,
 } from "../api";
 import { formatDate } from "../format";
@@ -19,6 +19,7 @@ const INTAKE_STAGES = ["The shield is checking the text…", "A specialist is re
 const errorText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
 const MAX_PASTE = 20_000;
 const MAX_EXPORT = 400_000; // a LinkedIn connections export: filtered in code before the AI reads it
+const asLink = (t: string) => (/^https?:\/\/\S+$/i.test(t.trim()) ? t.trim() : null);
 const isLinkedInExport = (t: string) => /^\s*first name\s*,\s*last name\s*,/im.test(t.slice(0, 3000));
 
 function useStaged(active: boolean, stages: string[]) {
@@ -106,6 +107,8 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
     }
   }
 
+  const link = asLink(text);
+
   async function addIntake() {
     if (text.length > MAX_PASTE && !isLinkedInExport(text)) {
       setIntakeError(`That's ${text.length.toLocaleString()} characters. Paste at most ${MAX_PASTE.toLocaleString()} at a time (LinkedIn exports can be longer).`);
@@ -115,7 +118,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
     setIntakeError(null);
     setIntake(null);
     try {
-      const r = await runIntake(text, kind, label || "Pasted text");
+      const r = link ? await runIntakeLink(link, kind) : await runIntake(text, kind, label || "Pasted text");
       setIntake(r);
       await onChanged();
     } catch (e) {
@@ -279,7 +282,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
             rows={9}
             value={text}
             maxLength={MAX_EXPORT}
-            placeholder="Paste here… e.g. a recruiter's reply, a WhatsApp chat about an intro, a posting from a careers page."
+            placeholder="Paste here… a recruiter's reply, a WhatsApp chat about an intro, a posting, or just a link to a careers page."
             onChange={(e) => setText(e.target.value)}
           />
           <div className="intake-bar">
@@ -293,10 +296,10 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
             <button className="toggle" onClick={() => fileRef.current?.click()}>Upload a file</button>
             <input ref={fileRef} type="file" accept=".txt,.csv,.eml,.html,.htm,.md" hidden onChange={onFile} />
             <span className="char-count">
-              {isLinkedInExport(text) ? "LinkedIn export · filtered to your organisations first" : `${text.length.toLocaleString()} / ${MAX_PASTE.toLocaleString()}`}
+              {link ? "A link · the coach reads the page itself" : isLinkedInExport(text) ? "LinkedIn export · filtered to your organisations first" : `${text.length.toLocaleString()} / ${MAX_PASTE.toLocaleString()}`}
             </span>
-            <button className="primary-btn" onClick={addIntake} disabled={intakeBusy || text.trim().length < 20}>
-              {intakeBusy ? "Reading…" : "Add to my coach"}
+            <button className="primary-btn" onClick={addIntake} disabled={intakeBusy || (!link && text.trim().length < 20)}>
+              {intakeBusy ? "Reading…" : link ? "Read this page" : "Add to my coach"}
             </button>
           </div>
           {intakeBusy && <div className="working"><span className="pulse" />{intakeStage}</div>}

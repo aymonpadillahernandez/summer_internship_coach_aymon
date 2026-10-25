@@ -9,10 +9,13 @@ chat) check the user's and the site's daily token budget first, and return the a
 
 from __future__ import annotations
 
+import asyncio
 import re
 from typing import Literal
+from urllib.parse import urlsplit
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -22,6 +25,7 @@ import config
 import db
 import demo
 import intake
+import web
 from agents import network, strategist
 from agents.runtime import CoachRun, ModelSubstituted
 from store import is_postgres
@@ -91,6 +95,11 @@ class IntakeBody(BaseModel):
     text: str = Field(min_length=20, max_length=config.MAX_EXPORT_CHARS)
     kind: Literal["auto", "opportunity", "conversation"] = "auto"
     label: str = Field(default="Pasted text", max_length=120)
+
+
+class LinkBody(BaseModel):
+    url: str = Field(min_length=8, max_length=2000)
+    kind: Literal["auto", "opportunity", "conversation"] = "auto"
 
 
 class Candidate(BaseModel):
@@ -292,6 +301,27 @@ async def intake_route(body: IntakeBody, user: dict = Depends(auth.require_user)
                                  f"{config.MAX_INPUT_CHARS:,}, or upload a LinkedIn connections export.")
     require_budget(user)
     return await intake.process(user["id"], body.text, body.kind, body.label)
+
+
+@app.post("/api/intake/link")
+async def intake_link(body: LinkBody, user: dict = Depends(auth.require_user)):
+    """Read a careers page or posting from a link (web.py guardrails), then the same shield and scout as a paste."""
+    require_budget(user)
+    try:
+        final_url, page = await asyncio.to_thread(web.fetch, body.url)
+    except web.FetchError as e:
+        raise HTTPException(422, str(e)) from None
+    host = urlsplit(final_url).hostname or "linked page"
+    return await intake.process(user["id"], page[: config.MAX_EXPORT_CHARS], body.kind, host, page_url=final_url)
+
+
+@app.get("/demo-pages/{name}")
+def demo_page(name: str):
+    """Fictional careers pages for the demo (one hides text aimed at AI agents), so a link can be tried live."""
+    path = config.ROOT / "data" / "demo" / "pages" / name
+    if not re.fullmatch(r"[a-z0-9-]+\.html", name) or not path.is_file():
+        raise HTTPException(404, "Not found")
+    return HTMLResponse(path.read_text(encoding="utf-8"))
 
 
 @app.post("/api/plan")

@@ -20,6 +20,7 @@ const EVENT: Record<string, string> = {
   checked_data: "Ran the data checks",
   routed: "Routed",
   export_filtered: "Filtered the export",
+  page_fetched: "Read the linked page",
   hidden_text_removed: "Removed hidden text",
   html_cleaned: "Cleaned the page",
   instructions_quarantined: "Quarantined injected instructions",

@@ -110,6 +110,8 @@ export type IntakeResult = RunResult & {
   fields_not_found: string[];
 };
 export const runIntake = (text: string, kind: string, label: string) => post<IntakeResult>("/api/intake", { text, kind, label });
+/** A careers page or posting link: the server reads the page itself (public addresses only), then the same shield. */
+export const runIntakeLink = (url: string, kind: string) => post<IntakeResult>("/api/intake/link", { url, kind });
 
 export type Candidate = { key: string; title: string; subtitle: string; due: string | null; why: string };
 export type PlannedAction = { key: string; title: string; subtitle: string; due: string | null; why_now: string; how: string; record_ids: string[] };

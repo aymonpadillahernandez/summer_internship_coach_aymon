@@ -114,11 +114,18 @@ def validate_network(report: NetworkIntake, source: str, user_id: int) -> tuple[
 
 
 # ─── Merge ──────────────────────────────────────────────────────────────
-def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label: str) -> dict:
+FIT_CHECK = {"strong": "yes", "possible": "yes", "weak": "check"}
+
+
+def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label: str, page_url: str | None = None) -> dict:
+    """page_url: the page the student linked and the app read. It becomes the card's source link and its
+    page check (status, deadline, quote, date), shown on the card and used by the action plan."""
     added, updated, leads = [], [], 0
     today = date.today().isoformat()
     with connect() as conn:
         for o in report.opportunities:
+            if page_url and not o.url:
+                o.url = page_url
             context = " · ".join(safety.scrub(p)[:80] for p in o.key_points)
             row = None
             if o.match_id is not None:
@@ -154,6 +161,14 @@ def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label:
                      None if o.fit == "unknown" else o.fit, safety.scrub(o.fit_reason) or None, context, o.url,
                      o.status_signal != "none", today, app_id, user_id))
                 updated.append({"id": app_id, "company": row["company"], "role": row["role"]})
+            if page_url:
+                conn.execute(
+                    """UPDATE applications SET verified_status = ?, verified_summary = ?, verified_deadline = ?,
+                           verified_url = ?, verified_evidence = ?, verified_on = ?, verified_fit = ?, source_url = ?
+                       WHERE id = ? AND user_id = ?""",
+                    (None if o.posting_status == "unknown" else o.posting_status, safety.scrub(" · ".join(o.key_points[:2])) or None,
+                     safety.scrub(o.deadline) or None, page_url, safety.scrub(trim(o.evidence, 400)), today,
+                     FIT_CHECK.get(o.fit), page_url, app_id, user_id))
             conn.execute(
                 """INSERT OR IGNORE INTO events (user_id, contact_id, application_id, date, text, evidence,
                                                  source_message_id, source_subject, origin)

@@ -40,3 +40,11 @@ def accept_test_model(monkeypatch):
     import config
 
     monkeypatch.setattr(config, "MODEL", "function")
+
+
+@pytest.fixture(autouse=True)
+def fresh_rate_limits():
+    """Each test starts with empty rate-limit counters (the suite creates more demo accounts than one IP may)."""
+    import auth
+
+    auth._ATTEMPTS.clear()
