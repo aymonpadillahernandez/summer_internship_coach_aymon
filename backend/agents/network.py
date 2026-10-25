@@ -20,7 +20,7 @@ import config
 import db
 import retrieval
 import safety
-from agents.models import NetworkIntake, SpecialistAnswer
+from agents.models import DoorPlan, NetworkIntake, SpecialistAnswer, trim
 from agents.runtime import CoachRun, prompt, run_agent
 from agents.scout import checked_answer
 
@@ -45,6 +45,12 @@ def intake_agent() -> Agent:
 @lru_cache(maxsize=1)
 def consult_agent() -> Agent:
     return Agent(config.build_model(), output_type=NativeOutput(SpecialistAnswer), instructions=prompt("network_consult"),
+                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+
+
+@lru_cache(maxsize=1)
+def doors_agent() -> Agent:
+    return Agent(config.build_model(), output_type=NativeOutput(DoorPlan), instructions=prompt("network_doors"),
                  model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
@@ -154,3 +160,53 @@ async def call_prep(run: CoachRun, user_id: int, person: dict, messages: list[di
                    + f"\n\nConversation so far:\n{turns}")
     run.step(NAME, "preparing", f"Preparing the call with {person['name']} from their dossier (CON-{person['id']})")
     return await run_agent(run, NAME, call_prep_agent(), user_prompt)
+
+
+# ─── Who can open the door ──────────────────────────────────────────────
+def door_candidates(user_id: int, app: dict) -> list[tuple[str, str]]:
+    """People who might be a way in (zero tokens): linked to this opportunity, naming its organisation, or the best
+    BM25 matches for it. At most RETRIEVAL_TOP_K, linked people first."""
+    records = dict(retrieval.contact_records(user_id))
+    org = _norm(app["company"])
+    linked, named = [], []
+    for c in db.list_contacts(user_id):
+        rid = f"CON-{c['id']}"
+        if rid not in records:
+            continue
+        if app["id"] in c["application_ids"] or app["id"] in c["network_ids"]:
+            linked.append(rid)
+        elif org and org in _norm(" ".join([c["affiliation"], c["how_met"], c["notes"]] + [e["text"] for e in c["events"]])):
+            named.append(rid)
+    query = " ".join([app["company"], app["role"], app["location"], app.get("context") or ""])
+    matched = [rid for rid, _ in retrieval.search(list(records.items()), query, config.RETRIEVAL_TOP_K)]
+    order = list(dict.fromkeys(linked + named + matched))[: config.RETRIEVAL_TOP_K]
+    return [(rid, records[rid]) for rid in order]
+
+
+async def doors(run: CoachRun, user_id: int, app: dict) -> dict:
+    opp = dict(retrieval.opportunity_records(user_id)).get(f"OPP-{app['id']}", f"[OPP-{app['id']}] {app['company']} — {app['role']}")
+    people = door_candidates(user_id, app)
+    run.step(NAME, "searching", f"Looked for ways into {app['company']}: {len(people)} people in your records could be connected",
+             records=[rid for rid, _ in people])
+    if not people:
+        return {"paths": [], "next_best": "Nobody in your records is connected yet. Add a conversation or your LinkedIn export, "
+                "or ask a strong contact who they know there.", "checked": 0}
+    block = opp + "\n\n" + "\n".join(text for _, text in people)
+    user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\nStudent profile:\n{_profile(user_id)}\n\n"
+                   + safety.wrap_untrusted(block, f"opportunity {app['company']} and {len(people)} people"))
+    plan = await run_agent(run, NAME, doors_agent(), user_prompt, timeout=config.SPECIALIST_TIMEOUT_SECONDS)
+    if plan is None:
+        return {}
+    allowed = {rid for rid, _ in people}
+    names = {f"CON-{c['id']}": c["name"] for c in db.list_contacts(user_id)}
+    paths, dropped = [], []
+    for p in plan.paths[:3]:
+        if p.contact_id.strip() not in allowed:
+            dropped.append(p.contact_id)
+            continue
+        paths.append({"contact_id": p.contact_id.strip(), "name": names[p.contact_id.strip()], "strength": p.strength,
+                      "why_them": safety.scrub(trim(p.why_them, 240)), "ask": safety.scrub(trim(p.ask, 240)),
+                      "first_message": safety.scrub(trim(p.first_message, 400))})
+    if dropped:
+        run.step(NAME, "ids_dropped", f"Removed people it was not given: {', '.join(dropped[:4])}")
+    return {"paths": paths, "next_best": safety.scrub(trim(plan.next_best, 300)), "checked": len(people)}

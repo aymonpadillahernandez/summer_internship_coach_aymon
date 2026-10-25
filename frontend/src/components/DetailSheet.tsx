@@ -3,6 +3,7 @@ import type { Application, Contact, Stage } from "../types";
 import { CONTACT_STATUS, FROM_LABEL, OFFICIAL_STATUS, concepts, formatDate, initials, priorityClass, safeUrl, stakeholders, yesNo } from "../format";
 import { CloseIcon, EyeOffIcon, PeopleIcon } from "./Icons";
 import Logo from "./Logo";
+import DoorsSection from "./DoorsSection";
 
 type Props = {
   app: Application;
@@ -13,6 +14,7 @@ type Props = {
   onClose: () => void;
   findContact: (name: string) => Contact | undefined;
   onOpenContact: (c: Contact) => void;
+  onUpdated?: (card: Application) => void;
 };
 
 const LEAD_KIND: Record<string, string> = { posting: "Posting", deadline: "Deadline", event: "Event", tip: "Tip", intro: "Intro" };
@@ -20,7 +22,7 @@ const LEAD_KIND: Record<string, string> = { posting: "Posting", deadline: "Deadl
 /** Name part of a stakeholder entry: "Derek Chang — adjacent…" / "Theo Epstein ’95" / "X via Y" → the person. */
 const personName = (text: string) => text.split(/\s[—–]\s|\svia\s/)[0].replace(/\s[’']\d\d$/, "").trim();
 
-export default function DetailSheet({ app, stages, onMove, onClose, findContact, onOpenContact, onInterest, readOnly = false }: Props) {
+export default function DetailSheet({ app, stages, onMove, onClose, findContact, onOpenContact, onInterest, onUpdated, readOnly = false }: Props) {
   /** A name that opens the person on the Networking tab when they are on it. */
   const person = (label: string) => {
     const c = findContact(personName(label));
@@ -123,6 +125,8 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
           </section>
         )}
 
+        {onUpdated && <DoorsSection app={app} findContact={findContact} onOpenContact={onOpenContact} onUpdated={onUpdated} />}
+
         <section className="sheet-section">
           <h4>Context · 3 key concepts to keep in mind</h4>
           <ol className="concepts">
@@ -132,7 +136,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
 
         {app.activity.length > 0 && (
           <section className="sheet-section">
-            <h4>Activity · from your emails and Slack</h4>
+            <h4>Activity · from what you added</h4>
             <ol className="timeline">
               {app.activity.map((e) => (
                 <li key={e.id}>

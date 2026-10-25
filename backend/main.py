@@ -315,6 +315,25 @@ async def intake_link(body: LinkBody, user: dict = Depends(auth.require_user)):
     return await intake.process(user["id"], page[: config.MAX_EXPORT_CHARS], body.kind, host, page_url=final_url)
 
 
+@app.post("/api/applications/{app_id}/doors")
+async def find_doors(app_id: int, user: dict = Depends(auth.require_user)):
+    """Who can open the door at this opportunity: Network intelligence over the people your records connect to it."""
+    row = db.get_application(user["id"], app_id)
+    if row is None:
+        raise HTTPException(404, "Opportunity not found")
+    require_budget(user)
+    run = CoachRun(user["id"], "doors")
+    try:
+        result = await network.doors(run, user["id"], row)
+    except ModelSubstituted as e:
+        return {**run.finish("model_rejected", str(e)), "doors": None}
+    if not result:
+        return {**run.finish("failed", "Network intelligence could not answer"), "doors": None}
+    done = run.finish("ok", f"Doors into {row['company']}: {len(result['paths'])} path(s)")
+    db.save_doors(user["id"], app_id, {**result, "run_id": run.run_id, "usage": done["usage"]})
+    return {**done, "doors": result, "card": _card(user["id"], app_id)}
+
+
 @app.get("/demo-pages/{name}")
 def demo_page(name: str):
     """Fictional careers pages for the demo (one hides text aimed at AI agents), so a link can be tried live."""

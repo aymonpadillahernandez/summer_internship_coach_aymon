@@ -91,7 +91,9 @@ CREATE TABLE IF NOT EXISTS applications (
     verified_evidence TEXT,
     verified_on       TEXT,
     verified_fit      TEXT,
-    not_interested_at TEXT
+    not_interested_at TEXT,
+    door_paths        TEXT,
+    door_paths_at     TEXT
 );
 CREATE INDEX IF NOT EXISTS applications_user ON applications (user_id);
 CREATE TABLE IF NOT EXISTS contacts (
@@ -202,9 +204,18 @@ def pg_schema() -> str:
     return s + "\n".join(f"ALTER TABLE {t} ENABLE ROW LEVEL SECURITY;" for t in tables)
 
 
+ADDED_COLUMNS = {"applications": {"door_paths": "TEXT", "door_paths_at": "TEXT"}}  # added after the first deploy
+
+
 def init_db() -> None:
     with connect() as conn:
         conn.executescript(pg_schema() if is_postgres() else SCHEMA)
+        for table, cols in ADDED_COLUMNS.items():  # databases created before a column existed get it in place
+            for col, ddl in cols.items():
+                if is_postgres():
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {ddl}")
+                elif col not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:
+                    conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {ddl}")
 
 
 def _loads(row: dict, *cols: str) -> dict:
@@ -316,8 +327,15 @@ def board(user_id: int) -> list[dict]:
     for lead in leads:
         for app_id in lead["application_ids"]:
             by_app.setdefault(app_id, []).append(lead)
-    return [{**a, "logo": None, "activity": activity.get(a["id"], []), "network": network.get(a["id"], []),
+    return [{**a, "logo": None, "door_paths": json.loads(a["door_paths"]) if a.get("door_paths") else None,
+             "activity": activity.get(a["id"], []), "network": network.get(a["id"], []),
              "leads": by_app.get(a["id"], []), "found": []} for a in apps]
+
+
+def save_doors(user_id: int, app_id: int, result: dict) -> None:
+    with connect() as conn:
+        conn.execute("UPDATE applications SET door_paths = ?, door_paths_at = datetime('now') WHERE id = ? AND user_id = ?",
+                     (json.dumps(result, ensure_ascii=False), app_id, user_id))
 
 
 # ─── Action plan ticks ──────────────────────────────────────────────────

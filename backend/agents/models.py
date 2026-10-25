@@ -105,3 +105,17 @@ class CoachPlan(BaseModel):
 def trim(text: str | None, n: int) -> str:
     t = (text or "").strip()
     return t if len(t) <= n else t[: n - 1].rstrip() + "…"
+
+
+# ─── Network intelligence: who can open the door at one opportunity ──────
+class DoorPath(BaseModel):
+    contact_id: str = Field(description="the CON- id of one person in the records given")
+    strength: Literal["strong", "medium", "weak"]
+    why_them: str = Field(description="one sentence from the records")
+    ask: str = Field(description="the realistic ask, learning first")
+    first_message: str = Field(description="one or two sentences the student could send themselves")
+
+
+class DoorPlan(BaseModel):
+    paths: list[DoorPath] = Field(default_factory=list, description="up to 3, best first")
+    next_best: str = Field("", description="if there is no strong path: how to find one")

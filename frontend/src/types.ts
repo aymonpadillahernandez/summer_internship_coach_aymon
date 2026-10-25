@@ -20,6 +20,8 @@ export type Application = {
   origin: string; // demo | posting | chat | linkedin | manual
   fit: "strong" | "possible" | "weak" | "unknown" | null;
   fit_reason: string | null;
+  door_paths: DoorPaths | null;
+  door_paths_at: string | null;
   source_url: string;
   added_on: string | null;
   // What the official careers page said when last checked (null if not checked or not verifiable)
@@ -96,3 +98,12 @@ export type Contact = {
 };
 
 export type SyncInfo = { synced_on: string | null; emails_searched: number | null; emails_read: number | null };
+
+export type DoorPath = { contact_id: string; name: string; strength: "strong" | "medium" | "weak"; why_them: string; ask: string; first_message: string };
+export type DoorPaths = {
+  paths: DoorPath[];
+  next_best: string;
+  checked: number;
+  run_id?: string;
+  usage?: { input: number; cached: number; output: number; requests: number; cost_usd: number | null };
+};

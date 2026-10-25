@@ -531,6 +531,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
           findContact={(name) => contactByName.get(name.toLowerCase())}
           onOpenContact={openContact}
           onInterest={(v) => setInterest("app", shownApp.id, v)}
+          onUpdated={(card) => setApps((xs) => xs.map((a) => (a.id === card.id ? card : a)))}
         />
       )}
       {shownContact && (

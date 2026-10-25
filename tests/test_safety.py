@@ -195,3 +195,26 @@ def test_a_large_linkedin_export_is_filtered_in_code_before_the_model(demo_clien
     assert "Lena,Fischer,Keystone Bank" in reply.seen and "Person1," not in reply.seen  # only tracked organisations
     assert "linkedin.com/in" not in reply.seen and "@bank.example" not in reply.seen  # URL and email columns dropped
     assert any(s["event"] == "export_filtered" and "kept 1 of 601" in s["detail"] for s in r["trace"])
+
+
+def test_who_can_open_the_door_uses_only_the_students_people(demo_client, accept_test_model):
+    uid = _user_id(demo_client)
+    harborview = next(a for a in db.list_applications(uid) if a["company"] == "Harborview Media")
+    people = {c["name"]: c["id"] for c in db.list_contacts(uid)}
+    real = f"CON-{people['David Okafor']}"
+    plan = _json_reply({"paths": [
+        {"contact_id": real, "strength": "medium", "why_them": "Runs partnerships there.", "ask": "Perspective on the team.",
+         "first_message": "Hi David, Priya suggested I reach out."},
+        {"contact_id": "CON-999999", "strength": "strong", "why_them": "Invented", "ask": "Referral", "first_message": "x"}],
+        "next_best": ""})
+    with network.doors_agent().override(model=FunctionModel(plan)):
+        r = demo_client.post(f"/api/applications/{harborview['id']}/doors").json()
+    assert [p["name"] for p in r["doors"]["paths"]] == ["David Okafor"]  # the invented person is dropped
+    assert any(s["event"] == "ids_dropped" for s in r["trace"])
+    assert real in plan.seen and "Priya Shah" in plan.seen  # linked people are always among those checked
+    assert r["card"]["door_paths"]["paths"][0]["name"] == "David Okafor"  # saved on the card
+    from fastapi.testclient import TestClient
+    import main
+    with TestClient(main.app) as other:
+        other.post("/api/auth/signup", json={"email": "student-c@example.com", "password": "long-password-1"})
+        assert other.post(f"/api/applications/{harborview['id']}/doors").status_code == 404

@@ -126,6 +126,9 @@ export type SavedPlan = CoachPlan & { run_id: string; created_at: string; usage:
 export const runPlan = (candidates: Candidate[]) => post<RunResult & { plan: CoachPlan | null }>("/api/plan", { candidates });
 export const fetchLatestPlan = () => request<{ plan: SavedPlan | null }>("/api/plan/latest");
 
+export const findDoors = (appId: number) =>
+  post<RunResult & { doors: import("./types").DoorPaths | null; card?: Application }>(`/api/applications/${appId}/doors`);
+
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export const askCoach = (messages: ChatMessage[], candidates: Candidate[]) =>
   post<RunResult & { answer: string | null; agent: string | null; model?: string; person?: string | null }>("/api/chat", { messages, candidates });

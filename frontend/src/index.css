@@ -1003,3 +1003,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .guide-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--brand); color: #fff; }
 .guide-steps li.is-done { opacity: 0.6; }
 .guide-steps li.is-done .guide-num { background: var(--green); }
+
+/* Who can open the door */
+.doors-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.doors-head h4 { margin: 0; }
+.door-list { list-style: none; display: grid; gap: 8px; margin-top: 8px; }
+.door-list li { background: var(--fill-soft); border-radius: 12px; padding: 10px 12px; }
+.door-list p { font-size: 13px; color: var(--ink-soft); margin-top: 3px; }
+.door-list details { margin-top: 5px; font-size: 13px; }
+.door-list summary { cursor: pointer; color: var(--blue-ink); }
+.door-list blockquote { margin: 6px 0 0; padding: 7px 10px; border-left: 3px solid var(--network); background: var(--surface); border-radius: 0 8px 8px 0; color: var(--ink-soft); }
+.door-top { display: flex; align-items: center; gap: 8px; }
+.door-top .person-link { font-weight: 700; }
+.doors-none { font-size: 13px; color: var(--ink-soft); }
+.strength { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; border-radius: 5px; padding: 1px 6px; }
+.strength-strong { color: var(--green); background: var(--ok-bg); }
+.strength-medium { color: var(--orange-ink); background: rgba(255, 149, 0, 0.12); }
+.strength-weak { color: var(--ink-muted); background: var(--fill); }
