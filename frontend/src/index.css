@@ -957,7 +957,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .fit-line { font-size: 14px; color: var(--ink-soft); }
 
 /* Usage sheet */
-.usage-sheet { width: min(760px, calc(100% - 24px)); }
+.usage-sheet { width: min(760px, calc(100% - 24px)); background: var(--surface); }
 .budget { display: grid; gap: 8px; }
 .budget p { font-size: 13px; color: var(--ink-soft); }
 .budget-bar { height: 8px; background: var(--fill); border-radius: 99px; overflow: hidden; }

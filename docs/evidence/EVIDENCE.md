@@ -14,13 +14,14 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 | 2026-10-25 01:53 | Safety (test) | 9 pytest safety tests pass with no key: injection quarantined and unable to act, hidden text removed, invented quotes and people rejected, cross-student 404s, delegation cap, invented action refused, model substitution rejected, oversized input 422 with 0 tokens, daily budget 429, tool loop stopped | `docs/evidence/runs/2026-10-25_safety_tests.txt` |
 | 2026-10-25 01:58 | Look + feel · Agent design | In the browser: Plan my week answered in 14 s with 5 ranked actions; attack sample blocked with the Shield box; "Prepare my next call" routed to Network intelligence, 11 s, 2,039 tokens | screenshots to capture from the live site |
 | 2026-10-25 02:02 | Staff can run it | Fresh clone from GitHub with `.env` one folder above the repo, following the README: health reports "one folder above the repo", demo seeds, site serves, a real intake works; 13 s setup with warm caches | `docs/evidence/runs/2026-10-25_fresh_clone.txt` |
+| 2026-10-25 02:04 | Agent design · Tokenomics · Safety · Look + feel | Full demo session on the **live site** (Render + Supabase), captured by `scripts/screenshots.py`: plan 19.0 s, 4 model calls, 8,078 in / 1,933 cached / 2,717 out, with the full delegation trace; both attacks blocked on screen; email intake; boards; usage table; call prep | `docs/evidence/screenshots/2026-10-25_summer-internship-coach-onrender-com/` (13 PNGs) |
 
 ## Still to collect
 
 - [ ] Baseline (before): how a real user tracks the search and preps a call today — minutes, steps, misses
-- [ ] Screenshots of a real end-to-end run with the agent trace (delegation), from the live site
+- [x] Screenshots of a real end-to-end run with the agent trace (delegation), from the live site
 - [x] Token usage per run (input / cached input / output) from the app's own log (above; repeat 3× per scenario for the report)
-- [x] Prompt-injection attack stopped by a defense: test output (above); screenshot still to capture
+- [x] Prompt-injection attack stopped by a defense: test output and live screenshots (above)
 - [ ] Real user test: task, time, outcome, quote (after)
-- [ ] Key UI states for look + feel
+- [x] Key UI states for look + feel (live screenshots)
 - [ ] gpt-6-luna prices (source + date) to turn token counts into cost
