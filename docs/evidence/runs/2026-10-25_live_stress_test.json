@@ -1,0 +1,384 @@
+{
+ "note": "Scripted stress test of the LIVE site, Oct 25 2026 ~12:10 ET. Demo path (fictional student) plus a new-user path with a made-up target list and coffee-chat note (invented organisations and people; not a real user test). Real gpt-6-luna runs. Both test accounts were deleted afterwards.",
+ "steps": [
+  {
+   "step": "health",
+   "ok": true,
+   "s": 32.2,
+   "out": {
+    "ok": true,
+    "model": "gpt-6-luna",
+    "portkey_key_set": true,
+    "env_file": "none found (using the host's environment variables)",
+    "database": "postgres"
+   }
+  },
+  {
+   "step": "demo login",
+   "ok": true,
+   "s": 0.5,
+   "out": "demo-47e714ebf22e@demo.local"
+  },
+  {
+   "step": "GET applications",
+   "ok": true,
+   "s": 0.3,
+   "out": 14914
+  },
+  {
+   "step": "GET network",
+   "ok": true,
+   "s": 0.2,
+   "out": 7588
+  },
+  {
+   "step": "GET leads",
+   "ok": true,
+   "s": 0.1,
+   "out": 1580
+  },
+  {
+   "step": "GET checks",
+   "ok": true,
+   "s": 0.2,
+   "out": 13
+  },
+  {
+   "step": "GET actions/done",
+   "ok": true,
+   "s": 0.1,
+   "out": 11
+  },
+  {
+   "step": "GET plan/latest",
+   "ok": true,
+   "s": 0.2,
+   "out": 13
+  },
+  {
+   "step": "GET usage",
+   "ok": true,
+   "s": 0.2,
+   "out": 159
+  },
+  {
+   "step": "GET samples",
+   "ok": true,
+   "s": 0.1,
+   "out": 5525
+  },
+  {
+   "step": "GET profile",
+   "ok": true,
+   "s": 0.1,
+   "out": 458
+  },
+  {
+   "step": "intake posting",
+   "ok": true,
+   "s": 5.9,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "scout"
+    ],
+    "usage": {
+     "input": 1565,
+     "cached": 0,
+     "output": 349
+    },
+    "saved": {
+     "opportunities_added": 1,
+     "opportunities_updated": 0,
+     "leads_added": 0
+    },
+    "shield": 0
+   }
+  },
+  {
+   "step": "intake email",
+   "ok": true,
+   "s": 4.9,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "scout",
+     "network"
+    ],
+    "usage": {
+     "input": 3315,
+     "cached": 0,
+     "output": 680
+    },
+    "saved": {
+     "opportunities_added": 0,
+     "opportunities_updated": 1,
+     "leads_added": 1,
+     "contacts_added": 1,
+     "contacts_updated": 0,
+     "events_added": 2
+    },
+    "shield": 0
+   }
+  },
+  {
+   "step": "intake whatsapp",
+   "ok": true,
+   "s": 11.0,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "network"
+    ],
+    "usage": {
+     "input": 1765,
+     "cached": 1029,
+     "output": 1401
+    },
+    "saved": {
+     "contacts_added": 1,
+     "contacts_updated": 3,
+     "events_added": 9
+    },
+    "shield": 0
+   }
+  },
+  {
+   "step": "intake linkedin",
+   "ok": true,
+   "s": 7.7,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "network"
+    ],
+    "usage": {
+     "input": 1670,
+     "cached": 1029,
+     "output": 695
+    },
+    "saved": {
+     "contacts_added": 3,
+     "contacts_updated": 1,
+     "events_added": 4
+    },
+    "shield": 0
+   }
+  },
+  {
+   "step": "intake attack_text",
+   "ok": true,
+   "s": 5.4,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "scout"
+    ],
+    "usage": {
+     "input": 1531,
+     "cached": 0,
+     "output": 417
+    },
+    "saved": {
+     "opportunities_added": 1,
+     "opportunities_updated": 0,
+     "leads_added": 0
+    },
+    "shield": 1
+   }
+  },
+  {
+   "step": "intake attack_hidden",
+   "ok": true,
+   "s": 3.9,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "scout"
+    ],
+    "usage": {
+     "input": 1533,
+     "cached": 0,
+     "output": 322
+    },
+    "saved": {
+     "opportunities_added": 1,
+     "opportunities_updated": 0,
+     "leads_added": 0
+    },
+    "shield": 1
+   }
+  },
+  {
+   "step": "plan (27 candidates)",
+   "ok": true,
+   "s": 17.8,
+   "out": {
+    "status": "ok",
+    "s": 17.6,
+    "usage": {
+     "requests": 4,
+     "input": 8270,
+     "cached": 1681,
+     "output": 2860
+    },
+    "actions": [
+     "Apply to Northbridge Sports Group",
+     "Follow Maya Chen",
+     "Prepare for the Meridian Stadiums interview",
+     "Follow Sofia Alvarez",
+     "Apply to Riverside Arena Group"
+    ]
+   }
+  },
+  {
+   "step": "chat: who can help",
+   "ok": true,
+   "s": 13.7,
+   "out": {
+    "status": "ok",
+    "agent": "strategist",
+    "s": 13.53,
+    "usage": {
+     "input": 6736,
+     "cached": 1129,
+     "output": 1673
+    },
+    "first": "**Three targets have no contact recorded: Granite Peak Sports, Cobalt City FC, and Riverside Arena Group.** The strongest relevant network help is tie"
+   }
+  },
+  {
+   "step": "chat: call prep",
+   "ok": true,
+   "s": 7.7,
+   "out": {
+    "status": "ok",
+    "agent": "network",
+    "person": "Hannah Brooks",
+    "s": 7.48
+   }
+  },
+  {
+   "step": "usage after",
+   "ok": true,
+   "s": 0.1,
+   "out": {
+    "runs": 9,
+    "today_tokens": 36760
+   }
+  },
+  {
+   "step": "delete demo account",
+   "ok": true,
+   "s": 0.1,
+   "out": {
+    "ok": true
+   }
+  },
+  {
+   "step": "new user signup",
+   "ok": true,
+   "s": 0.4,
+   "out": false
+  },
+  {
+   "step": "new user: empty records",
+   "ok": true,
+   "s": 0.2,
+   "out": {
+    "applications": 0,
+    "network": 0
+   }
+  },
+  {
+   "step": "new user: plan with no candidates -> 422",
+   "ok": true,
+   "s": 0.1,
+   "out": "422 as expected"
+  },
+  {
+   "step": "new user: profile",
+   "ok": true,
+   "s": 0.1,
+   "out": "saved"
+  },
+  {
+   "step": "new user: paste target list",
+   "ok": true,
+   "s": 7.0,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "scout"
+    ],
+    "usage": {
+     "input": 1195,
+     "output": 1075
+    },
+    "added": [
+     "Harbor League Office",
+     "Iberia Basketball Club",
+     "Velo Media Group",
+     "Peak Ventures",
+     "Coastline Stadiums"
+    ],
+    "rejected": []
+   }
+  },
+  {
+   "step": "new user: paste coffee-chat note",
+   "ok": true,
+   "s": 4.3,
+   "out": {
+    "status": "ok",
+    "routes": [
+     "network"
+    ],
+    "saved": {
+     "contacts_added": [
+      {
+       "id": 55,
+       "name": "Laura Méndez"
+      },
+      {
+       "id": 56,
+       "name": "Pablo Ruiz"
+      }
+     ],
+     "contacts_updated": [],
+     "events_added": 1
+    },
+    "rejected": []
+   }
+  },
+  {
+   "step": "new user: plan (7 candidates)",
+   "ok": true,
+   "s": 23.6,
+   "out": {
+    "status": "ok",
+    "s": 23.44,
+    "usage": {
+     "requests": 5,
+     "input": 7901,
+     "cached": 3654,
+     "output": 2006
+    },
+    "headline": "Prioritize Harbor League Office’s November 15 application, send Laura Méndez your resume for her Iberia Basketball Club introduction, and make room for Velo Media Group’s December 1 deadline.",
+    "actions": [
+     "Apply to Harbor League Office",
+     "Follow Laura Méndez",
+     "Apply to Velo Media Group"
+    ]
+   }
+  },
+  {
+   "step": "new user: delete account",
+   "ok": true,
+   "s": 0.1,
+   "out": {
+    "ok": true
+   }
+  }
+ ]
+}

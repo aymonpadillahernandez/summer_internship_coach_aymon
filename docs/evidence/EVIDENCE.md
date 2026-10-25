@@ -15,6 +15,7 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 | 2026-10-25 01:58 | Look + feel · Agent design | In the browser: Plan my week answered in 14 s with 5 ranked actions; attack sample blocked with the Shield box; "Prepare my next call" routed to Network intelligence, 11 s, 2,039 tokens | screenshots to capture from the live site |
 | 2026-10-25 02:02 | Staff can run it | Fresh clone from GitHub with `.env` one folder above the repo, following the README: health reports "one folder above the repo", demo seeds, site serves, a real intake works; 13 s setup with warm caches | `docs/evidence/runs/2026-10-25_fresh_clone.txt` |
 | 2026-10-25 02:04 | Agent design · Tokenomics · Safety · Look + feel | Full demo session on the **live site** (Render + Supabase), captured by `scripts/screenshots.py`: plan 19.0 s, 4 model calls, 8,078 in / 1,933 cached / 2,717 out, with the full delegation trace; both attacks blocked on screen; email intake; boards; usage table; call prep | `docs/evidence/screenshots/2026-10-25_summer-internship-coach-onrender-com/` (13 PNGs) |
+| 2026-10-25 12:10 | It works · Staff can run it · Tokenomics | Live stress test, 29 of 29 steps passed: cold start 32 s (free plan asleep); 6 intakes; plan 17.6 s (8,270 in / 1,681 cached / 2,860 out); chat 13.5 s; call prep 7.5 s; a new-user path (sign-up, empty account, target list of 5 → 5 opportunities, coffee-chat note → 2 people, plan 23.4 s). Synthetic data, not a user test | `docs/evidence/runs/2026-10-25_live_stress_test.json` |
 
 ## Still to collect
 
