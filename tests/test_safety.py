@@ -178,3 +178,20 @@ def test_a_looping_agent_is_stopped_by_the_usage_limit(demo_client, accept_test_
         r = demo_client.post("/api/plan", json={"candidates": [{"key": "net:reach:1", "title": "x"}]}).json()
     assert r["plan"] is None
     assert any(s["event"] == "usage_limit" for s in r["trace"])
+
+
+def test_a_large_linkedin_export_is_filtered_in_code_before_the_model(demo_client, accept_test_model):
+    header = "Notes:\nWhen exporting your connection data, you may notice that some of the email addresses are missing.\n\n"
+    header += "First Name,Last Name,URL,Email Address,Company,Position,Connected On\n"
+    rows = [f"Person{i},Example{i},https://www.linkedin.com/in/p{i},p{i}@mail.example,Unrelated Co {i},Analyst,01 Jan 2024"
+            for i in range(600)]
+    rows.append("Lena,Fischer,https://www.linkedin.com/in/lena,lena@bank.example,Keystone Bank,VP Sports Finance,21 Jan 2025")
+    export = header + "\n".join(rows)
+    assert len(export) > config.MAX_INPUT_CHARS  # longer than a normal paste, still accepted as an export
+    reply = _json_reply({"contacts": [], "fields_not_found": []})
+    with network.intake_agent().override(model=FunctionModel(reply)):
+        r = demo_client.post("/api/intake", json={"text": export, "kind": "auto", "label": "Connections.csv"}).json()
+    assert r["routes"] == ["network"]
+    assert "Lena,Fischer,Keystone Bank" in reply.seen and "Person1," not in reply.seen  # only tracked organisations
+    assert "linkedin.com/in" not in reply.seen and "@bank.example" not in reply.seen  # URL and email columns dropped
+    assert any(s["event"] == "export_filtered" and "kept 1 of 601" in s["detail"] for s in r["trace"])

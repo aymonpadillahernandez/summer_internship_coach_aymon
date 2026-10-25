@@ -88,7 +88,7 @@ class ProfileBody(BaseModel):
 
 
 class IntakeBody(BaseModel):
-    text: str = Field(min_length=20, max_length=config.MAX_INPUT_CHARS)
+    text: str = Field(min_length=20, max_length=config.MAX_EXPORT_CHARS)
     kind: Literal["auto", "opportunity", "conversation"] = "auto"
     label: str = Field(default="Pasted text", max_length=120)
 
@@ -287,6 +287,9 @@ def samples(_: dict = Depends(auth.require_user)):
 # ─── AI: intake, plan, chat ─────────────────────────────────────────────
 @app.post("/api/intake")
 async def intake_route(body: IntakeBody, user: dict = Depends(auth.require_user)):
+    if len(body.text) > config.MAX_INPUT_CHARS and not intake.is_linkedin_export(body.text):
+        raise HTTPException(422, f"That text is too long ({len(body.text):,} characters). Paste at most "
+                                 f"{config.MAX_INPUT_CHARS:,}, or upload a LinkedIn connections export.")
     require_budget(user)
     return await intake.process(user["id"], body.text, body.kind, body.label)
 

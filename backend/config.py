@@ -50,6 +50,8 @@ PRICE_SOURCE = ""  # where the prices came from (URL + date), shown next to ever
 
 # ─── Limits (stopping rules and guardrails) ─────────────────────────────
 MAX_INPUT_CHARS = 20_000  # one paste or upload; longer is refused before any model call (422, 0 tokens)
+MAX_EXPORT_CHARS = 400_000  # a LinkedIn connections export may be this long: code filters it before any model call
+LINKEDIN_MAX_ROWS = 40  # rows (connections at tracked organisations) the network agent may read from one export
 MAX_CHAT_CHARS = 4_000  # one chat message
 MAX_CHAT_TURNS = 12  # earlier turns are dropped before the model sees them
 MAX_CANDIDATES = 60  # action-plan items the strategist may rank

@@ -17,6 +17,9 @@ const PLAN_STAGES = [
 const INTAKE_STAGES = ["The shield is checking the text…", "A specialist is reading it…", "Checking every quote against your text…"];
 
 const errorText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
+const MAX_PASTE = 20_000;
+const MAX_EXPORT = 400_000; // a LinkedIn connections export: filtered in code before the AI reads it
+const isLinkedInExport = (t: string) => /^\s*first name\s*,\s*last name\s*,/im.test(t.slice(0, 3000));
 
 function useStaged(active: boolean, stages: string[]) {
   const [i, setI] = useState(0);
@@ -81,6 +84,10 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   }
 
   async function addIntake() {
+    if (text.length > MAX_PASTE && !isLinkedInExport(text)) {
+      setIntakeError(`That's ${text.length.toLocaleString()} characters. Paste at most ${MAX_PASTE.toLocaleString()} at a time (LinkedIn exports can be longer).`);
+      return;
+    }
     setIntakeBusy(true);
     setIntakeError(null);
     setIntake(null);
@@ -106,14 +113,16 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   function onFile(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 200_000) {
+    if (f.size > 1_000_000) {
       setIntakeError("That file is too large. Paste the relevant part instead.");
       return;
     }
     f.text().then((t) => {
-      setText(t.slice(0, 20000));
+      const exportFile = isLinkedInExport(t);
+      setText(t.slice(0, exportFile ? MAX_EXPORT : MAX_PASTE));
       setLabel(f.name);
       setIntake(null);
+      setIntakeError(!exportFile && t.length > MAX_PASTE ? `Only the first ${MAX_PASTE.toLocaleString()} characters were kept.` : null);
     });
     e.target.value = "";
   }
@@ -220,7 +229,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
             className="intake-text"
             rows={9}
             value={text}
-            maxLength={20000}
+            maxLength={MAX_EXPORT}
             placeholder="Paste here… e.g. a recruiter's reply, a WhatsApp chat about an intro, a posting from a careers page."
             onChange={(e) => setText(e.target.value)}
           />
@@ -234,7 +243,9 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
             </div>
             <button className="toggle" onClick={() => fileRef.current?.click()}>Upload a file</button>
             <input ref={fileRef} type="file" accept=".txt,.csv,.eml,.html,.htm,.md" hidden onChange={onFile} />
-            <span className="char-count">{text.length.toLocaleString()} / 20,000</span>
+            <span className="char-count">
+              {isLinkedInExport(text) ? "LinkedIn export · filtered to your organisations first" : `${text.length.toLocaleString()} / ${MAX_PASTE.toLocaleString()}`}
+            </span>
             <button className="primary-btn" onClick={addIntake} disabled={intakeBusy || text.trim().length < 20}>
               {intakeBusy ? "Reading…" : "Add to my coach"}
             </button>

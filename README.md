@@ -94,10 +94,10 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 9 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 10 tests, no API key needed, no tokens spent
 ```
 
-They cover prompt injection in pasted text, hidden text in web pages, invented quotes and people, one student
+They cover prompt injection in pasted text, hidden text in web pages, invented quotes and people, a 600-row LinkedIn export filtered in code, one student
 reading another's data, runaway delegation and tool loops, invented actions, model substitution, oversized input
 and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_LIMIT`, `MAX_DELEGATIONS_PER_RUN`,
 `AGENT_TOTAL_TOKENS_LIMIT`, `MAX_INPUT_CHARS`, `DAILY_TOKEN_BUDGET`, …).

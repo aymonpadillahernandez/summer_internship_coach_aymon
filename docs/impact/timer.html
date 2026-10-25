@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Before / after test · Summer Internship Coach</title>
+<style>
+  :root { --brand:#5e5ce6; --ink:#1d1d1f; --soft:#424245; --muted:#86868b; --page:#f5f5f7; --card:#fff; --line:rgba(0,0,0,.08);
+          --fill:rgba(120,120,128,.1); --green:#248a3d; --red:#c9302c; --orange:#a15c00; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--page); color:var(--ink); font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,Arial,sans-serif; }
+  main { max-width:980px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:28px; letter-spacing:-.02em; margin:0; }
+  .sub { color:var(--soft); margin:6px 0 18px; text-align:justify; }
+  .card { background:var(--card); border-radius:16px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04); padding:16px 18px; margin:12px 0; }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .task-head { display:grid; grid-template-columns:52px 1fr auto auto; gap:12px; align-items:center; }
+  .code { font-weight:800; font-size:15px; color:#fff; background:var(--muted); border-radius:9px; padding:6px 0; text-align:center; }
+  .code.b { background:#8e8e93; } .code.a { background:var(--brand); } .code.s { background:#30b0c7; }
+  .task-head b { font-size:16px; } .task-head p { margin:2px 0 0; color:var(--soft); font-size:13.5px; text-align:justify; }
+  .clock { font:700 26px/1 ui-monospace,SFMono-Regular,Menlo,monospace; min-width:92px; text-align:right; font-variant-numeric:tabular-nums; }
+  .running .clock { color:var(--brand); }
+  button { font:inherit; border:0; border-radius:10px; padding:8px 14px; cursor:pointer; font-weight:600; background:var(--fill); color:var(--ink); }
+  button.go { background:var(--brand); color:#fff; } button.stop { background:var(--red); color:#fff; }
+  button:disabled { opacity:.45; cursor:default; }
+  .times { font-size:12px; color:var(--muted); margin-top:6px; }
+  textarea, input[type=text], input[type=number] { font:inherit; border:1px solid var(--line); background:var(--fill); border-radius:9px; padding:7px 9px; color:var(--ink); }
+  textarea { width:100%; min-height:44px; margin-top:8px; resize:vertical; }
+  input[type=number] { width:70px; }
+  .extra { margin-top:10px; padding-top:10px; border-top:1px solid var(--line); }
+  .extra h4, .card h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  table { border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); }
+  th { font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); }
+  .good { color:var(--green); font-weight:700; } .bad { color:var(--red); font-weight:700; }
+  label { font-size:14px; color:var(--soft); }
+  .note { font-size:12.5px; color:var(--muted); text-align:justify; }
+  .actions { position:sticky; bottom:12px; display:flex; gap:8px; justify-content:flex-end; background:rgba(245,245,247,.92); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:8px; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.08); }
+  .actions button:not(.go) { background:#fff; }
+  .pill { display:inline-block; font-size:12px; font-weight:700; border-radius:6px; padding:2px 8px; background:var(--fill); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Before / after test</h1>
+  <p class="sub">Summer Internship Coach · same real material, today's way first, then the coach. Start the timer when you begin a task and stop it when its result is ready (see <code>PROTOCOL.md</code>). Everything is saved in this browser as you go; download the results at the end.</p>
+
+  <div class="card row">
+    <label>Tester <input type="text" id="tester" placeholder="name or initials"></label>
+    <label>Tester is also the builder <input type="checkbox" id="builder"></label>
+    <label>"Before" tools <input type="text" id="tools" placeholder="e.g. my own tracker, Gmail, WhatsApp" size="34"></label>
+  </div>
+
+  <div id="tasks"></div>
+
+  <div class="card">
+    <h3>A typical recruiting week (for the projection)</h3>
+    <div class="row">
+      <label>New recruiting items (emails, chats, postings) <input type="number" min="0" id="f_items"></label>
+      <label>Networking calls <input type="number" min="0" id="f_calls"></label>
+      <label>Times you sit down to decide priorities <input type="number" min="0" id="f_plans"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>In your own words</h3>
+    <textarea id="quote" placeholder="What changed for you, in one or two sentences?"></textarea>
+    <div class="row" style="margin-top:8px">
+      <label><input type="radio" name="consent" value="named"> Quote me by name</label>
+      <label><input type="radio" name="consent" value="anonymous"> Quote me anonymously</label>
+      <label><input type="radio" name="consent" value="no"> Don't quote me</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Results</h3>
+    <div id="summary"></div>
+    <p class="note">Measured: minutes per task and the quality checks above. Projected: weekly minutes saved = per-item capture time saved × items per week + call-prep time saved × calls per week + planning time saved × planning sessions per week. The report labels the projection as a projection.</p>
+  </div>
+
+  <div class="actions">
+    <button onclick="resetAll()">Reset</button>
+    <button onclick="copyJson()">Copy results</button>
+    <button class="go" onclick="downloadJson()">Download results</button>
+  </div>
+</main>
+
+<script>
+const TASKS = [
+  { id: "B1", kind: "b", title: "Capture the 6 items — today's way", text: "Into your tracker or manual_capture_template.csv: organisation, role, person, stage, deadline, next step, next-step date." },
+  { id: "B2", kind: "b", title: "Decide the week — today's way", text: "With everything you have, write the 3 most valuable actions for this week, each with why now and the first step." },
+  { id: "B3", kind: "b", title: "Prepare the call — today's way", text: "Who they are and your history, your goal, 5 questions, a follow-up email draft." },
+  { id: "S0", kind: "s", title: "Set up the coach (one-off)", text: "Create your account, write your profile, paste your target list (and LinkedIn export if you have it)." },
+  { id: "A1", kind: "a", title: "Capture the same 6 items — coach", text: "Paste each item into Add what's new. Stop when you have read the last result." },
+  { id: "A2", kind: "a", title: "Decide the week — coach", text: "Plan my week, then read the plan." },
+  { id: "A3", kind: "a", title: "Prepare the same call — coach", text: "Ask your coach: “Prepare my call with …”. Stop when you have read the brief." },
+];
+const KEY = "coach-impact-test";
+const blank = () => ({ tester: "", builder: false, tools: "", tasks: {}, a1: {}, a2: {}, a3: {}, freq: {}, quote: "", consent: "" });
+let state = JSON.parse(localStorage.getItem(KEY) || "null") || blank();
+const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+const task = (id) => (state.tasks[id] ||= { segments: [], note: "" });
+const elapsed = (id) => task(id).segments.reduce((s, g) => s + ((g.end ? Date.parse(g.end) : Date.now()) - Date.parse(g.start)), 0);
+const running = () => TASKS.find((t) => { const s = task(t.id).segments; return s.length && !s[s.length - 1].end; });
+const mmss = (ms) => { const s = Math.round(ms / 1000); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+const mins = (ms) => Math.round(ms / 600) / 100;
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function toggle(id) {
+  const r = running();
+  if (r && r.id !== id) return alert(`Stop ${r.id} first.`);
+  const segs = task(id).segments;
+  if (segs.length && !segs[segs.length - 1].end) segs[segs.length - 1].end = new Date().toISOString();
+  else segs.push({ start: new Date().toISOString(), end: null });
+  save(); render();
+}
+
+function extra(id) {
+  if (id === "A1") {
+    const rows = [1, 2, 3, 4, 5, 6].map((i) => {
+      const v = state.a1[i] || {};
+      return `<tr><td>Item ${i}</td>${["right", "wrong", "missed"].map((k) => `<td><input type="number" min="0" data-a1="${i}:${k}" value="${v[k] ?? ""}"></td>`).join("")}</tr>`;
+    }).join("");
+    return `<div class="extra"><h4>Accuracy against your own B1 rows (fields per item)</h4>
+      <table><tr><th></th><th>Right</th><th>Wrong</th><th>Missed</th></tr>${rows}</table>
+      <div class="row" style="margin-top:8px"><label>Shield rejections that were correct <input type="number" min="0" data-k="a1.shield_ok" value="${state.a1.shield_ok ?? ""}"></label>
+      <label>of <input type="number" min="0" data-k="a1.shield_total" value="${state.a1.shield_total ?? ""}"></label></div></div>`;
+  }
+  if (id === "A2") return `<div class="extra"><h4>Value of the plan</h4><div class="row">
+      <label>Actions you would really do this week (0–5) <input type="number" min="0" max="5" data-k="a2.would_do" value="${state.a2.would_do ?? ""}"></label>
+      <label>Important actions it found that your B2 list missed <input type="number" min="0" data-k="a2.surfaced" value="${state.a2.surfaced ?? ""}"></label>
+      <label>Wrong suggestions <input type="number" min="0" data-k="a2.wrong" value="${state.a2.wrong ?? ""}"></label></div></div>`;
+  if (id === "A3") return `<div class="extra"><h4>Value of the brief</h4><div class="row">
+      <label>Usefulness vs your own notes (1–5) <input type="number" min="1" max="5" data-k="a3.useful" value="${state.a3.useful ?? ""}"></label>
+      <label>Share you would use as it is (%) <input type="number" min="0" max="100" data-k="a3.usable_pct" value="${state.a3.usable_pct ?? ""}"></label></div></div>`;
+  return "";
+}
+
+function render() {
+  const r = running();
+  document.getElementById("tasks").innerHTML = TASKS.map((t) => {
+    const segs = task(t.id).segments, on = r && r.id === t.id;
+    const first = segs[0]?.start, last = segs[segs.length - 1]?.end;
+    return `<div class="card ${on ? "running" : ""}" id="card-${t.id}">
+      <div class="task-head"><span class="code ${t.kind}">${t.id}</span>
+        <div><b>${t.title}</b><p>${t.text}</p></div>
+        <span class="clock" id="clock-${t.id}">${mmss(elapsed(t.id))}</span>
+        <button class="${on ? "stop" : "go"}" onclick="toggle('${t.id}')" ${r && !on ? "disabled" : ""}>${on ? "Stop" : segs.length ? "Resume" : "Start"}</button></div>
+      ${first ? `<div class="times">Started ${new Date(first).toLocaleTimeString()}${last ? ` · stopped ${new Date(last).toLocaleTimeString()}` : ""} · ${segs.length} segment(s)</div>` : ""}
+      <textarea data-note="${t.id}" placeholder="Notes (what you did, anything odd)">${esc(task(t.id).note)}</textarea>
+      ${extra(t.id)}</div>`;
+  }).join("");
+  ["tester", "tools"].forEach((k) => (document.getElementById(k).value = state[k] || ""));
+  document.getElementById("builder").checked = !!state.builder;
+  ["items", "calls", "plans"].forEach((k) => (document.getElementById(`f_${k}`).value = state.freq[k] ?? ""));
+  document.getElementById("quote").value = state.quote || "";
+  document.querySelectorAll('input[name=consent]').forEach((el) => (el.checked = el.value === state.consent));
+  summary();
+}
+
+function summary() {
+  const pairs = [["Capture 6 items", "B1", "A1"], ["Decide the week", "B2", "A2"], ["Prepare a call", "B3", "A3"]];
+  const rows = pairs.map(([name, b, a]) => {
+    const B = elapsed(b), A = elapsed(a), saved = B && A ? B - A : null;
+    return `<tr><td>${name}</td><td>${B ? mins(B) : "—"}</td><td>${A ? mins(A) : "—"}</td>
+      <td class="${saved > 0 ? "good" : saved < 0 ? "bad" : ""}">${saved == null ? "—" : mins(saved)}</td>
+      <td>${saved == null || !B ? "—" : Math.round((saved / B) * 100) + "%"}</td></tr>`;
+  }).join("");
+  const acc = Object.entries(state.a1).filter(([k]) => /^\d$/.test(k)).reduce((t, [, v]) => ({ r: t.r + (+v.right || 0), w: t.w + (+v.wrong || 0), m: t.m + (+v.missed || 0) }), { r: 0, w: 0, m: 0 });
+  const fields = acc.r + acc.w + acc.m;
+  const f = state.freq, perItem = (elapsed("B1") - elapsed("A1")) / 6;
+  const weekly = elapsed("B1") && elapsed("A1") && elapsed("B2") && elapsed("A2") && elapsed("B3") && elapsed("A3") && f.items !== undefined
+    ? perItem * (+f.items || 0) + (elapsed("B3") - elapsed("A3")) * (+f.calls || 0) + (elapsed("B2") - elapsed("A2")) * (+f.plans || 0) : null;
+  document.getElementById("summary").innerHTML = `<table><tr><th>Task</th><th>Before (min)</th><th>Coach (min)</th><th>Saved (min)</th><th>Saved</th></tr>${rows}
+    <tr><td>Coach setup (one-off)</td><td>—</td><td>${elapsed("S0") ? mins(elapsed("S0")) : "—"}</td><td></td><td></td></tr></table>
+    <p style="margin:10px 0 0">Capture accuracy: ${fields ? `<b>${Math.round((acc.r / fields) * 100)}%</b> of ${fields} fields right (${acc.w} wrong, ${acc.m} missed)` : "—"}
+    · Plan: ${state.a2.would_do ?? "—"} of 5 you would do, ${state.a2.surfaced ?? "—"} missed actions surfaced, ${state.a2.wrong ?? "—"} wrong
+    · Brief: ${state.a3.useful ?? "—"}/5, ${state.a3.usable_pct ?? "—"}% usable as is</p>
+    <p style="margin:6px 0 0"><span class="pill">Projection</span> Weekly time saved: <b>${weekly == null ? "fill in all tasks and the week" : mins(weekly) + " min"}</b></p>`;
+}
+
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.note) task(el.dataset.note).note = el.value;
+  else if (el.dataset.a1) { const [i, k] = el.dataset.a1.split(":"); (state.a1[i] ||= {})[k] = el.value === "" ? undefined : +el.value; }
+  else if (el.dataset.k) { const [o, k] = el.dataset.k.split("."); state[o][k] = el.value === "" ? undefined : +el.value; }
+  else if (el.id === "tester" || el.id === "tools") state[el.id] = el.value;
+  else if (el.id === "builder") state.builder = el.checked;
+  else if (el.id.startsWith("f_")) state.freq[el.id.slice(2)] = el.value === "" ? undefined : +el.value;
+  else if (el.id === "quote") state.quote = el.value;
+  else if (el.name === "consent") state.consent = el.value;
+  save(); summary();
+});
+setInterval(() => { const r = running(); if (r) { document.getElementById(`clock-${r.id}`).textContent = mmss(elapsed(r.id)); } }, 500);
+
+function payload() {
+  return JSON.stringify({ exported_at: new Date().toISOString(), ...state,
+    minutes: Object.fromEntries(TASKS.map((t) => [t.id, mins(elapsed(t.id))])) }, null, 2);
+}
+function downloadJson() {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([payload()], { type: "application/json" }));
+  a.download = `impact-test-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-")}.json`;
+  a.click();
+}
+function copyJson() { navigator.clipboard.writeText(payload()).then(() => alert("Results copied. Paste them into the chat.")); }
+function resetAll() { if (confirm("Erase every time and answer on this page?")) { state = blank(); save(); render(); } }
+render();
+</script>
+</body>
+</html>

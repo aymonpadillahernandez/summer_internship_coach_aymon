@@ -14,8 +14,12 @@ The pasted text itself is not stored: only the quotes that back each saved fact.
 from __future__ import annotations
 
 import asyncio
+import csv
+import io
 import re
 
+import config
+import db
 import merge
 import safety
 from agents import network, scout
@@ -27,6 +31,31 @@ CONVERSATION = re.compile(r"(^\[?\d{1,2}[/.]\d{1,2}[/.]\d{2,4},?\s+\d{1,2}:\d{2}
                           r"\b(thanks|thank you|best,|cheers|coffee|catch up|intro(duce|duction)?|connect you|great (chatting|speaking)|"
                           r"call|zoom|reply|let me know)\b)", re.I | re.M)
 LINKEDIN_CSV = re.compile(r"^\s*first name\s*,\s*last name\s*,", re.I | re.M)
+
+
+def is_linkedin_export(text: str) -> bool:
+    return bool(LINKEDIN_CSV.search(text[:3000]))
+
+
+def filter_linkedin(text: str, user_id: int) -> tuple[str, int, int]:
+    """Keep only connections at organisations the student tracks, and only name, company, position and date
+    (profile URLs and email columns never reach the model). Zero tokens. Returns (csv text, kept, total)."""
+    lines = text.splitlines()
+    start = next(i for i, line in enumerate(lines) if LINKEDIN_CSV.match(line))
+    rows = list(csv.DictReader(io.StringIO("\n".join(lines[start:]))))
+    tracked = [a["company"].lower().strip() for a in db.list_applications(user_id) if len(a["company"].strip()) >= 3]
+
+    def at_tracked(company: str) -> bool:
+        c = (company or "").lower().strip()
+        return len(c) >= 3 and any(c in t or t in c for t in tracked)
+
+    kept = [r for r in rows if at_tracked(r.get("Company", ""))][: config.LINKEDIN_MAX_ROWS]
+    out = io.StringIO()
+    cols = ["First Name", "Last Name", "Company", "Position", "Connected On"]
+    writer = csv.DictWriter(out, fieldnames=cols, extrasaction="ignore", lineterminator="\n")
+    writer.writeheader()
+    writer.writerows({k: (r.get(k) or "").strip() for k in cols} for r in kept)
+    return out.getvalue(), len(kept), len(rows)
 
 
 def route_for(text: str, kind: str) -> list[str]:
@@ -54,6 +83,14 @@ async def process(user_id: int, text: str, kind: str, label: str) -> dict:
         run.step("shield", "hidden_text_removed" if hidden else "html_cleaned",
                  f"{len(hidden)} hidden snippet(s) removed from the page" if hidden else "Page reduced to its visible text",
                  hidden=hidden[:5])
+    if is_linkedin_export(text):
+        text, kept, total = filter_linkedin(text, user_id)
+        run.step("router", "export_filtered", f"LinkedIn export: kept {kept} of {total} connections, those at organisations "
+                 "you track (name, company, position, date only)")
+        if kept == 0:
+            return {**run.finish("ok", "LinkedIn export: no connections at tracked organisations"), "routes": [],
+                    "flagged": [], "hidden": [], "saved": {}, "rejected": [],
+                    "fields_not_found": ["None of these connections work at an organisation you track yet. Add opportunities first."]}
     text, flagged = safety.quarantine(text)
     if flagged:
         run.step("shield", "instructions_quarantined",

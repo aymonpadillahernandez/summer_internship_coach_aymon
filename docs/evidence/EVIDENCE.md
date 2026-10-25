@@ -18,7 +18,7 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 
 ## Still to collect
 
-- [ ] Baseline (before): how a real user tracks the search and preps a call today — minutes, steps, misses
+- [ ] Baseline (before) and after with the first tester (Aymon, also the builder): protocol and timer ready in `docs/impact/` (Oct 25); session pending
 - [x] Screenshots of a real end-to-end run with the agent trace (delegation), from the live site
 - [x] Token usage per run (input / cached input / output) from the app's own log (above; repeat 3× per scenario for the report)
 - [x] Prompt-injection attack stopped by a defense: test output and live screenshots (above)
