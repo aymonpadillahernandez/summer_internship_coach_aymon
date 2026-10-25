@@ -1,0 +1,19 @@
+# Keeps the live app (Render free plan) from sleeping during the day, so the first visit loads in seconds instead
+# of ~30-60 s. Only from 8 AM to 1 AM US Eastern (12:00-04:59 UTC): the free plan has 750 instance hours a month per
+# workspace, shared with another service, so pinging around the clock would use them up before month end.
+name: Keep the live app awake
+
+on:
+  schedule:
+    - cron: "*/10 12-23,0-4 * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /api/health
+        run: curl --silent --show-error --max-time 120 --retry 2 https://summer-internship-coach.onrender.com/api/health
