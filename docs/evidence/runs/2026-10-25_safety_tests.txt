@@ -1,0 +1,19 @@
+# Safety tests, 2026-10-25 01:52 EDT — backend/.venv/bin/python -m pytest tests -v
+============================= test session starts ==============================
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.7.0 -- ./backend/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: .
+plugins: anyio-4.15.1
+collecting ... collected 9 items
+
+tests/test_safety.py::test_injected_instructions_never_reach_the_model_and_cannot_act PASSED [ 11%]
+tests/test_safety.py::test_hidden_text_in_a_web_page_is_removed PASSED   [ 22%]
+tests/test_safety.py::test_quotes_and_people_not_in_the_text_are_rejected PASSED [ 33%]
+tests/test_safety.py::test_one_student_cannot_see_or_change_another_students_records PASSED [ 44%]
+tests/test_safety.py::test_delegation_is_capped_and_invented_actions_are_refused PASSED [ 55%]
+tests/test_safety.py::test_an_answer_from_another_model_is_rejected PASSED [ 66%]
+tests/test_safety.py::test_oversized_input_is_refused_before_any_model_call PASSED [ 77%]
+tests/test_safety.py::test_daily_budget_returns_429 PASSED               [ 88%]
+tests/test_safety.py::test_a_looping_agent_is_stopped_by_the_usage_limit PASSED [100%]
+
+============================== 9 passed in 0.50s ===============================

@@ -1,0 +1,18 @@
+# Render Blueprint (Dashboard -> New -> Blueprint -> this repo). Secrets are set in the dashboard, never in git.
+services:
+  - type: web
+    name: summer-internship-coach
+    runtime: docker
+    plan: free           # sleeps after 15 min idle: the first visit then takes ~30-60 s
+    region: virginia
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PORTKEY_API_KEY
+        sync: false      # the course key (gpt-6-luna only)
+      - key: DATABASE_URL
+        sync: false      # Supabase Session pooler connection string; without it the app uses SQLite (lost on redeploy)
+      - key: DAILY_TOKEN_BUDGET
+        value: "300000"  # per user per UTC day
+      - key: GLOBAL_DAILY_TOKEN_BUDGET
+        value: "3000000" # whole site per UTC day

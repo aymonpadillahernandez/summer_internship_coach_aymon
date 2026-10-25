@@ -1,0 +1,25 @@
+# Secrets and local environments — never commit
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+node_modules/
+
+# Real user data stays out of git: only the synthetic demo dataset in data/demo/ is committed
+*.db
+*.db-*
+data/private/
+data/testers/
+
+# Private handoff notes from the personal tracker (real names) — must never enter this repo
+tracker_handoff/
+_context_from_tracker/
+
+# Build output and scratch
+dist/
+frontend/dist/
+output/*
+!output/.gitkeep
+*.zip
+.DS_Store

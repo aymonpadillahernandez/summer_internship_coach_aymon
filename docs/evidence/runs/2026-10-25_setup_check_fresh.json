@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-25T05:22:16+00:00",
+  "model_requested": "gpt-6-luna",
+  "model_answered": "gpt-6-luna-global",
+  "answer": "ready",
+  "input_tokens": 13,
+  "cached_input_tokens": 0,
+  "output_tokens": 5,
+  "reasoning_tokens": 0,
+  "fresh_answer_forced": true,
+  "reasoning_effort": "low",
+  "requests": 1,
+  "seconds": 2.17
+}
