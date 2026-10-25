@@ -1,23 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { deleteAccount, fetchProfile, saveProfile, type User } from "../api";
 import { CloseIcon } from "./Icons";
 
 /** The student's own profile (used by the strategist and call prep), and "delete my account and data". */
-export default function ProfilePanel({ user, onClose, onDeleted }: { user: User; onClose: () => void; onDeleted: () => void }) {
+export default function ProfilePanel({ user, onClose, onDeleted, onSaved }: {
+  user: User;
+  onClose: () => void;
+  onDeleted: () => void;
+  onSaved?: () => void;
+}) {
   const [text, setText] = useState("");
+  const [loaded, setLoaded] = useState(false); // typing waits for the saved profile, so it can't overwrite what you typed
   const [saved, setSaved] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load once: the parent passes a new onClose on every render, which must not trigger a reload (it reset typed text).
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
-    fetchProfile().then((r) => setText(r.text)).catch(() => {});
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    fetchProfile().then((r) => setText(r.text)).catch(() => {}).finally(() => setLoaded(true));
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   const save = () =>
-    saveProfile(text).then(() => setSaved("Saved. The coach uses it from your next run.")).catch(() => setError("Couldn't save. Try again."));
+    saveProfile(text).then(() => { setSaved("Saved. The coach uses it from your next run."); onSaved?.(); }).catch(() => setError("Couldn't save. Try again."));
   const remove = () => deleteAccount().then(onDeleted).catch(() => setError("Couldn't delete. Try again."));
 
   return (
@@ -33,9 +42,9 @@ export default function ProfilePanel({ user, onClose, onDeleted }: { user: User;
         <section className="sheet-section">
           <h4>What the coach should know about you</h4>
           <p className="muted small">Background, target roles and industries, locations, languages, timing. The agents judge fit and prepare calls against it.</p>
-          <textarea className="profile-text" rows={8} maxLength={2000} value={text} onChange={(e) => { setText(e.target.value); setSaved(null); }} />
+          <textarea className="profile-text" rows={8} maxLength={2000} value={text} disabled={!loaded} placeholder={loaded ? "e.g. First-year MBA, ex-consultant, targeting strategy roles in sports and media in New York; speaks English and Spanish." : "Loading…"} onChange={(e) => { setText(e.target.value); setSaved(null); }} />
           <div className="profile-actions">
-            <button className="primary-btn" onClick={save}>Save profile</button>
+            <button className="primary-btn" onClick={save} disabled={!loaded}>Save profile</button>
             {saved && <span className="muted small">{saved}</span>}
           </div>
         </section>

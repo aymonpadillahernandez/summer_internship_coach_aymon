@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchRun, fetchUsage, type TraceStep, type UsageReport } from "../api";
 import AgentTrace, { AGENTS, fmt, money } from "./AgentTrace";
 import { CloseIcon } from "./Icons";
@@ -11,12 +11,15 @@ export default function UsagePanel({ onClose, onOpenRecord }: { onClose: () => v
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<{ id: string; trace: TraceStep[] } | null>(null);
 
+  // Load once: the parent passes a new onClose on every render, which must not trigger a reload (it reset typed text).
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     fetchUsage().then(setReport).catch(() => setError("Couldn't load your usage."));
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeRef.current();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   const pct = report ? Math.min(100, (report.today_tokens / report.daily_budget) * 100) : 0;
   const totals = report?.runs.reduce(

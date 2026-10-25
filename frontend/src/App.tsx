@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import type { Application, Contact, Lead, Stage, SyncInfo } from "./types";
-import { type Candidate, type DataCheck, fetchBoard, fetchChecks, fetchDone, fetchLeads, fetchNetwork, markAction, moveApplication, moveContact, setAppInterest, setContactInterest, updateContact } from "./api";
+import { type Candidate, type DataCheck, fetchBoard, fetchProfile, fetchChecks, fetchDone, fetchLeads, fetchNetwork, markAction, moveApplication, moveContact, setAppInterest, setContactInterest, updateContact } from "./api";
 import { type Action, bucketOf, checkActions, followUpDue, internshipActions, leadActions, networkingActions, sortActions, todayIso } from "./actions";
 import ChatPanel from "./components/ChatPanel";
 import ActionPlan from "./components/ActionPlan";
@@ -55,6 +55,8 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
   const readOnly = false;
   const [showUsage, setShowUsage] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [profileFilled, setProfileFilled] = useState(true);
+  const loadProfile = () => fetchProfile().then((r) => setProfileFilled(r.text.trim().length > 0)).catch(() => {});
   const [asking, setAsking] = useState(false);
   const [askSeed, setAskSeed] = useState<string | undefined>(undefined);
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === "dark");
@@ -120,6 +122,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
     loadBoard();
     loadNetwork();
     loadLeads();
+    loadProfile();
     fetchDone().then((d) => setDone(new Set(d.done))).catch(() => {});
     const onHash = () => setTabState(tabFromHash());
     window.addEventListener("hashchange", onHash);
@@ -261,7 +264,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
   const planActions = allActions.filter((a) => a.area === area);
   const candidates = useMemo(() => [...allActions].sort(sortActions).slice(0, 60).map(toCandidate), [allActions]);
   const weekCount = allActions.filter((a) => ["overdue", "week"].includes(bucketOf(a))).length;
-  const firstName = (user.is_demo ? "Jordan" : user.name || user.email).split(/[\s@]/)[0];
+  const firstName = user.is_demo ? "Jordan" : (user.name.trim().split(/\s+/)[0] ?? "");
   const countIn = (a: Area) => allActions.filter((x) => x.area === a).length;
   const planStats = {
     overdue: planActions.filter((a) => bucketOf(a) === "overdue").length,
@@ -477,6 +480,9 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
           onChanged={reloadAll}
           onAsk={(q) => { setAskSeed(q); setAsking(true); }}
           firstName={firstName}
+          counts={{ opportunities: apps.length, people: contacts.length }}
+          profileFilled={profileFilled}
+          onOpenProfile={() => setShowProfile(true)}
         />
       ) : tab === "plan" ? (
         <ActionPlan actions={planActions} onDone={completeAction} onOpen={openAction} readOnly={readOnly} />
@@ -503,7 +509,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
       )}
 
       {showUsage && <UsagePanel onClose={() => setShowUsage(false)} onOpenRecord={openRecord} />}
-      {showProfile && <ProfilePanel user={user} onClose={() => setShowProfile(false)} onDeleted={onSignOut} />}
+      {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); loadProfile(); }} onSaved={loadProfile} onDeleted={onSignOut} />}
       {asking && (
         <ChatPanel seed={askSeed} candidates={candidates} onOpenRecord={openRecord} onClose={() => { setAsking(false); setAskSeed(undefined); }} />
       )}

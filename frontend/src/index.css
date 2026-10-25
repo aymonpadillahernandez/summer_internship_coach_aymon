@@ -992,3 +992,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .stats .stat-next:not(.stat-ask) { display: none; }
 }
 .auth-card .demo-button { width: 100%; }
+
+/* First-run guide */
+.guide { gap: 10px; border: 1px solid var(--brand-soft); }
+.guide-steps { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1100px) { .guide-steps { grid-template-columns: 1fr; } }
+.guide-steps li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; background: var(--fill-soft); border-radius: 13px; padding: 12px; }
+.guide-steps li > button { grid-column: 2; justify-self: start; }
+.guide-steps p { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+.guide-num { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--brand); color: #fff; }
+.guide-steps li.is-done { opacity: 0.6; }
+.guide-steps li.is-done .guide-num { background: var(--green); }

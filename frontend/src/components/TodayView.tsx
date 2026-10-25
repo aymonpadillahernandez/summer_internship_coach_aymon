@@ -41,13 +41,24 @@ const RecordChips = ({ ids, onOpen }: { ids: string[]; onOpen: (id: string) => v
     </span>
   ) : null;
 
-/** The coach's home: this week's ranked plan (Career strategist) and "Add what's new" (the two specialists). */
-export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName }: {
+const TARGETS_TEMPLATE = `My target list for next summer (organisation — role — deadline or status — city):
+1. 
+2. 
+3. 
+4. 
+5. `;
+
+/** The coach's home: this week's ranked plan (Career strategist) and "Add what's new" (the two specialists).
+ *  New accounts first see a three-step guide: profile, targets, people. */
+export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile }: {
   candidates: Candidate[];
   onOpenRecord: (id: string) => void;
   onChanged: () => Promise<void> | void;
   onAsk: (q: string) => void;
   firstName: string;
+  counts: { opportunities: number; people: number };
+  profileFilled: boolean;
+  onOpenProfile: () => void;
 }) {
   const [plan, setPlan] = useState<PlanView | null>(null);
   const [planBusy, setPlanBusy] = useState(false);
@@ -63,6 +74,18 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   const [intakeError, setIntakeError] = useState<string | null>(null);
   const intakeStage = useStaged(intakeBusy, INTAKE_STAGES);
   const fileRef = useRef<HTMLInputElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const [guideHidden, setGuideHidden] = useState(() => localStorage.getItem("coach-guide-hidden") === "1");
+  const steps = [
+    { done: profileFilled, title: "Tell the coach about you", text: "Background, target roles and industries, cities, languages. The agents judge fit and prepare calls against it.",
+      action: "Write your profile", onClick: onOpenProfile },
+    { done: counts.opportunities > 0, title: "Add your targets", text: "Paste your target list (one line per organisation and role), or a posting or careers-page link.",
+      action: "Use a target-list template", onClick: () => { setText(TARGETS_TEMPLATE); setLabel("My target list"); setKind("opportunity"); textRef.current?.focus(); } },
+    { done: counts.people > 0, title: "Add your people", text: "Paste a recent email or chat with a contact, your coffee-chat notes, or upload LinkedIn's Connections.csv.",
+      action: "Upload a file", onClick: () => fileRef.current?.click() },
+  ];
+  const doneCount = steps.filter((x) => x.done).length;
+  const showGuide = !guideHidden && doneCount < steps.length;
 
   useEffect(() => {
     fetchLatestPlan().then((r) => r.plan && setPlan(r.plan)).catch(() => {});
@@ -148,11 +171,32 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
         <div className="team-card team-model"><b>gpt-6-luna</b><span>Never sends anything for you</span></div>
       </section>
 
+      {showGuide && (
+        <section className="panel guide" aria-label="Get started">
+          <header className="panel-head">
+            <div>
+              <h2>Get started · {doneCount} of 3 done</h2>
+              <p>Three quick steps, then the coach can plan your week. Nothing is ever sent on your behalf.</p>
+            </div>
+            <button className="toggle" onClick={() => { localStorage.setItem("coach-guide-hidden", "1"); setGuideHidden(true); }}>Hide</button>
+          </header>
+          <ol className="guide-steps">
+            {steps.map((st, i) => (
+              <li key={st.title} className={st.done ? "is-done" : ""}>
+                <span className="guide-num">{st.done ? "✓" : i + 1}</span>
+                <div><b>{st.title}</b><p>{st.text}</p></div>
+                {!st.done && <button className="toggle" onClick={st.onClick}>{st.action}</button>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <div className="today-grid">
         <section className="panel coach-panel">
           <header className="panel-head">
             <div>
-              <h2>Your week, {firstName}</h2>
+              <h2>{firstName ? `Your week, ${firstName}` : "Your week"}</h2>
               <p>The Career strategist ranks your {candidates.length} open actions after consulting both specialists.</p>
             </div>
             <button className="primary-btn" onClick={makePlan} disabled={planBusy || candidates.length === 0}>
@@ -165,7 +209,11 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
 
           {!plan && !planBusy && (
             <div className="empty-state">
-              <p><b>Not sure where to spend your time?</b> Press <em>Plan my week</em>. The coach looks at every deadline, fit and relationship, then picks the 3–5 moves worth your week, each with why now and the first step.</p>
+              {candidates.length === 0 ? (
+                <p><b>Nothing to rank yet.</b> Add your targets and a few conversations on the right: the coach turns them into open actions (deadlines, follow-ups, calls) and then plans your week.</p>
+              ) : (
+                <p><b>Not sure where to spend your time?</b> Press <em>Plan my week</em>. The coach looks at every deadline, fit and relationship, then picks the 3–5 moves worth your week, each with why now and the first step.</p>
+              )}
             </div>
           )}
 
@@ -226,6 +274,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
             </div>
           )}
           <textarea
+            ref={textRef}
             className="intake-text"
             rows={9}
             value={text}
