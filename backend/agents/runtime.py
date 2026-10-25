@@ -80,20 +80,21 @@ def _usage_of(responses: list[ModelResponse]) -> dict[str, int]:
 
 
 async def run_agent(run: CoachRun, name: str, agent: Agent, user_prompt: str, deps: Any = None,
-                    message_history: list | None = None) -> Any:
+                    message_history: list | None = None, timeout: float | None = None) -> Any:
     """Run one agent; returns its output, or None when it failed or hit a limit (recorded in the trace)."""
+    timeout = timeout or config.AGENT_TIMEOUT_SECONDS
     start = time.perf_counter()
     status, output, error = "ok", None, ""
     with capture_run_messages() as messages:
         try:
             result = await asyncio.wait_for(
                 agent.run(user_prompt, deps=deps, usage_limits=limits(), message_history=message_history),
-                timeout=config.AGENT_TIMEOUT_SECONDS)
+                timeout=timeout)
             output = result.output
         except UsageLimitExceeded as e:
             status, error = "usage_limit", str(e)
         except asyncio.TimeoutError:
-            status, error = "timeout", f"no answer within {config.AGENT_TIMEOUT_SECONDS} s"
+            status, error = "timeout", f"no answer within {timeout:.0f} s"
         except Exception as e:  # noqa: BLE001 - any model/validation failure is recorded, never raised to the user raw
             status, error = "error", f"{type(e).__name__}: {str(e)[:200]}"
     responses = [m for m in messages if isinstance(m, ModelResponse)]

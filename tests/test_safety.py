@@ -122,7 +122,7 @@ def test_delegation_is_capped_and_invented_actions_are_refused(demo_client, acce
         if not returned:  # asks 5 questions at once: one more than the cap allows
             return ModelResponse(parts=[ToolCallPart("ask_network_intel", {"question": f"Who can help? #{i}"}) for i in range(5)])
         calls["final"] += 1
-        key = "net:invented:1" if calls["final"] == 1 else candidates[0]["key"]  # first an invented action, then a real one
+        key = "net:invented:1" if calls["final"] == 1 else "A1"  # first an invented action, then a real one (by alias)
         return ModelResponse(parts=[TextPart(json.dumps({"headline": "Focus", "top_actions": [
             {"key": key, "why_now": "now", "how": "do it", "record_ids": ["CON-999999"]}]}))])
 

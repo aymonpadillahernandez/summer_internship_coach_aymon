@@ -86,7 +86,7 @@ class SpecialistAnswer(BaseModel):
 
 # ─── Career strategist ──────────────────────────────────────────────────
 class PlannedAction(BaseModel):
-    key: str = Field(description="the key of one candidate action from the list given; never invent one")
+    key: str = Field(description="the alias of one candidate action from the list given (A1, A2, …); never invent one")
     why_now: str = Field()
     how: str = Field(description="the concrete first step, naming the person to talk to when the records show one")
     record_ids: list[str] = Field(default_factory=list, description="OPP-/CON- ids the reasoning relies on")
@@ -95,7 +95,7 @@ class PlannedAction(BaseModel):
 class CoachPlan(BaseModel):
     headline: str = Field(description="one sentence: where to spend time this week and why")
     top_actions: list[PlannedAction] = Field(min_length=1)
-    can_wait: list[str] = Field(default_factory=list, description="keys of candidate actions that can safely wait")
+    can_wait: list[str] = Field(default_factory=list, description="aliases of candidate actions that can safely wait")
     watch_outs: list[str] = Field(default_factory=list)
     open_questions: list[str] = Field(default_factory=list)
 

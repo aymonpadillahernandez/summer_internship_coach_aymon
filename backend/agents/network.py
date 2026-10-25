@@ -79,7 +79,7 @@ async def consult(run: CoachRun, user_id: int, question: str) -> dict:
                    + safety.wrap_untrusted(block, f"student records: {len(picked)} of {len(records)} contacts"))
     run.step(NAME, "searching", f"Read {len(picked)} of {len(records)} contact records (BM25)",
              records=[rid for rid, _ in picked])
-    answer = await run_agent(run, NAME, consult_agent(), user_prompt)
+    answer = await run_agent(run, NAME, consult_agent(), user_prompt, timeout=config.SPECIALIST_TIMEOUT_SECONDS)
     return checked_answer(answer, allowed)
 
 
