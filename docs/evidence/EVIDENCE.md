@@ -13,6 +13,7 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 | 2026-10-25 01:45 | Tokenomics (optimization) | Same plan after removing length limits from the output schemas (validation retries were re-running whole answers) and adding people's next dates to opportunity records: 4 model calls, **7,514 in** / 1,605 cached / **2,773 out**, **17.6 s**, and the plan now cites the interview date. Input −47%, output −34%, time −72% | same file (plan run 2) |
 | 2026-10-25 01:53 | Safety (test) | 9 pytest safety tests pass with no key: injection quarantined and unable to act, hidden text removed, invented quotes and people rejected, cross-student 404s, delegation cap, invented action refused, model substitution rejected, oversized input 422 with 0 tokens, daily budget 429, tool loop stopped | `docs/evidence/runs/2026-10-25_safety_tests.txt` |
 | 2026-10-25 01:58 | Look + feel · Agent design | In the browser: Plan my week answered in 14 s with 5 ranked actions; attack sample blocked with the Shield box; "Prepare my next call" routed to Network intelligence, 11 s, 2,039 tokens | screenshots to capture from the live site |
+| 2026-10-25 02:02 | Staff can run it | Fresh clone from GitHub with `.env` one folder above the repo, following the README: health reports "one folder above the repo", demo seeds, site serves, a real intake works; 13 s setup with warm caches | `docs/evidence/runs/2026-10-25_fresh_clone.txt` |
 
 ## Still to collect
 

@@ -1,6 +1,6 @@
 # Summer Internship Coach
 
-**Live app:** [add the live URL after deploy] · click **Try the demo** (no account needed; a private sandbox with a fictional student)
+**Live app: https://summer-internship-coach.onrender.com** · click **Try the demo** (no account needed; a private sandbox with a fictional student)
 
 From scattered opportunities and conversations to the next best career action. An AI career operating system for MBA
 students recruiting for summer internships: paste what's new (emails, chat exports, job postings, your LinkedIn CSV),

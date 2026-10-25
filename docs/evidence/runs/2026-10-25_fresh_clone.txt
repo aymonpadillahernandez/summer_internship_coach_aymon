@@ -1,0 +1,12 @@
+Fresh-clone test, Oct 25 2026 02:02 ET (rehearsal; the final acceptance test is repeated before submission)
+Layout: submissions/.env (PORTKEY_API_KEY only) + submissions/summer_internship_coach_aymon/ cloned from GitHub.
+Steps: exactly README.md "Run it locally" (venv, pip install, npm ci, npm run build, uvicorn on a spare port).
+
+setup seconds: 13   (pip and npm caches warm on this Mac; a cold machine needs a few minutes for the downloads)
+/api/health -> {"ok":true,"model":"gpt-6-luna","portkey_key_set":true,"env_file":"one folder above the repo","database":"sqlite"}
+Try the demo -> demo account created; 12 opportunities seeded
+GET / -> HTTP 200 (built site served by FastAPI)
+Real intake (posting sample) -> ok · 1 model call · 1,565 input / 0 cached / 428 output tokens · Riverside Arena Group added
+check_setup.py -> ".env used: one folder above the repo", PORTKEY_API_KEY: set
+total seconds: 19
+The temporary submissions/.env was deleted after the test.
