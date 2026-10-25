@@ -218,3 +218,18 @@ def test_who_can_open_the_door_uses_only_the_students_people(demo_client, accept
     with TestClient(main.app) as other:
         other.post("/api/auth/signup", json={"email": "student-c@example.com", "password": "long-password-1"})
         assert other.post(f"/api/applications/{harborview['id']}/doors").status_code == 404
+
+
+def test_an_email_does_not_overwrite_a_judged_fit(demo_client, accept_test_model):
+    uid = _user_id(demo_client)
+    before = next(a for a in db.list_applications(uid) if a["company"] == "Harborview Media")
+    text = (SAMPLES / "email_harborview.txt").read_text().replace("@text-1", "Oct 24, 2026").replace("@text+5", "Oct 30, 2026").replace("@text-3", "Oct 22, 2026")
+    weaker = _json_reply({"opportunities": [{"match_id": before["id"], "company": "Harborview Media", "role": before["role"],
+                          "fit": "possible", "fit_reason": "Location is not stated.", "evidence": "the summer associate role"}],
+                          "leads": [], "fields_not_found": []})
+    nobody = _json_reply({"contacts": [], "fields_not_found": []})
+    with scout.intake_agent().override(model=FunctionModel(weaker)), network.intake_agent().override(model=FunctionModel(nobody)):
+        r = demo_client.post("/api/intake", json={"text": text, "kind": "auto", "label": "email"}).json()
+    assert r["routes"] == ["scout", "network"]
+    after = next(a for a in db.list_applications(uid) if a["company"] == "Harborview Media")
+    assert (after["fit"], after["fit_reason"]) == (before["fit"], before["fit_reason"])

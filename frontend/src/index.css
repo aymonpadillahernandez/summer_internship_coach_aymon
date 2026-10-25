@@ -1007,6 +1007,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* Who can open the door */
 .doors-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .doors-head h4 { margin: 0; }
+.doors-head .toggle { white-space: nowrap; }
 .door-list { list-style: none; display: grid; gap: 8px; margin-top: 8px; }
 .door-list li { background: var(--fill-soft); border-radius: 12px; padding: 10px 12px; }
 .door-list p { font-size: 13px; color: var(--ink-soft); margin-top: 3px; }

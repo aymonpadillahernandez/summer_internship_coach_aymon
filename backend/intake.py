@@ -121,7 +121,8 @@ async def process(user_id: int, text: str, kind: str, label: str, page_url: str 
             continue
         if route == "scout":
             good, bad = merge.validate_scout(out, text, user_id)
-            saved.update(merge.apply_scout(user_id, good, origin or ORIGIN[route], ref, label, page_url))
+            saved.update(merge.apply_scout(user_id, good, origin or ORIGIN[route], ref, label, page_url,
+                                           refit=bool(page_url) or routes == ["scout"]))
         else:
             good, bad = merge.validate_network(out, text, user_id)
             saved.update(merge.apply_network(user_id, good, origin or ORIGIN[route], ref, label))

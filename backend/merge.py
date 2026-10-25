@@ -117,9 +117,11 @@ def validate_network(report: NetworkIntake, source: str, user_id: int) -> tuple[
 FIT_CHECK = {"strong": "yes", "possible": "yes", "weak": "check"}
 
 
-def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label: str, page_url: str | None = None) -> dict:
+def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label: str, page_url: str | None = None,
+                refit: bool = False) -> dict:
     """page_url: the page the student linked and the app read. It becomes the card's source link and its
-    page check (status, deadline, quote, date), shown on the card and used by the action plan."""
+    page check (status, deadline, quote, date), shown on the card and used by the action plan.
+    refit: the text is a posting or page, so it may re-judge an existing card's fit (an email or chat only fills it)."""
     added, updated, leads = [], [], 0
     today = date.today().isoformat()
     with connect() as conn:
@@ -150,7 +152,9 @@ def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label:
                     status = o.status_signal  # opportunities only move forward
                 conn.execute(
                     """UPDATE applications SET deadline = ?, location = ?, formal_internship = ?, mba_eligible = ?,
-                           status = ?, fit = COALESCE(?, fit), fit_reason = COALESCE(?, fit_reason),
+                           status = ?,
+                           fit = CASE WHEN fit IS NULL OR fit = 'unknown' OR ? THEN COALESCE(?, fit) ELSE fit END,
+                           fit_reason = CASE WHEN fit_reason IS NULL OR fit_reason = '' OR ? THEN COALESCE(?, fit_reason) ELSE fit_reason END,
                            context = CASE WHEN context = '' THEN ? ELSE context END,
                            source_url = CASE WHEN source_url = '' THEN ? ELSE source_url END,
                            last_contact = CASE WHEN ? THEN ? ELSE last_contact END, updated_at = datetime('now')
@@ -158,7 +162,8 @@ def apply_scout(user_id: int, report: ScoutIntake, origin: str, ref: str, label:
                     (safety.scrub(o.deadline) or row["deadline"], safety.scrub(o.location) or row["location"],
                      o.formal_internship if o.formal_internship != "Not clear" else row["formal_internship"],
                      o.mba_eligible if o.mba_eligible != "Not clear" else row["mba_eligible"], status,
-                     None if o.fit == "unknown" else o.fit, safety.scrub(o.fit_reason) or None, context, o.url,
+                     # a posting or a linked page may re-judge fit; an email or chat only fills a missing one
+                     refit, None if o.fit == "unknown" else o.fit, refit, safety.scrub(o.fit_reason) or None, context, o.url,
                      o.status_signal != "none", today, app_id, user_id))
                 updated.append({"id": app_id, "company": row["company"], "role": row["role"]})
             if page_url:

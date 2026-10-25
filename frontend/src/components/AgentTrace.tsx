@@ -14,7 +14,7 @@ const EVENT: Record<string, string> = {
   delegated: "Asked",
   searching: "Searched your records",
   answered: "Answered",
-  reading: "Read your paste",
+  reading: "Started reading",
   preparing: "Built the dossier",
   finished: "Done",
   checked_data: "Ran the data checks",

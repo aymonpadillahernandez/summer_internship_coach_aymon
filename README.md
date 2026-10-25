@@ -13,8 +13,8 @@ and three agents keep one evidence-backed picture of your search and tell you wh
 
 | Screen | What you get |
 |---|---|
-| **Today** | **Plan my week**: the Career strategist ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text; the specialists file opportunities, people and dated facts, each with the exact quote it came from. |
-| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit, people who can help. |
+| **Today** | **Plan my week**: the Career strategist ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the specialists file opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. |
+| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Who can open the door**: Network intelligence finds up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
 | **Ask your coach** | Chat with the Career strategist; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
@@ -37,8 +37,11 @@ It never sends anything on your behalf: drafts are for you to send.
                     (code)    (code)              instructions quarantined, then routed by content)
 ```
 
-- **Opportunity scout** turns postings and emails into opportunities (deadline, MBA eligibility, fit with your profile).
-- **Network intelligence** turns conversations and exports into people, stages and dated, quoted facts; prepares calls.
+- **Opportunity scout** turns postings, emails and linked careers pages into opportunities (deadline, MBA eligibility,
+  whether applications are open, fit with your profile). Its one internet tool reads a page you link (`backend/web.py`:
+  public addresses only, every redirect re-checked, size and time limits, robots.txt respected, no bot-bypassing).
+- **Network intelligence** turns conversations and exports into people, stages and dated, quoted facts; finds who can
+  open the door at each target; prepares calls.
 - **Career strategist** decides where your week goes, delegating questions to the two specialists.
 - After every model answer, code checks it: quotes must appear in your text, people must be named in it, ids must
   be yours, invented actions are refused, and email addresses / phone numbers are never stored.
@@ -97,10 +100,11 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 10 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 25 tests, no API key needed, no tokens spent
 ```
 
-They cover prompt injection in pasted text, hidden text in web pages, invented quotes and people, a 600-row LinkedIn export filtered in code, one student
+They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
+addresses (also after a redirect), bot protection, invented quotes and people, a 600-row LinkedIn export filtered in code, one student
 reading another's data, runaway delegation and tool loops, invented actions, model substitution, oversized input
 and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_LIMIT`, `MAX_DELEGATIONS_PER_RUN`,
 `AGENT_TOTAL_TOKENS_LIMIT`, `MAX_INPUT_CHARS`, `DAILY_TOKEN_BUDGET`, …).
@@ -109,7 +113,8 @@ and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_L
 
 ```
 backend/   FastAPI app (main.py), agents/ (strategist, scout, network, runtime), prompts/, safety.py, merge.py,
-           intake.py, retrieval.py (BM25), db.py + store.py (SQLite / Postgres), auth.py, demo.py, check_setup.py
+           intake.py, web.py (link reader), retrieval.py (BM25), db.py + store.py (SQLite / Postgres), auth.py,
+           demo.py, check_setup.py
 frontend/  React + Vite + TypeScript (Today, boards, action plan, chat, usage)
 data/demo/ the fictional test dataset and paste samples
 tests/     safety tests (pytest)

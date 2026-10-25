@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import secrets
 import sys
 from datetime import date
 from pathlib import Path
@@ -50,7 +51,8 @@ def main() -> int:
         page.locator(".demo-button").click()
         page.wait_for_selector(".coach-panel", timeout=60_000)
         # Screenshot-only layout: let the page grow and unpin the top bar, so a tall panel is captured whole.
-        page.add_style_tag(content=".app{height:auto} .today{overflow:visible} .topbar{position:static}")
+        # Sheets are see-through with a blur in the app; element screenshots don't render the blur, so make them opaque.
+        page.add_style_tag(content=".app{height:auto} .today{overflow:visible} .topbar{position:static} .sheet{background:var(--surface)!important}")
         shot(page, out, "02_today")
 
         page.locator(".coach-panel .primary-btn").click()
@@ -66,22 +68,48 @@ def main() -> int:
         shot(page, out, "06_attack_injected_trace", ".intake-panel")
         intake(page, "hidden text in a web page")
         shot(page, out, "07_attack_hidden_text", ".intake-panel")
+        intake(page, "careers-page link")
+        page.locator(".intake-panel .how-decided summary").click()
+        shot(page, out, "08_attack_hidden_link", ".intake-panel")
         intake(page, "An email thread")
-        shot(page, out, "08_intake_email", ".intake-panel")
+        shot(page, out, "09_intake_email", ".intake-panel")
 
-        for tab, name in (("Opportunities", "09_opportunities"), ("Networking", "10_networking"), ("Action plan", "11_action_plan")):
+        page.locator(".view-switch button", has_text="Opportunities").click()
+        shot(page, out, "10_opportunities")
+        page.locator(".card", has_text="Harborview Media").first.dblclick()
+        page.locator(".doors .toggle").click()
+        page.wait_for_selector(".door-list li", timeout=AI_TIMEOUT)
+        shot(page, out, "11_who_can_open_the_door", ".sheet")
+        page.keyboard.press("Escape")
+        if page.locator(".scrim").count():  # close the sheet if Escape did not
+            page.locator(".scrim").first.click(position={"x": 5, "y": 5})
+        for tab, name in (("Networking", "12_networking"), ("Action plan", "13_action_plan")):
             page.locator(".view-switch button", has_text=tab).click()
             shot(page, out, name)
 
         page.locator(".account .toggle", has_text="Usage").click()
         page.wait_for_selector(".usage-table tbody tr", timeout=30_000)
-        shot(page, out, "12_usage", ".usage-sheet")
+        shot(page, out, "14_usage", ".usage-sheet")
         page.keyboard.press("Escape")
 
         page.locator(".stat-ask").click()
         page.locator(".chat-suggestions button", has_text="Prepare my next call").click()
         page.wait_for_selector(".chat-a .chat-meta", timeout=AI_TIMEOUT)
-        shot(page, out, "13_call_prep", ".chat")
+        shot(page, out, "15_call_prep", ".chat")
+
+        # A brand-new account: the first-run guide (the account is deleted at the end).
+        fresh = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=2).new_page()
+        fresh.goto(args.base, wait_until="networkidle", timeout=120_000)
+        fresh.locator(".auth-switch button", has_text="Create account").click()
+        fresh.fill("input[type=email]", f"screenshot-{secrets.token_hex(4)}@example.com")
+        fresh.fill("input[type=password]", "a-long-password-1")
+        fresh.locator(".auth-form .auth-button").click()
+        fresh.wait_for_selector(".guide", timeout=60_000)
+        shot(fresh, out, "16_new_account_guide")
+        fresh.locator(".account .toggle", has_text="Profile").click()
+        fresh.locator(".danger-btn").click()
+        fresh.locator(".danger-btn", has_text="Yes, delete everything").click()
+        fresh.wait_for_selector(".landing", timeout=30_000)
         browser.close()
     print(f"Saved to {out.relative_to(ROOT)}")
     return 0
