@@ -1088,3 +1088,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .draft-body { white-space: pre-wrap; font-size: 13px; color: var(--ink-soft); max-height: 160px; overflow-y: auto; }
 .draft-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .today > .outbox, .today > .discover { margin-top: 0; }
+
+/* Phones: the tab row scrolls sideways instead of running off the screen */
+@media (max-width: 760px) {
+  .topbar .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .topbar .segmented::-webkit-scrollbar { display: none; }
+}

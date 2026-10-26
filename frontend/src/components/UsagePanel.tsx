@@ -3,7 +3,8 @@ import { fetchRun, fetchUsage, type TraceStep, type UsageReport } from "../api";
 import AgentTrace, { AGENTS, fmt, money } from "./AgentTrace";
 import { CloseIcon } from "./Icons";
 
-const KIND: Record<string, string> = { intake: "Add what's new", plan: "Plan my week", chat: "Chat", doors: "Who can open the door" };
+const KIND: Record<string, string> = { intake: "Add what's new", plan: "Plan my week", chat: "Chat", doors: "Who can open the door",
+  guide: "Setup guide", discover: "Find openings" };
 
 /** Every AI run with the token counts the model reported, per agent, and today's budget. */
 export default function UsagePanel({ onClose, onOpenRecord }: { onClose: () => void; onOpenRecord: (id: string) => void }) {
