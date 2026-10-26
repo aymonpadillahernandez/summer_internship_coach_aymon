@@ -28,14 +28,15 @@
     <div class="stat"><b>5 AI agents</b><span>plus a Records keeper in code that writes every card</span></div>
     <div class="stat"><b>gpt-6-luna</b><span>the only model, through the course Portkey key</span></div>
     <div class="stat"><b>$0.0020</b><span>measured cost of one “Plan my week” run (4 model calls, 22.2 s)</span></div>
-    <div class="stat"><b>72 tests · 19/19</b><span>automated tests pass with no key; live check of every agent and guardrail</span></div>
+    <div class="stat"><b>76 tests · 19/19</b><span>automated tests pass with no key; live check of every agent and guardrail</span></div>
   </div>
-  <figure class="w70">
+  <figure class="w60">
     <img data-shot="04_today_team.png" data-width="1500" data-crop="1590" alt="The Today screen of Summer Internship Coach">
     <figcaption><b>Figure 1. The Today screen on the live site.</b> The team strip shows the five agents and the Records keeper. <i>Your week</i> asks the Career coach for a ranked plan; <i>Add what's new</i> takes a paste, an upload or a link; <i>Find openings</i>, just below (Figure 5a), sends the Opportunity scout to public job boards. All screenshots in this report come from the live site on Oct 26, 2026, in a “Try the demo” sandbox whose student, Jordan Rivera, is fictional; no real person's data is shown.</figcaption>
   </figure>
   <div class="note small">
-    <p><b>How to read this report.</b> Every number names its source: a run id shown in the app or a repo file (mostly <code>docs/evidence/</code>). Estimates are tagged <span class="estimate">estimate</span>; no user test has been run yet, so Section 7's before/after results are marked placeholders. <b>Running it:</b> the free hosting plan sleeps when idle, and GitHub runs our keep-awake schedule only sporadically, so the first visit can take up to a minute (cold start measured 32 s). A fresh clone with the <code>.env</code> one folder above the repo took 13 s of setup and passed all 72 tests.</p>
+    <p><b>How to read this report.</b> Every number names its source: a run id shown in the app or a repo file (mostly <code>docs/evidence/</code>). Estimates are tagged <span class="estimate">estimate</span>; no user test has been run yet, so Section 7's before/after results are marked placeholders.</p>
+    <p style="margin-top:4pt"><b>For graders: run it and explore everything.</b> Online: open the live link (the free plan sleeps: the first visit can take up to a minute, cold start measured 32 s) and click <b>Try the demo</b>. Locally: follow the README; a fresh clone with the <code>.env</code> one folder above the repo of the final version (Oct 26) set up in 22 s and passed all 76 tests. In the demo, every feature works with fictional data, including connecting email and chats: on the <b>Setup</b> tab the Setup guide answers questions, each channel card has <b>Try a sample file</b> (a WhatsApp export, LinkedIn connections and messages, an email, a calendar invite, a Messages thread), and <code>python3 coach_connector.py demo</code> runs the real Coach Connector with fictional Gmail, Messages and WhatsApp messages (it refuses real accounts' keys). Then <b>Plan my week</b>, <b>Find openings</b>, <b>Ask your coach</b> (call prep; a draft goes to the Outbox, never sent), <b>Who can open the door</b> on any card, and <b>Usage</b> for tokens and dollars.</p>
   </div>
 </section>
 
@@ -45,9 +46,9 @@
   <h3>Who has the problem</h3>
   <p>The first person with this problem is the author, an MBA student recruiting for a Summer 2027 internship. His search lived in a spreadsheet, his email, LinkedIn, WhatsApp and iMessage, and finding openings was never the bottleneck: choosing which opportunity, or which person, deserved the next hour was. He first built a private tracker for himself, fed from Gmail and Slack and later from iMessage and WhatsApp; this app rebuilds it as a separate product that any student can use, with none of his data.</p>
   <p>He is not alone. MBA students recruiting for summer internships apply to many organisations at once, each with its own deadlines and process, while building relationships with alumni, recruiters and classmates who can open a door. The information they need is not missing: it is scattered. It arrives in at least nine places, and only some of them can be read automatically (Figure 2a).</p>
-  <figure class="w80">
+  <figure class="w70">
     <img data-shot="03_channels_overview.png" data-width="1500" alt="The Setup tab's channel overview">
-    <figcaption><b>Figure 2a. Where a student's recruiting information lives</b>, as the app's Setup tab presents it. Left: channels the app updates on its own after a one-time setup on the student's Mac. Right: channels whose owners let no outside app read messages, so the student exports or pastes; postings from Handshake or 12twenty are pasted too. Official sources: <code>docs/research/channels.md</code>.</figcaption>
+    <figcaption><b>Figure 2a. Where a student's recruiting information lives</b>, as the app's Setup tab presents it. Left: channels the app updates on its own after a one-time setup on the student's Mac. Right: channels whose owners let no outside app read messages, so the student exports or pastes; postings from Handshake or 12twenty are pasted too. Official sources: <code>docs/research/channels.md</code>. In a demo account (shown), a green box explains how to try every channel with fictional data.</figcaption>
   </figure>
   <p>So the hard part is attention and coordination: deciding, every week, which of many applications, people and promised follow-ups deserve the next hour.</p>
 
@@ -103,11 +104,11 @@
 <!-- ============================== 4. THE AGENTS ============================== -->
 <section id="s4">
   <h2><span class="n">4</span>The agents</h2>
-  <p>Five AI agents do the reading, searching and judging; plain code does everything that must be exact. Each agent has its own small context, its own tools and its own playbooks (“skills”: 30 short Markdown files in <code>backend/skills/</code>).</p>
+  <p>Five AI agents do the reading, searching and judging; plain code does everything that must be exact. Each agent has its own small context, its own tools and its own playbooks (“skills”: 31 short Markdown files in <code>backend/skills/</code>).</p>
   <table>
     <thead><tr><th style="width:17%">Agent</th><th style="width:37%">What it does</th><th style="width:28%">Tools</th><th style="width:18%">Skills</th></tr></thead>
     <tbody>
-      <tr><td><b>Setup guide</b></td><td>Step 1 of a new account: walks the student through connecting or exporting each channel, one step at a time, next to a live checklist.</td><td><code>connection_status</code>, <code>next_setup_step</code>, <code>load_skill</code></td><td>11 setup playbooks, opened on demand</td></tr>
+      <tr><td><b>Setup guide</b></td><td>Step 1 of a new account: walks the student through connecting or exporting each channel, one step at a time, next to a live checklist.</td><td><code>connection_status</code>, <code>next_setup_step</code>, <code>load_skill</code></td><td>12 setup playbooks (including a demo tour), opened on demand</td></tr>
       <tr><td><b>Inbox organizer</b></td><td>Reads one text from any channel (email, chat, export, posting, invite) and returns typed opportunities, leads and people, each with its exact quote. One model call per text.</td><td>None: it sees only the text, after the shield</td><td>6 playbooks (reading each channel, stages), in its instructions</td></tr>
       <tr><td><b>Opportunity scout</b></td><td>Searches the public job boards of the student's organisations for summer internships and judges fit; answers the coach's questions about opportunities.</td><td><code>search_job_boards</code> (Greenhouse, Lever, Ashby, SmartRecruiters public APIs), <code>read_careers_page</code></td><td>4: source policy, MBA eligibility, reading a posting, fit rubric</td></tr>
       <tr><td><b>Network intelligence</b></td><td>Relationship questions for the coach, <i>Who can open the door</i> (up to 3 warm paths per opportunity) and call preparation.</td><td>None: reads the records retrieved for it, or one person's dossier</td><td>3: strength, warm intros, call prep</td></tr>
@@ -149,15 +150,15 @@
     <figcaption><b>Figure 5a. Find openings</b> (run 924006932786). The scout searched the public boards of 8 organisations: Duolingo (4 internship postings) and Robinhood (2) on Greenhouse, none for the 6 fictional demo organisations. It read 2 careers pages; on Robinhood's, the shield removed 20 hidden snippets before the model saw it (hidden page elements, not necessarily attacks). The keeper saved 1 real posting, Robinhood's <i>Investment Analyst MBA Intern, Robinhood Ventures (Summer 2027)</i>, with 0 rejected. 3 model calls, 12,071 input (9,615 cached), 829 output, 18.2 s, $0.00076 (top left part shown).</figcaption>
   </figure>
   <figure class="sidecap">
-    <img data-shot="02_setup_guide_whatsapp.png" data-width="1500" data-crop="1430" alt="Setup guide answering a WhatsApp question">
+    <img data-shot="02_setup_guide_whatsapp.png" data-width="1500" data-crop="1180" alt="Setup guide answering a WhatsApp question">
     <figcaption><b>Figure 5b. Setup guide</b> (run 3057c579ec75). Asked “How do I bring in my WhatsApp chats?”, it opened its <i>whatsapp</i> skill, checked the student's setup status (the checklist on top) and answered with the one next step: create the connector key. It cannot click, read accounts or send. 2 model calls, 2,509 input (1,521 cached), 294 output, 5.5 s, $0.00026.</figcaption>
   </figure>
   <div class="grid3">
-    <figure><div class="crop" style="max-height:3.15in"><img data-shot="11_coach_thank_you_draft.png" data-width="760" data-crop="1340" alt="Coach drafts into the Outbox"></div>
+    <figure><div class="crop" style="max-height:2.55in"><img data-shot="11_coach_thank_you_draft.png" data-width="760" data-crop="1340" alt="Coach drafts into the Outbox"></div>
       <figcaption><b>Figure 6a. Ask your coach.</b> The coach opened its <i>outreach-drafting</i> skill and saved a thank-you draft to the Outbox, not sent (3 calls, 8.1 s).</figcaption></figure>
-    <figure><div class="crop" style="max-height:3.15in"><img data-shot="14_who_can_open_the_door.png" data-width="760" data-crop="1380" alt="Who can open the door"></div>
+    <figure><div class="crop" style="max-height:2.55in"><img data-shot="14_who_can_open_the_door.png" data-width="760" data-crop="1380" alt="Who can open the door"></div>
       <figcaption><b>Figure 6b. Who can open the door</b> at Northbridge: Network intelligence checked 10 people and found 2 paths, each with what to ask and a first message to send yourself (top part shown; 1 call, 3.3 s).</figcaption></figure>
-    <figure><div class="crop" style="max-height:3.15in"><img data-shot="13_call_prep.png" data-width="760" data-crop="1720" alt="Call prep brief"></div>
+    <figure><div class="crop" style="max-height:2.55in"><img data-shot="13_call_prep.png" data-width="760" data-crop="1720" alt="Call prep brief"></div>
       <figcaption><b>Figure 6c. “Prepare my call with Maya Chen”</b>, routed in code to Network intelligence: why the call matters, a timed call plan and questions (top part shown; 1 call, 12.1 s).</figcaption></figure>
   </div>
 </section>
@@ -229,7 +230,7 @@
 
   <h3>Tests, a live check and two adversarial reviews</h3>
   <ul>
-    <li><b>72 automated tests pass</b> in 1.7 s with no API key and no tokens (fake models stand in for gpt-6-luna; <code>runs/2026-10-25_safety_tests.txt</code>; repeated on a fresh clone on Oct 26). Key ones: <i>injected instructions never reach the model and cannot act</i>; <i>quotes and people not in the text are rejected</i>; <i>no agent has a tool that could send anything</i>; <i>one student cannot see or change another student's records</i>; <i>a looping agent is stopped by the usage limit</i>; <i>the kill switch stops every AI route at zero tokens</i>; <i>an answer from another model is rejected</i>.</li>
+    <li><b>76 automated tests pass</b> in 1.7 s with no API key and no tokens (fake models stand in for gpt-6-luna; <code>runs/2026-10-25_safety_tests.txt</code>; repeated on a fresh clone on Oct 26). Key ones: <i>injected instructions never reach the model and cannot act</i>; <i>quotes and people not in the text are rejected</i>; <i>no agent has a tool that could send anything</i>; <i>one student cannot see or change another student's records</i>; <i>a looping agent is stopped by the usage limit</i>; <i>the kill switch stops every AI route at zero tokens</i>; <i>an answer from another model is rejected</i>.</li>
     <li><b>Live full check, 19 of 19 passed</b> on the deployed site (Oct 26, <code>runs/2026-10-26_live_full_check.json</code>): every agent answered with real tokens, the shield quarantined the injected line, the link reader removed hidden text, the guardrails answered 422, 404 and 401 as designed, and the daily budget was enforced and shown.</li>
     <li><b>Two adversarial reviews</b>, with reviewers and skeptics who tried to refute every finding. Auto-sync: 18 findings confirmed (13 distinct), none refuted, all fixed with regression tests (one email in an odd character set crashed the whole run, stopping iMessage and WhatsApp too). Agent team: among others, a paused intake was still acknowledged to the connector, so emails could be lost; tokens of a response crossing a limit went uncounted; a page could create people. All confirmed findings were fixed before the live check.</li>
   </ul>

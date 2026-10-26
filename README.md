@@ -10,6 +10,23 @@ students recruiting for summer internships. Connect or export your channels (Gma
 Slack, calendar, postings): five agents keep one evidence-backed picture of your search, find openings on public job
 boards, and tell you where to spend this week. Nothing is ever sent for you.
 
+## For graders: run it, then explore everything (about 5 minutes)
+
+1. **Open it.** Online: the live link above, then **Try the demo** (no account; a private sandbox with a fictional
+   student). Or locally: [Run it locally](#run-it-locally-about-5-minutes) with your `.env` one folder above the repo.
+2. **Connect channels with fictional data** (Setup tab, demo accounts only):
+   - every channel card has **Try a sample file**: a WhatsApp export (.zip), LinkedIn Connections.csv and
+     messages.csv, an email (.eml), a calendar invite (.ics) and a Messages thread, each through the real import;
+   - the **Coach Connector** end to end: create a key (step 1), then in a terminal
+     `curl -fsSL <site>/connector/coach_connector.py -o ~/coach_connector.py`, `python3 ~/coach_connector.py setup`
+     (paste the key; Enter to skip Gmail, `n` for Messages and WhatsApp) and `python3 ~/coach_connector.py demo`.
+     It sends fictional Gmail, Messages and WhatsApp messages through the real connector path; the Gmail, Messages
+     and WhatsApp cards turn to synced. It refuses a real account's key and never reads your own accounts.
+3. **Use it:** Today → **Plan my week**, **Add what's new** (samples include two prompt-injection attacks),
+   **Find openings**; **Ask your coach** ("Prepare my call with Maya Chen", "Draft a thank-you note to Maya Chen":
+   the draft waits in the Outbox, never sent); any opportunity card → **Who can open the door**; **Usage** for tokens
+   and dollars per run.
+
 ## What it does
 
 | Screen | What you get |
@@ -30,7 +47,7 @@ Five AI agents, each with its own tools and skills, and one component in code th
 
 ```
  New account ─▶ Setup guide ............ walks you through connecting or exporting every channel (step 1)
-                tools: connection_status, next_setup_step, load_skill (11 channel playbooks)
+                tools: connection_status, next_setup_step, load_skill (12 channel playbooks)
 
  Any channel ─▶ Shield ─▶ Router ─▶ Inbox organizer ─▶ Records keeper ─▶ cards (Opportunities, Networking,
  (paste, file,  (code)    (code)    one call per text:   (code, 0 tokens:   Action plan)
@@ -46,7 +63,7 @@ Five AI agents, each with its own tools and skills, and one component in code th
 
 | Agent | What it does | Tools | Skills (`backend/skills/`) |
 |---|---|---|---|
-| **Setup guide** | Step 1 of a new account: one step at a time through Gmail, school mail, Messages, WhatsApp, LinkedIn, Slack, Android texts, calendar, postings | `connection_status`, `next_setup_step`, `load_skill` | 11 channel playbooks + troubleshooting |
+| **Setup guide** | Step 1 of a new account: one step at a time through Gmail, school mail, Messages, WhatsApp, LinkedIn, Slack, Android texts, calendar, postings | `connection_status`, `next_setup_step`, `load_skill` | 11 channel playbooks + troubleshooting + a demo tour |
 | **Inbox organizer** | Reads one text from any channel into opportunities, leads and people with exact quotes (one call per text) | none (reads only the text) | reading email, chats, LinkedIn exports, postings, invites; stage definitions |
 | **Opportunity scout** | Finds summer internships on public job boards and careers pages, judges fit; answers the coach about opportunities | `search_job_boards`, `read_careers_page` | source policy, MBA eligibility, reading a posting, fit rubric |
 | **Career coach** | The boss: plans the week, answers questions, prepares coffee chats, drafts notes into the Outbox | `ask_opportunity_scout`, `ask_network_intel`, `get_data_checks`, `load_skill`, `save_draft` | coffee-chat prep, prioritization, follow-ups, outreach drafts, interview prep, recruiting timeline |
@@ -161,7 +178,7 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 72 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 76 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
