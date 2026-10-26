@@ -54,7 +54,8 @@ export default function UsagePanel({ onClose, onOpenRecord }: { onClose: () => v
                 <div><b>{fmt(totals.cached)}</b><span>of them cached</span></div>
                 <div><b>{fmt(totals.output)}</b><span>output tokens</span></div>
               </div>
-              {report.prices.input_per_m == null && <p className="muted small">Cost is left blank until the model's price is set in backend/config.py; token counts are exact.</p>}
+              {report.prices.input_per_m == null ? <p className="muted small">Cost is left blank until the model's price is set in backend/config.py; token counts are exact.</p>
+                : <p className="muted small">Cost uses {report.model}'s list price per 1M tokens: ${report.prices.input_per_m} input, ${report.prices.cached_input_per_m} cached input, ${report.prices.output_per_m} output ({report.prices.source}).</p>}
               <table className="usage-table">
                 <thead><tr><th>When</th><th>What</th><th>Agents</th><th>Input</th><th>Cached</th><th>Output</th><th>Time</th><th>Cost</th></tr></thead>
                 <tbody>
