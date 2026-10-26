@@ -199,6 +199,14 @@ class ChatBody(BaseModel):
     candidates: list[Candidate] = Field(default_factory=list, max_length=config.MAX_CANDIDATES)
 
 
+def require_web_budget(user: dict) -> None:
+    """Web searches cost a fee each, outside the token budget: at most MAX_WEB_RUNS_PER_DAY such requests a day."""
+    require_budget(user)
+    if db.web_runs_today(user["id"]) >= config.MAX_WEB_RUNS_PER_DAY:
+        raise HTTPException(429, f"You have used today's {config.MAX_WEB_RUNS_PER_DAY} web searches. They reset at midnight UTC; "
+                                 "everything else still works.")
+
+
 def require_budget(user: dict) -> None:
     """Token overspending guard: the AI_PAUSED kill switch, then per student and for the whole site, per UTC day."""
     if config.AI_PAUSED:
@@ -551,7 +559,7 @@ def put_preferences(body: PrefsBody, user: dict = Depends(auth.require_user)):
 async def web_shortlist_route(body: WebSearchBody, user: dict = Depends(auth.require_user)):
     """The Opportunity scout searches the open web for internships that fit the student's profile. The Records keeper
     then reads each result's page and saves only those whose page contains the quoted sentence and the organisation."""
-    require_budget(user)
+    require_web_budget(user)
     run = CoachRun(user["id"], "web")
     try:
         report = await scout.web_shortlist(run, user["id"], body.focus)
@@ -578,7 +586,7 @@ async def find_people(app_id: int, user: dict = Depends(auth.require_user)):
     row = db.get_application(user["id"], app_id)
     if row is None:
         raise HTTPException(404, "Opportunity not found")
-    require_budget(user)
+    require_web_budget(user)
     run = CoachRun(user["id"], "people")
     try:
         report = await network.people(run, user["id"], row)

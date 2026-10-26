@@ -1,0 +1,132 @@
+{
+  "captured_at": "2026-10-26T14:34:36-04:00",
+  "base": "https://summer-internship-coach.onrender.com",
+  "account": "Try the demo (fresh private sandbox, fictional student)",
+  "prices": {
+    "input_per_m": 0.1,
+    "cached_input_per_m": 0.01,
+    "output_per_m": 0.5,
+    "source": "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
+  },
+  "runs": [
+    {
+      "endpoint": "/api/scout/web",
+      "run_id": "d1161ab12736",
+      "kind": "web",
+      "status": "ok",
+      "seconds": 12.93,
+      "usage": {
+        "input": 21898,
+        "cached": 6589,
+        "output": 867,
+        "requests": 1,
+        "cost_usd": 0.04203029
+      },
+      "agents_in_trace": [
+        "scout",
+        "keeper"
+      ],
+      "trace_events": [
+        "scout:searching_web",
+        "scout:finished",
+        "keeper:verified_web",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "scout",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 21898,
+          "cached_tokens": 6589,
+          "output_tokens": 867,
+          "seconds": 10.79,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/applications/293/people",
+      "run_id": "be2afd11acd4",
+      "kind": "people",
+      "status": "ok",
+      "seconds": 13.85,
+      "usage": {
+        "input": 20634,
+        "cached": 5538,
+        "output": 405,
+        "requests": 1,
+        "cost_usd": 0.08176748
+      },
+      "agents_in_trace": [
+        "network",
+        "keeper"
+      ],
+      "trace_events": [
+        "network:searching_web",
+        "network:finished",
+        "keeper:verified_web",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "network",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 20634,
+          "cached_tokens": 5538,
+          "output_tokens": 405,
+          "seconds": 12.82,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat",
+      "run_id": "692b493b6c59",
+      "kind": "chat",
+      "status": "ok",
+      "seconds": 5.99,
+      "usage": {
+        "input": 14534,
+        "cached": 5285,
+        "output": 476,
+        "requests": 1,
+        "cost_usd": 0.021215750000000002
+      },
+      "agents_in_trace": [
+        "strategist"
+      ],
+      "trace_events": [
+        "strategist:thinking",
+        "strategist:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "strategist",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 14534,
+          "cached_tokens": 5285,
+          "output_tokens": 476,
+          "seconds": 5.88,
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "total": {
+    "input": 57066,
+    "cached": 17412,
+    "output": 1748,
+    "requests": 3,
+    "cost_usd": 0.145014
+  },
+  "screenshots": [
+    "21_preferences_form.png",
+    "22_setup_with_preferences.png",
+    "23_web_shortlist.png",
+    "24_key_people_and_alumni.png",
+    "25_coach_web_answer.png"
+  ]
+}

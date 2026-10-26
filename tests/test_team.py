@@ -420,3 +420,13 @@ def test_the_preferences_form_feeds_the_profile_and_the_board(client):
         new.put("/api/preferences", json={**body, "companies": ["NBA", "ESPN"]})
         assert new.get("/api/profile").json()["text"].count("Preferences (from the form):") == 1  # replaced, not stacked
         assert new.put("/api/preferences", json={**body, "companies": ["x"] * 41}).status_code == 422
+
+
+def test_web_searches_have_their_own_daily_cap(demo_client, monkeypatch):
+    uid = _uid(demo_client)
+    monkeypatch.setattr(config, "MAX_WEB_RUNS_PER_DAY", 2)
+    for i in range(2):
+        db.record_model_run({"run_id": f"web-{i}", "user_id": uid, "agent": "scout", "model": "gpt-6-luna", "requests": 1, "input_tokens": 10,
+                             "cached_tokens": 0, "output_tokens": 1, "reasoning_tokens": 0, "seconds": 1, "status": "ok", "web_searches": 4})
+    r = demo_client.post("/api/scout/web", json={"focus": ""})
+    assert r.status_code == 429 and "web searches" in r.json()["detail"]

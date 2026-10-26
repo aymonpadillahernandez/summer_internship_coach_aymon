@@ -91,6 +91,8 @@ WEB_SEARCH_CONTEXT = "low"  # less page text fed to the model per search
 MAX_WEB_SHORTLIST = 8  # opportunities the scout may propose from one web search run
 MAX_STAKEHOLDERS = 5  # people Network intelligence may propose for one organisation
 MAX_VERIFY_PAGES = 8  # source pages the Records keeper reads to verify one run's results
+MAX_WEB_RUNS_PER_DAY = int(os.getenv("MAX_WEB_RUNS_PER_DAY", "20"))  # web-search requests per student per UTC day (search
+# fees, $0.01 each, are not tokens, so the token budget alone would not cap them)
 CONNECTOR_REQUESTS_PER_15_MIN = 60  # Coach Connector calls per key; it batches items, so a normal sync needs a few  # optional: when set, sign-up asks for it
 
 

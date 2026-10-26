@@ -1,5 +1,5 @@
 {
- "note": "Prices: OpenAI list price for gpt-6-luna (standard tier) read 2026-10-26. Per-request costs: medians of real logged runs on the live database (scripts/token_report.py, 2026-10-26_tokenomics_live.json), except chat = one measured coach chat with a draft. Requests per month are an ESTIMATE (no pilot user measured yet). Token cost only: hosting, Portkey fees and the free-plan limits are separate.",
+ "note": "Prices: OpenAI's list price for gpt-6-luna (standard tier) and web search ($10 per 1,000 calls), read 2026-10-26. Per-request costs: medians of real logged runs on the live database, plus the measured runs of the web features (docs/evidence/screenshots/2026-10-26_live_web/runs.json: web shortlist, key people, a coach answer that searched the web). Requests per month are an ESTIMATE (no pilot user measured yet). Web search fees dominate: about 90% of the typical month. Hosting and Portkey fees are separate.",
  "prices_per_1m": {
   "input": 0.1,
   "cached_input": 0.01,
@@ -12,39 +12,50 @@
   "chat": 0.000707,
   "discover": 0.00104272,
   "doors": 0.000461,
-  "guide": 0.0004009
+  "guide": 0.0004009,
+  "web_shortlist": 0.04203,
+  "key_people": 0.081767,
+  "chat_with_web": 0.021216
  },
  "requests_per_month": {
   "typical": {
    "intake": 60,
    "plan": 8,
-   "chat": 20,
+   "chat": 12,
+   "chat_with_web": 8,
    "discover": 4,
    "doors": 4,
-   "guide": 2
+   "guide": 2,
+   "web_shortlist": 4,
+   "key_people": 4
   },
   "heavy": {
    "intake": 150,
    "plan": 20,
-   "chat": 60,
+   "chat": 40,
+   "chat_with_web": 20,
    "discover": 12,
    "doors": 10,
-   "guide": 4
+   "guide": 4,
+   "web_shortlist": 12,
+   "key_people": 10
   }
  },
  "scenarios": {
   "typical": {
-   "requests": 98,
-   "per_user_month_usd": 0.0551,
-   "users_100_month_usd": 5.51,
-   "users_10000_month_usd": 551.37
+   "requests": 106,
+   "per_user_month_usd": 0.7144,
+   "web_share": 0.93,
+   "users_100_month_usd": 71.44,
+   "users_10000_month_usd": 7143.97
   },
   "heavy": {
-   "requests": 256,
-   "per_user_month_usd": 0.1466,
-   "users_100_month_usd": 14.66,
-   "users_10000_month_usd": 1465.96
+   "requests": 278,
+   "per_user_month_usd": 1.8788,
+   "web_share": 0.93,
+   "users_100_month_usd": 187.88,
+   "users_10000_month_usd": 18788.06
   }
  },
- "worst_case_per_user_day_usd": 0.15
+ "worst_case_per_user_day_usd": 1.75
 }

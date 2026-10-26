@@ -502,6 +502,14 @@ def record_model_run(row: dict) -> None:
                      [row.get(c, 0) for c in cols])
 
 
+def web_runs_today(user_id: int) -> int:
+    """Requests today (UTC) in which this student's agents searched the web."""
+    with connect() as conn:
+        row = conn.execute("SELECT COUNT(DISTINCT run_id) FROM model_runs WHERE user_id = ? AND web_searches > 0 "
+                           "AND created_at >= ?", (user_id, datetime.now(timezone.utc).strftime("%Y-%m-%d"))).fetchone()
+    return int(row[0] or 0)
+
+
 def tokens_today(user_id: int | None = None) -> int:
     """Tokens used since midnight UTC, by one user or (None) by the whole site."""
     sql = "SELECT IFNULL(SUM(input_tokens + output_tokens), 0) FROM model_runs WHERE created_at >= date('now')"
