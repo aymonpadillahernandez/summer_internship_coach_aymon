@@ -404,3 +404,19 @@ def test_key_people_need_a_public_page_that_names_them(demo_client, accept_test_
     with TestClient(main.app) as other:
         other.post("/api/auth/signup", json={"email": "student-people@example.com", "password": "long-password-1"})
         assert other.post(f"/api/applications/{app['id']}/people").status_code == 404
+
+
+def test_the_preferences_form_feeds_the_profile_and_the_board(client):
+    with TestClient(main.app) as new:
+        new.post("/api/auth/signup", json={"email": "student-prefs@example.com", "password": "long-password-1"})
+        assert new.get("/api/preferences").json()["prefs"] is None  # a new account opens with the form
+        body = {"school": "Yale SOM", "timing": "Summer 2027", "industries": ["Sports", "Media & entertainment"],
+                "roles": ["Strategy"], "companies": ["NBA", "Disney", "NBA"], "cities": ["New York"], "notes": "Spanish speaker"}
+        r = new.put("/api/preferences", json=body).json()
+        assert r["added"] == ["NBA", "Disney"]  # each target organisation becomes a card, once (no AI needed)
+        profile = new.get("/api/profile").json()["text"]
+        assert "Industries: Sports, Media & entertainment." in profile and "Yale SOM" in profile
+        assert {a["company"] for a in new.get("/api/applications").json()["applications"]} == {"NBA", "Disney"}
+        new.put("/api/preferences", json={**body, "companies": ["NBA", "ESPN"]})
+        assert new.get("/api/profile").json()["text"].count("Preferences (from the form):") == 1  # replaced, not stacked
+        assert new.put("/api/preferences", json={**body, "companies": ["x"] * 41}).status_code == 422

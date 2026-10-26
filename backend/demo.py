@@ -76,6 +76,8 @@ def seed(user_id: int) -> None:
                 (user_id, json.dumps([ids[r] for r in lead.get("opportunities", [])]), lead["kind"], lead["date"],
                  lead.get("when", ""), lead["summary"], lead.get("posted_by", ""), lead.get("evidence", ""),
                  lead.get("url", ""), "demo", f"demo:lead:{i}", lead.get("subject", "")))
+    if data.get("prefs"):
+        db.set_prefs(user_id, data["prefs"])  # last, so its organisations match the demo's cards: the form shows filled in
 
 
 SAMPLE_FILES = {  # name -> (download file name, what it is): the channel-card samples on the Setup tab, demo accounts only

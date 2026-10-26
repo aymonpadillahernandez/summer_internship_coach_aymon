@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import type { Application, Contact, Lead, Stage, SyncInfo } from "./types";
-import { type Candidate, type DataCheck, fetchBoard, fetchProfile, fetchChecks, fetchDone, fetchLeads, fetchNetwork, markAction, moveApplication, moveContact, setAppInterest, setContactInterest, updateContact } from "./api";
+import { type Candidate, type DataCheck, type Prefs, fetchPrefs, fetchBoard, fetchProfile, fetchChecks, fetchDone, fetchLeads, fetchNetwork, markAction, moveApplication, moveContact, setAppInterest, setContactInterest, updateContact } from "./api";
 import { type Action, bucketOf, checkActions, followUpDue, internshipActions, leadActions, networkingActions, sortActions, todayIso } from "./actions";
 import ChatPanel from "./components/ChatPanel";
 import ActionPlan from "./components/ActionPlan";
@@ -13,6 +13,7 @@ import DetailSheet from "./components/DetailSheet";
 import { ChatIcon, MoonIcon, SearchIcon, SunIcon } from "./components/Icons";
 import TodayView from "./components/TodayView";
 import ConnectView from "./components/ConnectView";
+import PreferencesForm from "./components/PreferencesForm";
 import UsagePanel from "./components/UsagePanel";
 import ProfilePanel from "./components/ProfilePanel";
 import type { User } from "./api";
@@ -71,6 +72,12 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
   };
   const [checks, setChecks] = useState<DataCheck[]>([]);
   const [tab, setTabState] = useState<Tab>(tabFromHash);
+  // A new account opens with the preferences form (industries, roles, companies, cities); then Setup.
+  const [prefsGate, setPrefsGate] = useState<"loading" | "show" | "done">("loading");
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
+  useEffect(() => {
+    fetchPrefs().then((r) => { setPrefs(r.prefs); setPrefsGate(r.prefs || user.is_demo ? "done" : "show"); }).catch(() => setPrefsGate("done"));
+  }, [user.is_demo]);
   const [error, setError] = useState<string | null>(null);
 
   const [stages, setStages] = useState<Stage[]>([]);
@@ -487,7 +494,13 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
         </div>
       )}
 
-      {tab === "connect" ? (
+      {prefsGate === "show" ? (
+        <main className="today">
+          <PreferencesForm initial={prefs} firstRun
+            onSaved={async () => { setPrefsGate("done"); await reloadAll(); loadProfile(); setTab("connect"); }}
+            onSkip={() => { setPrefsGate("done"); setTab("connect"); }} />
+        </main>
+      ) : tab === "connect" ? (
         <ConnectView onChanged={reloadAll} onGoToday={() => setTab("today")} isDemo={user.is_demo} />
       ) : tab === "today" ? (
         <TodayView

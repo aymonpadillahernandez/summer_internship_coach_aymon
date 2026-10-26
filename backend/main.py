@@ -176,6 +176,16 @@ class DiscoverBody(BaseModel):
     companies: list[str] = Field(default_factory=list, max_length=config.MAX_DISCOVER_COMPANIES)
 
 
+class PrefsBody(BaseModel):
+    school: str = Field(default="", max_length=120)
+    timing: str = Field(default="Summer 2027", max_length=60)
+    industries: list[str] = Field(default_factory=list, max_length=15)
+    roles: list[str] = Field(default_factory=list, max_length=15)
+    companies: list[str] = Field(default_factory=list, max_length=40)
+    cities: list[str] = Field(default_factory=list, max_length=12)
+    notes: str = Field(default="", max_length=1000)
+
+
 class WebSearchBody(BaseModel):
     focus: str = Field(default="", max_length=300)
 
@@ -518,6 +528,23 @@ async def find_doors(app_id: int, user: dict = Depends(auth.require_user)):
     done = run.finish("ok", f"Doors into {row['company']}: {len(result['paths'])} path(s)")
     db.save_doors(user["id"], app_id, {**result, "run_id": run.run_id, "usage": done["usage"]})
     return {**done, "doors": result, "card": _card(user["id"], app_id)}
+
+
+@app.get("/api/preferences")
+def get_preferences(user: dict = Depends(auth.require_user)):
+    return {"prefs": db.get_prefs(user["id"])}
+
+
+@app.put("/api/preferences")
+def put_preferences(body: PrefsBody, user: dict = Depends(auth.require_user)):
+    """The first step of a new account: what the student wants. Feeds every agent (it opens the profile they read) and
+    puts each target organisation on the board right away (code, zero tokens)."""
+    clean = lambda xs, n: list(dict.fromkeys(x.strip()[:n] for x in xs if x.strip()))  # noqa: E731
+    prefs = {"school": body.school.strip(), "timing": body.timing.strip(), "industries": clean(body.industries, 60),
+             "roles": clean(body.roles, 60), "companies": clean(body.companies, 120), "cities": clean(body.cities, 60),
+             "notes": body.notes.strip()}
+    added = db.set_prefs(user["id"], prefs)
+    return {"prefs": prefs, "added": added}
 
 
 @app.post("/api/scout/web")

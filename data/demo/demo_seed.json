@@ -446,5 +446,30 @@
    ],
    "subject": "Club message"
   }
- ]
+ ],
+ "prefs": {
+  "school": "Yale SOM",
+  "timing": "Summer 2027",
+  "industries": [
+   "Sports",
+   "Media & entertainment",
+   "Consumer brands"
+  ],
+  "roles": [
+   "Strategy",
+   "Business development",
+   "Partnerships"
+  ],
+  "companies": [
+   "Northbridge Sports Group",
+   "Harborview Media",
+   "Meridian Stadiums"
+  ],
+  "cities": [
+   "New York",
+   "Boston",
+   "Remote"
+  ],
+  "notes": "Goal: a return offer in a league, club or media company's strategy team."
+ }
 }

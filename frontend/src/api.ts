@@ -182,3 +182,8 @@ export const runWebShortlist = (focus = "") => post<WebShortlistResult>("/api/sc
 export type KeyPerson = { name: string; title: string; why: string; alum: boolean; url: string };
 export type PeopleResult = RunResult & { people: KeyPerson[]; not_confirmed: NotConfirmed[]; next_best: string };
 export const findPeople = (appId: number) => post<PeopleResult>(`/api/applications/${appId}/people`);
+
+// ─── The preferences form (first step of a new account) ─────────────────
+export type Prefs = { school: string; timing: string; industries: string[]; roles: string[]; companies: string[]; cities: string[]; notes: string };
+export const fetchPrefs = () => request<{ prefs: Prefs | null }>("/api/preferences");
+export const savePrefs = (p: Prefs) => request<{ prefs: Prefs; added: string[] }>("/api/preferences", { method: "PUT", body: JSON.stringify(p) });

@@ -1107,3 +1107,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .people-list { list-style: none; display: grid; gap: 8px; margin: 8px 0; }
 .people-list li { background: var(--fill-soft); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
 .alum-badge { margin-left: 8px; font-size: 11px; font-weight: 700; color: #00356b; background: rgba(0, 53, 107, 0.1); border-radius: 999px; padding: 2px 8px; }
+
+/* Preferences form */
+.prefs-form { max-width: 980px; margin: 0 auto; }
+.pref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.pref-grid label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+.pref-grid input, .pref-other input, .pref-block textarea { font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.pref-block { margin-top: 14px; display: grid; gap: 6px; }
+.pref-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pref-chip { border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.pref-chip.is-on { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+.pref-other { display: flex; gap: 6px; max-width: 420px; }
+.pref-other input { flex: 1; }
+.pref-actions { display: flex; gap: 8px; margin-top: 16px; }
+.prefs-summary { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.prefs-summary p { font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 760px) { .pref-grid { grid-template-columns: 1fr; } }

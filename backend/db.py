@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS profiles (
     user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     text       TEXT NOT NULL DEFAULT '',
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    prefs      TEXT  -- the preferences form (JSON): school, timing, industries, roles, companies, cities, notes
 );
 CREATE TABLE IF NOT EXISTS applications (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -247,7 +248,7 @@ def pg_schema() -> str:
 
 ADDED_COLUMNS = {"applications": {"door_paths": "TEXT", "door_paths_at": "TEXT"},  # added after the first deploy
                  "connector_syncs": {"ok": "INTEGER NOT NULL DEFAULT 1", "auto_minutes": "INTEGER"},
-                 "model_runs": {"web_searches": "INTEGER NOT NULL DEFAULT 0"}}
+                 "model_runs": {"web_searches": "INTEGER NOT NULL DEFAULT 0"}, "profiles": {"prefs": "TEXT"}}
 
 
 def init_db() -> None:
@@ -272,6 +273,48 @@ def get_profile(user_id: int) -> str:
     with connect() as conn:
         row = conn.execute("SELECT text FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
     return row[0] if row else ""
+
+
+def get_prefs(user_id: int) -> dict | None:
+    with connect() as conn:
+        row = conn.execute("SELECT prefs FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
+    return json.loads(row[0]) if row and row[0] else None
+
+
+PREFS_START, PREFS_END = "Preferences (from the form):", "(end of form)"
+
+
+def prefs_text(p: dict) -> str:
+    join = lambda xs: ", ".join(x for x in xs if x) or "not given"  # noqa: E731
+    lines = [PREFS_START, f"School: {p.get('school') or 'not given'}. Internship: {p.get('timing') or 'not given'}.",
+             f"Industries: {join(p.get('industries', []))}.", f"Roles: {join(p.get('roles', []))}.",
+             f"Target organisations: {join(p.get('companies', []))}.", f"Cities: {join(p.get('cities', []))}."]
+    if p.get("notes"):
+        lines.append(f"Notes: {p['notes']}")
+    return "\n".join(lines + [PREFS_END])
+
+
+def set_prefs(user_id: int, prefs: dict) -> list[str]:
+    """Save the form, put it at the top of the profile text the agents read (replacing an older form block), and add a
+    card for each target organisation not yet tracked (code, zero tokens). Returns the organisations added."""
+    text = get_profile(user_id)
+    if PREFS_START in text and PREFS_END in text:
+        text = text[: text.index(PREFS_START)] + text[text.index(PREFS_END) + len(PREFS_END):]
+    set_profile(user_id, (prefs_text(prefs) + "\n\n" + text.strip()).strip())
+    tracked = {a["company"].strip().lower() for a in list_applications(user_id)}
+    added = []
+    with connect() as conn:
+        conn.execute("UPDATE profiles SET prefs = ? WHERE user_id = ?", (json.dumps(prefs), user_id))
+        for company in prefs.get("companies", []):
+            name = company.strip()
+            if name and name.lower() not in tracked:
+                conn.execute("INSERT INTO applications (user_id, company, role, status, origin, context, added_on) "
+                             "VALUES (?, ?, ?, 'not_started', 'manual', ?, date('now'))",
+                             (user_id, name[:120], f"{prefs.get('timing') or 'Summer'} internship (role to find)",
+                              "Added from your preferences form"))
+                tracked.add(name.lower())
+                added.append(name)
+    return added
 
 
 def set_profile(user_id: int, text: str) -> None:

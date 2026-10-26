@@ -6,6 +6,8 @@ import {
 import { formatDate } from "../format";
 import { AGENTS } from "./AgentTrace";
 import GuidePanel from "./GuidePanel";
+import PreferencesForm from "./PreferencesForm";
+import { fetchPrefs, type Prefs } from "../api";
 
 type Result = { ok: boolean; text: string };
 
@@ -116,6 +118,12 @@ export default function ConnectView({ onChanged, onGoToday, isDemo = false }: { 
   const [newKey, setNewKey] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, Result>>({});
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
+  const [editPrefs, setEditPrefs] = useState(false);
+  const [prefsNote, setPrefsNote] = useState<string | null>(null);
+  useEffect(() => {
+    fetchPrefs().then((r) => setPrefs(r.prefs)).catch(() => {});
+  }, [editPrefs]);
   const files = useRef<Record<string, HTMLInputElement | null>>({});
   const origin = window.location.origin;
 
@@ -167,6 +175,22 @@ export default function ConnectView({ onChanged, onGoToday, isDemo = false }: { 
 
   return (
     <main className="today connect">
+      {editPrefs ? (
+        <PreferencesForm initial={prefs} onSkip={() => setEditPrefs(false)}
+          onSaved={async (added) => { setEditPrefs(false); setPrefsNote(added.length ? `Added to your board: ${added.join(", ")}.` : "Saved."); await onChanged(); }} />
+      ) : (
+        <section className="panel prefs-summary">
+          <div>
+            <h2>Your internship preferences</h2>
+            {prefs ? (
+              <p><b>{prefs.timing}</b>{prefs.school ? ` · ${prefs.school}` : ""} · {[...prefs.industries].join(", ") || "any industry"} · {prefs.roles.join(", ") || "any role"} · {prefs.cities.join(", ") || "any city"}
+                {prefs.companies.length ? ` · ${prefs.companies.length} target organisations` : ""}</p>
+            ) : <p>Not filled in yet: tell the coach what you want, and every agent works from it.</p>}
+            {prefsNote && <p className="upload-ok">{prefsNote}</p>}
+          </div>
+          <button className="primary-btn" onClick={() => setEditPrefs(true)}>{prefs ? "Edit" : "Fill in (2 minutes)"}</button>
+        </section>
+      )}
       <GuidePanel refreshKey={syncs.length + keys.length} />
       <section className="panel connect-head">
         <h2>Connect your channels</h2>
