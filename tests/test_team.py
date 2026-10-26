@@ -321,3 +321,43 @@ def test_samples_and_attacks_are_offered_in_demo_accounts_only(demo_client):
 
 def test_health_touches_the_database(client):
     assert client.get("/api/health").json()["db_ok"] is True
+
+
+# ─── Demo tour: every channel can be tried without real accounts (Oct 26) ─
+def test_every_channel_sample_file_imports_in_the_demo(demo_client, accept_test_model):
+    import demo
+    import files
+    reply = {"opportunities": [], "contacts": [], "fields_not_found": []}
+    for name, (filename, _) in demo.SAMPLE_FILES.items():
+        r = demo_client.get(f"/api/demo-files/{name}")
+        assert r.status_code == 200 and filename in r.headers["content-disposition"], name
+        assert len(files.extract(filename, r.content)) > 40, name  # the real file reader understands it
+    b64 = __import__("base64").b64encode(demo_client.get("/api/demo-files/whatsapp").content).decode()
+    with inbox.agent().override(model=FunctionModel(lambda m, i: ModelResponse(parts=[TextPart(json.dumps(reply))]))):
+        r = demo_client.post("/api/intake/file", json={"filename": "WhatsApp Chat - Priya Shah.zip", "data_b64": b64, "kind": "conversation"})
+    assert r.status_code == 200 and r.json()["routes"] == ["inbox"]
+    with TestClient(main.app) as real:
+        real.post("/api/auth/signup", json={"email": "student-demofiles@example.com", "password": "long-password-1"})
+        assert real.get("/api/demo-files/whatsapp").status_code == 403  # fictional data never offered to a real account
+
+
+def test_the_connector_demo_mode_runs_only_with_a_demo_key(demo_client, tmp_path, monkeypatch):
+    import importlib
+    import sys as _sys
+    from pathlib import Path as _P
+    _sys.path.insert(0, str(_P(__file__).resolve().parent.parent / "connector"))
+    monkeypatch.setenv("COACH_CONNECTOR_HOME", str(tmp_path / "cc"))
+    import coach_connector
+    cc = importlib.reload(coach_connector)
+    cc.save(cc.CONFIG, {"base": "http://coach.test", "key": "sic_x"})
+    sent = []
+    monkeypatch.setattr(cc, "send", lambda cfg, ch, blocks, noun, done=None: sent.append(ch) or len(blocks))
+    monkeypatch.setattr(cc, "coach", lambda m, path, cfg, payload=None: {"demo": False} if path.endswith("/context") else {})
+    with pytest.raises(SystemExit):
+        cc.demo()  # a real account's key: refused, nothing sent
+    assert sent == []
+    monkeypatch.setattr(cc, "coach", lambda m, path, cfg, payload=None: {"demo": True} if path.endswith("/context") else {})
+    assert cc.demo() == 0 and sent == ["gmail", "imessage", "whatsapp"]
+    key = demo_client.post("/api/connector/keys", json={}).json()["key"]
+    with TestClient(main.app) as c:
+        assert c.get("/api/connector/context", headers={"Authorization": f"Bearer {key}"}).json()["demo"] is True

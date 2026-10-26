@@ -78,6 +78,55 @@ def seed(user_id: int) -> None:
                  lead.get("url", ""), "demo", f"demo:lead:{i}", lead.get("subject", "")))
 
 
+SAMPLE_FILES = {  # name -> (download file name, what it is): the channel-card samples on the Setup tab, demo accounts only
+    "whatsapp": ("WhatsApp Chat - Priya Shah.zip", "WhatsApp's Export chat (without media)"),
+    "linkedin_connections": ("Connections.csv", "LinkedIn's Download your data: connections"),
+    "linkedin_messages": ("messages.csv", "LinkedIn's Download your data: messages"),
+    "email": ("Re Harborview partnerships internship.eml", "an email downloaded from Gmail or Outlook"),
+    "calendar": ("Coffee chat - Maya Chen.ics", "a calendar invite"),
+    "imessage": ("Messages - Luis Moreno.txt", "a Messages thread copied from a Mac"),
+}
+
+
+def sample_file(name: str) -> tuple[str, bytes, str]:
+    """(file name, bytes, media type) of one fictional channel export, built from the demo samples with current dates."""
+    import io
+    import zipfile
+    from email.message import EmailMessage
+
+    read = lambda f: _resolve((DEMO_DIR / "samples" / f).read_text(encoding="utf-8"))  # noqa: E731
+    filename = SAMPLE_FILES[name][0]
+    if name == "whatsapp":
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("_chat.txt", read("whatsapp_priya.txt"))
+        return filename, buf.getvalue(), "application/zip"
+    if name in ("linkedin_connections", "linkedin_messages"):
+        return filename, read(f"{name}.csv").encode(), "text/csv"
+    if name == "email":
+        head, _, body = read("email_harborview.txt").partition("\n\n")
+        fields = dict(line.split(": ", 1) for line in head.splitlines() if ": " in line)
+        msg = EmailMessage()
+        msg["From"] = f"{fields.get('From', 'Elena Petrova')} <elena.petrova@example.com>"
+        msg["To"] = "Jordan Rivera <jordan.rivera@example.com>"
+        msg["Subject"] = fields.get("Subject", "")
+        msg["Date"] = fields.get("Date", "")
+        msg.set_content(body)
+        return filename, bytes(msg), "message/rfc822"
+    if name == "calendar":
+        d = date.today() + timedelta(days=3)
+        ics = ("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Summer Internship Coach demo//EN\r\nBEGIN:VEVENT\r\n"
+               f"UID:demo-coffee-chat-{d:%Y%m%d}@example.com\r\nDTSTART:{d:%Y%m%d}T150000\r\nDTEND:{d:%Y%m%d}T153000\r\n"
+               "SUMMARY:Coffee chat: Jordan Rivera / Maya Chen (Northbridge Sports Group)\r\n"
+               "ORGANIZER;CN=Maya Chen:mailto:maya.chen@example.com\r\n"
+               "DESCRIPTION:30 minutes on the Northbridge strategy internship and the summer team.\r\n"
+               "END:VEVENT\r\nEND:VCALENDAR\r\n")
+        return filename, ics.encode(), "text/calendar"
+    if name == "imessage":
+        return filename, read("messages_luis.txt").encode(), "text/plain"
+    raise KeyError(name)
+
+
 def samples() -> list[dict]:
     manifest = json.loads((DEMO_DIR / "samples.json").read_text(encoding="utf-8"))
     out = []

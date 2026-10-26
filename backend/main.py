@@ -364,6 +364,18 @@ def samples(user: dict = Depends(auth.require_user)):
 
 
 # ─── AI: intake, plan, chat ─────────────────────────────────────────────
+@app.get("/api/demo-files/{name}")
+def demo_file(name: str, user: dict = Depends(auth.require_user)):
+    """A fictional export for one channel (WhatsApp zip, LinkedIn CSVs, .eml, .ics, a Messages thread), so anyone using
+    Try the demo, graders included, can run every import without their own accounts. Demo accounts only."""
+    if not user.get("is_demo"):
+        raise HTTPException(403, "Sample files are for demo accounts only.")
+    if name not in demo.SAMPLE_FILES:
+        raise HTTPException(404, "No such sample")
+    filename, data, media = demo.sample_file(name)
+    return Response(data, media_type=media, headers={"Content-Disposition": f'attachment; filename="{filename}"'})
+
+
 @app.post("/api/intake")
 async def intake_route(body: IntakeBody, user: dict = Depends(auth.require_user)):
     if len(body.text) > config.MAX_INPUT_CHARS and not intake.is_linkedin_export(body.text):
@@ -431,8 +443,9 @@ def connector_status(user: dict = Depends(auth.require_user)):
 
 @app.get("/api/connector/context")
 def connector_context(user: dict = Depends(connector_user)):
-    """The student's organisations, people and recruiting words, so the connector filters on their computer."""
-    return signals.context(user["id"])
+    """The student's organisations, people and recruiting words, so the connector filters on their computer
+    (and whether this is a demo account: the connector's demo mode only runs there)."""
+    return {**signals.context(user["id"]), "demo": bool(user.get("is_demo"))}
 
 
 @app.post("/api/connector/intake")

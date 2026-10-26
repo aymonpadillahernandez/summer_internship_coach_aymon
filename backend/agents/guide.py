@@ -39,7 +39,9 @@ def status(user_id: int) -> dict:
     origins = Counter(c.get("source") or "note" for c in people) + Counter(a.get("origin") or "manual" for a in apps)
     channel = lambda c: ({"connected": True, "working": bool(syncs[c]["ok"]), "auto_sync": bool(syncs[c]["auto_minutes"]),  # noqa: E731
                           "last": syncs[c]["synced_at"], "summary": syncs[c]["summary"]} if c in syncs else {"connected": False})
-    return {"profile_filled": len(db.get_profile(user_id).strip()) >= 40, "opportunities": len(apps), "people": len(people),
+    with db.connect() as conn:
+        demo = bool((conn.execute("SELECT is_demo FROM users WHERE id = ?", (user_id,)).fetchone() or [0])[0])
+    return {"demo": demo, "profile_filled": len(db.get_profile(user_id).strip()) >= 40, "opportunities": len(apps), "people": len(people),
             "connector_keys": len(keys), "gmail": channel("gmail"), "messages": channel("imessage"), "whatsapp": channel("whatsapp"),
             "records_by_source": dict(origins)}
 

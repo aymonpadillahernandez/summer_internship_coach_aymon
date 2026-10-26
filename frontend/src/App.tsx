@@ -488,7 +488,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
       )}
 
       {tab === "connect" ? (
-        <ConnectView onChanged={reloadAll} onGoToday={() => setTab("today")} />
+        <ConnectView onChanged={reloadAll} onGoToday={() => setTab("today")} isDemo={user.is_demo} />
       ) : tab === "today" ? (
         <TodayView
           candidates={candidates}

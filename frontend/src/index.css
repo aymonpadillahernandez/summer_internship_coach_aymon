@@ -1094,3 +1094,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .topbar .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .topbar .segmented::-webkit-scrollbar { display: none; }
 }
+
+/* Demo tour on the Setup tab (demo accounts only) */
+.demo-tour { margin-top: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(52, 199, 89, 0.1); border: 1px solid rgba(52, 199, 89, 0.3); font-size: 13.5px; }
+.demo-tour ol { margin: 6px 0 0 18px; display: grid; gap: 4px; color: var(--ink-soft); }
+.demo-tour code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--fill-soft); padding: 1px 5px; border-radius: 6px; }
+.channel-actions { display: flex; flex-wrap: wrap; gap: 8px; }

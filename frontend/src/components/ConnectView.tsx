@@ -73,30 +73,36 @@ type Channel = {
   accept?: string;
   kind?: "auto" | "opportunity" | "conversation";
   note?: string;
+  samples?: { name: string; file: string }[];  // fictional exports, offered in demo accounts (graders, visitors)
 };
 
 const CHANNELS: Channel[] = [
   { id: "whatsapp", title: "WhatsApp without a Mac (Export chat)", kind: "conversation", accept: ".zip,.txt",
+    samples: [{ name: "whatsapp", file: "WhatsApp Chat - Priya Shah.zip" }],
     steps: ["iPhone: open the chat → tap the name at the top → Export chat → Without media → Save to Files.",
       "Android: open the chat → ⋮ → More → Export chat → Without media.",
       "Upload the .zip here. One chat at a time: export only recruiting chats."],
     note: "On a Mac, the Coach Connector reads WhatsApp Desktop on its own instead (above). Export chat is WhatsApp's own, official way." },
   { id: "linkedin", title: "LinkedIn connections and messages", kind: "auto", accept: ".csv",
+    samples: [{ name: "linkedin_connections", file: "Connections.csv" }, { name: "linkedin_messages", file: "messages.csv" }],
     steps: ["On a computer: Me → Settings & Privacy → Data privacy → Download your data.",
       "Pick Connections and Messages → Request archive (it arrives by email, usually within minutes).",
       "Upload Connections.csv and messages.csv here. Add your targets first: only people at your organisations, and conversations about them or recruiting, are kept."],
     note: "LinkedIn does not let other apps read your messages; its data download is the official route." },
   { id: "email", title: "Any email (Gmail, Outlook, school mail)", kind: "auto", accept: ".eml",
+    samples: [{ name: "email", file: "Re Harborview partnerships internship.eml" }],
     steps: ["Gmail: open the email → ⋮ → Download message.",
       "Outlook: open the email → … → Save as (or drag it to your desktop).",
       "Upload the .eml here, or copy the text and paste it on Today. For automatic Gmail, use the Coach Connector above."] },
   { id: "imessage", title: "iMessage / SMS without the connector", kind: "conversation", accept: ".pdf,.txt",
+    samples: [{ name: "imessage", file: "Messages - Luis Moreno.txt" }],
     steps: ["Short threads: select the messages, copy and paste them on Today.",
       "Long threads on a Mac: Messages → select the conversation → File → Print → PDF → Save as PDF.",
       "Upload the PDF here. Android: use Google Messages for web and copy the thread."] },
   { id: "slack", title: "Slack", steps: ["Open the DM or thread, select the messages, copy them.", "Paste them on Today."],
     note: "School Slack workspaces only let apps approved by their admins read messages, so copying is the free way in." },
   { id: "calendar", title: "Calendar invites (booked calls)", kind: "conversation", accept: ".ics",
+    samples: [{ name: "calendar", file: "Coffee chat - Maya Chen.ics" }],
     steps: ["Open the invite email → download invite.ics (or export one event from your calendar).",
       "Upload it here: the Inbox organizer records the call with its date and the person."] },
   { id: "pages", title: "Careers pages and postings", steps: ["Paste the link on Today: the Opportunity scout reads the page itself, without hidden text.",
@@ -104,7 +110,7 @@ const CHANNELS: Channel[] = [
 ];
 
 /** "Connect your channels": free ways to bring every channel in, automatic (Coach Connector) or by upload / paste. */
-export default function ConnectView({ onChanged, onGoToday }: { onChanged: () => Promise<void> | void; onGoToday: () => void }) {
+export default function ConnectView({ onChanged, onGoToday, isDemo = false }: { onChanged: () => Promise<void> | void; onGoToday: () => void; isDemo?: boolean }) {
   const [keys, setKeys] = useState<ConnectorKey[]>([]);
   const [syncs, setSyncs] = useState<ConnectorSync[]>([]);
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -139,6 +145,23 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
     }
   }
 
+  async function trySample(ch: Channel, s: { name: string; file: string }) {
+    setBusy(ch.id);
+    setResults((x) => ({ ...x, [ch.id]: { ok: true, text: `Reading the sample ${s.file}…` } }));
+    try {
+      const res = await fetch(`/api/demo-files/${s.name}`, { credentials: "same-origin" });
+      if (!res.ok) throw new Error("The sample could not be loaded.");
+      const file = new File([await res.blob()], s.file);
+      const r = await runIntakeFile(s.file, await fileToBase64(file), ch.kind ?? "auto");
+      setResults((x) => ({ ...x, [ch.id]: { ok: true, text: `Sample ${s.file}: ${summary(r)}` } }));
+      await onChanged();
+    } catch (err) {
+      setResults((x) => ({ ...x, [ch.id]: { ok: false, text: err instanceof Error ? err.message : "That sample didn't work. Try again." } }));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const active = keys.filter((k) => !k.revoked_at);
   const syncOf = (c: string) => syncs.find((s) => s.channel === c);
 
@@ -149,6 +172,19 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
         <h2>Connect your channels</h2>
         <p>Free, and read-only: the coach never sends anything from your accounts. Only what matches your search (your organisations,
           your people, recruiting topics) is shared, every fact keeps the quote it came from, and Profile → Delete removes everything.</p>
+        {isDemo && (
+          <div className="demo-tour">
+            <b>Demo tour: every channel works here, with fictional data.</b>
+            <ol>
+              <li><b>Imports:</b> on each card below, <i>Try a sample file</i> runs the real import with a fictional export: a WhatsApp chat (.zip),
+                LinkedIn connections and messages (.csv), an email (.eml), a calendar invite (.ics) and a Messages thread.</li>
+              <li><b>The connector:</b> create a key (step 1), download the script (step 2), run setup with that key (press Enter to skip Gmail,
+                n for Messages and WhatsApp), then <code>python3 ~/coach_connector.py demo</code>. It sends fictional Gmail, Messages and
+                WhatsApp messages through the real connector path, and the Gmail, Messages and WhatsApp cards turn to synced. Your own accounts
+                are never read.</li>
+            </ol>
+          </div>
+        )}
         <div className="glance">
           <div className="glance-col is-auto">
             <h3>Updates on its own</h3>
@@ -288,6 +324,11 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
                     <button className="primary-btn" disabled={busy !== null} onClick={() => files.current[ch.id]?.click()}>
                       {busy === ch.id ? "Reading…" : `Upload ${ch.accept.split(",")[0]}`}
                     </button>
+                    {isDemo && ch.samples?.map((s) => (
+                      <button key={s.name} className="toggle" disabled={busy !== null} onClick={() => trySample(ch, s)}>
+                        Try a sample file{ch.samples && ch.samples.length > 1 ? `: ${s.file}` : ""}
+                      </button>
+                    ))}
                     <input ref={(el) => { files.current[ch.id] = el; }} type="file" accept={ch.accept} hidden onChange={(e) => upload(ch, e)} />
                   </>
                 ) : (

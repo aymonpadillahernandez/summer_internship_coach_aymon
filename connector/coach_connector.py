@@ -15,6 +15,8 @@ coach account (your connector key). Your Gmail app password stays in this Mac's 
   python3 coach_connector.py schedule            # auto-sync: runs on its own every 30 minutes while this Mac is awake
   python3 coach_connector.py status              # is auto-sync on, and what did the last run check?
   python3 coach_connector.py unschedule          # stops auto-sync
+  python3 coach_connector.py demo                # with a "Try the demo" key: sends FICTIONAL Gmail, Messages and
+                                                 # WhatsApp messages (bundled here) through the real connector path
   python3 coach_connector.py gmail --since 2026-10-01
   python3 coach_connector.py whatsapp --dry-run
 
@@ -772,6 +774,54 @@ def trim_log() -> None:
         pass
 
 
+# ─── Demo mode (graders, visitors): fictional messages, no account is read ───
+DEMO_BATCHES = {
+    "gmail": ("emails", "From: Luis Moreno\nDate: {d1}\nSubject: Pinecrest MBA summer superday\n\nHi Jordan, thanks for "
+              "applying to the Pinecrest Consulting MBA summer associate role. You are invited to our superday on {d12}. "
+              "Please confirm by {d4}. Best, Luis Moreno, Campus Recruiter"),
+    "imessage": ("conversations", "Messages with Tom Becker\n[{d2} 7:15 PM] Tom Becker: Hi Jordan! Crescent Ventures is opening "
+                 "its MBA summer internship next week. Want a coffee chat on {d5} to prep?\n[{d2} 7:20 PM] You: Yes please, "
+                 "thank you Tom!"),
+    "whatsapp": ("conversations", "WhatsApp chat with Rachel Kim\n[{d1} 9:30 AM] Rachel Kim: Jordan, I spoke with my old manager "
+                 "at Northbridge Sports Group. She's happy to do a 15-minute call about the strategy internship.\n"
+                 "[{d1} 9:41 AM] You: That's so kind, thank you! I'll send her a note today."),
+}
+
+
+def demo() -> int:
+    """Send three fictional batches (one per connected channel) with a demo account's key. Nothing is read from this
+    computer: it shows the connector's path end to end (key, filter context, upload, Inbox organizer, Records keeper)."""
+    cfg = load(CONFIG, {})
+    if not cfg.get("key"):
+        sys.exit("Not set up yet. Run: python3 coach_connector.py setup  (paste the key from the demo's Setup tab; "
+                 "press Enter to skip Gmail, n for Messages and WhatsApp)")
+    try:
+        ctx = coach("GET", "/api/connector/context", cfg)
+    except ConnectorError as e:
+        sys.exit(str(e))
+    if not ctx.get("demo"):
+        sys.exit("Demo mode only runs with a key from a \"Try the demo\" account, so fictional messages never enter a real "
+                 "student's records. Use run (or schedule) for your own accounts.")
+    today = date.today()
+    fmt = lambda n: (today + timedelta(days=n)).strftime("%b %d, %Y")  # noqa: E731
+    dates = {"d1": fmt(-1), "d2": fmt(-2), "d4": fmt(4), "d5": fmt(5), "d12": fmt(12)}
+    say("Demo mode: sending fictional messages bundled in this script; none of your accounts is read.\n")
+    report = {}
+    for channel, (noun, text) in DEMO_BATCHES.items():
+        try:
+            sent = send(cfg, channel, [(f"demo-{channel}", text.format(**dates))], noun)
+            report[channel] = {"ok": True, "checked": 1, "sent": sent}
+        except ConnectorError as e:
+            say(f"{CHANNEL_NAMES[channel]}: {e}")
+            report[channel] = {"ok": False, "reason": e.reason}
+    try:
+        coach("POST", "/api/connector/checked", cfg, {"channels": report})
+    except ConnectorError:
+        pass
+    say("\nDone. Open the demo's Setup tab (the channels now show as synced) and the Networking and Opportunities boards.")
+    return 0 if all(c["ok"] for c in report.values()) else 1
+
+
 # ─── Command line ───────────────────────────────────────────────────────
 def run(command: str, since: str | None, dry_run: bool, scheduled: bool) -> int:
     global SCHEDULED
@@ -821,7 +871,7 @@ def run(command: str, since: str | None, dry_run: bool, scheduled: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["setup", "run", "gmail", "messages", "whatsapp", "schedule", "unschedule", "status"])
+    ap.add_argument("command", choices=["setup", "run", "gmail", "messages", "whatsapp", "schedule", "unschedule", "status", "demo"])
     ap.add_argument("--since", help="YYYY-MM-DD: look back to this date (default: since the last run, or 30 days)")
     ap.add_argument("--dry-run", action="store_true", help="show what would be sent; send nothing")
     ap.add_argument("--every", type=int, default=30, help="schedule: minutes between automatic runs (default 30)")
@@ -843,6 +893,8 @@ def main() -> int:
         return unschedule()
     if args.command == "status":
         return status()
+    if args.command == "demo":
+        return demo()
     return run(args.command, args.since, args.dry_run, args.scheduled)
 
 
