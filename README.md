@@ -36,13 +36,15 @@ where they studied).
      messages.csv, an email (.eml), a calendar invite (.ics) and a Messages thread, each through the real import;
    - the **Coach Connector** end to end: create a key (step 1), then in a terminal
      `curl -fsSL <site>/connector/coach_connector.py -o ~/coach_connector.py`, `python3 ~/coach_connector.py setup`
-     (paste the key; Enter to skip Gmail, `n` for Messages and WhatsApp) and `python3 ~/coach_connector.py demo`.
+     (Enter keeps the coach address it was downloaded from; paste the key; Enter to skip Gmail, `n` for Messages and
+     WhatsApp) and `python3 ~/coach_connector.py demo`.
      It sends fictional Gmail, Messages and WhatsApp messages through the real connector path; the Gmail, Messages
-     and WhatsApp cards turn to synced. It refuses a real account's key and never reads your own accounts.
+     and WhatsApp cards show *Synced by hand*. It refuses a real account's key and never reads your own accounts.
 3. **Use it:** Today → **Plan my week**, **Add what's new** (samples include two prompt-injection attacks),
    **Find openings**; **Ask your coach** ("Prepare my call with Maya Chen", "Draft a thank-you note to Maya Chen":
-   the draft waits in the Outbox, never sent); any opportunity card → **Who can open the door**; **Usage** for tokens
-   and dollars per run.
+   the draft waits in the Outbox, never sent); any opportunity card → **Find who can help**; **Usage** for tokens
+   and dollars per run. The demo's organisations are fictional, so *Find on the web* (key people) and the job-board
+   search find nothing for them: after *Search the whole web*, open a real organisation it saved and use them there.
 
 ## What it does
 
@@ -50,7 +52,7 @@ where they studied).
 |---|---|
 | **Preferences** (first screen of a new account; Setup → Edit) | School, timing, industries, roles, cities and target organisations. Every agent reads them; each target organisation becomes a card on the board (code, no AI). |
 | **Today** | **Find openings**: *Search the whole web* (the Opportunity scout with OpenAI's web search proposes up to 8 internships that fit, also at organisations you don't track yet; only those confirmed on their own page are saved, with the link) or *Search my organisations' job boards* (Greenhouse, Lever, Ashby, SmartRecruiters public APIs). **Plan my week**: the Career coach ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the Inbox organizer files opportunities, people and dated facts, each with the exact quote it came from. **Outbox**: drafts the coach wrote, never sent by the app. |
-| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Key people and alumni**: Network intelligence searches public pages for the team behind the role, the recruiting lead and alumni of your school (saved as *To contact* only if a public page names them; never LinkedIn; no contact details). **Who can open the door**: up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
+| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Key people and alumni** (*Find on the web*): Network intelligence searches public pages for the team behind the role, the recruiting lead and alumni of your school (saved as *To contact* only if a public page names them; never LinkedIn; no contact details). **Who can open the door** (*Find who can help*): up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
 | **Ask your coach** | Ask anything: the Career coach answers from your records and, when they can't, searches the web and cites its sources. "Prepare my call with …" goes to Network intelligence: why the call matters, a timed plan, talking points, the person's background (your records, plus public pages), questions and a follow-up draft. "Draft a thank-you to …" puts a draft in the Outbox. |
@@ -196,7 +198,7 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 76 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 81 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local

@@ -500,11 +500,19 @@ def connector_checked(body: ConnectorCheckBody, user: dict = Depends(connector_u
     return {"ok": True}
 
 
+LOCAL_COACH = re.compile(r"^http://(127\.0\.0\.1|localhost|\[::1\]):\d{2,5}$")
+
+
 @app.get("/connector/coach_connector.py")
-def connector_script():
-    """The connector itself, so a student can download it with one command (it is also in the public repo)."""
+def connector_script(request: Request):
+    """The connector itself, so a student can download it with one command (it is also in the public repo). A copy
+    downloaded from a coach running on this computer defaults to that coach instead of the live site."""
     path = config.ROOT / "connector" / "coach_connector.py"
-    return PlainTextResponse(path.read_text(encoding="utf-8"), media_type="text/x-python; charset=utf-8")
+    text = path.read_text(encoding="utf-8")
+    here = str(request.base_url).rstrip("/")
+    if LOCAL_COACH.match(here):
+        text = re.sub(r'^DEFAULT_COACH = ".*"$', f'DEFAULT_COACH = "{here}"', text, count=1, flags=re.M)
+    return PlainTextResponse(text, media_type="text/x-python; charset=utf-8")
 
 
 @app.post("/api/intake/link")

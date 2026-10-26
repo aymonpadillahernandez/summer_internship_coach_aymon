@@ -84,8 +84,10 @@ export function internshipActions(apps: Application[]): Action[] {
     const rank = priorityRank(app.priority);
     const sub = `${app.role} · ${app.priority || "unrated"}`;
     if (app.status === "interview") {
+      const when = dateFromText(app.deadline ?? "");
+      const day = when && when.date >= startOfToday() ? when.date : null; // prepare by the interview, not after it
       out.push({ key: `app:interview:${app.id}`, area: "internships", kind: "interview", title: `Prepare for the ${app.company} interview`, subtitle: app.role,
-        due: inDays(3), dueLabel: "This week", why: "You are in the interview stage", app, rank });
+        due: day ?? inDays(3), dueLabel: day ? planLabel(day) : "This week", why: "You are in the interview stage", app, rank });
       continue;
     }
     if (app.status !== "not_started" && app.status !== "wip") continue;

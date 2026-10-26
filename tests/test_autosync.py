@@ -247,3 +247,13 @@ def test_the_check_report_shows_auto_sync_and_costs_no_tokens(demo_client):
     assert all(s["auto_minutes"] is None for s in demo_client.get("/api/connector/status").json()["syncs"])  # auto-sync off
     with db.connect() as conn:
         assert conn.execute("SELECT COUNT(*) FROM model_runs").fetchone()[0] == runs_before  # counts only: no model call
+
+
+def test_downloaded_connector_defaults_to_the_coach_it_came_from():
+    """A copy downloaded from a coach on this computer talks to that coach; any other host keeps the live site."""
+    with TestClient(main.app, base_url="http://127.0.0.1:8041") as local:
+        assert 'DEFAULT_COACH = "http://127.0.0.1:8041"' in local.get("/connector/coach_connector.py").text
+    with TestClient(main.app, base_url="https://summer-internship-coach.onrender.com") as live:
+        assert 'DEFAULT_COACH = "https://summer-internship-coach.onrender.com"' in live.get("/connector/coach_connector.py").text
+    with TestClient(main.app, base_url="http://evil.example:8041") as other:
+        assert 'DEFAULT_COACH = "https://summer-internship-coach.onrender.com"' in other.get("/connector/coach_connector.py").text

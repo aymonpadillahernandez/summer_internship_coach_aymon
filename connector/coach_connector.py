@@ -779,8 +779,8 @@ DEMO_BATCHES = {
     "gmail": ("emails", "From: Luis Moreno\nDate: {d1}\nSubject: Pinecrest MBA summer superday\n\nHi Jordan, thanks for "
               "applying to the Pinecrest Consulting MBA summer associate role. You are invited to our superday on {d12}. "
               "Please confirm by {d4}. Best, Luis Moreno, Campus Recruiter"),
-    "imessage": ("conversations", "Messages with Tom Becker\n[{d2} 7:15 PM] Tom Becker: Hi Jordan! Crescent Ventures is opening "
-                 "its MBA summer internship next week. Want a coffee chat on {d5} to prep?\n[{d2} 7:20 PM] You: Yes please, "
+    "imessage": ("conversations", "Messages with Tom Becker\n[{d2} 7:15 PM] Tom Becker: Hi Jordan! Crescent Ventures will take one "
+                 "VC Summer Associate (sports tech) this summer. Want a coffee chat on {d5} to prep?\n[{d2} 7:20 PM] You: Yes please, "
                  "thank you Tom!"),
     "whatsapp": ("conversations", "WhatsApp chat with Rachel Kim\n[{d1} 9:30 AM] Rachel Kim: Jordan, I spoke with my old manager "
                  "at Northbridge Sports Group. She's happy to do a 15-minute call about the strategy internship.\n"
