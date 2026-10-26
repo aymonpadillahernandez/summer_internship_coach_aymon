@@ -88,7 +88,7 @@ export type TraceStep = {
   hidden?: string[];
   items?: { item: string; reason: string }[];
 };
-export type Usage = { requests: number; input: number; cached: number; output: number; reasoning?: number; cost_usd: number | null };
+export type Usage = { requests: number; input: number; cached: number; output: number; reasoning?: number; web_searches?: number; cost_usd: number | null };
 export type RunResult = { run_id: string; status: string; seconds: number; trace: TraceStep[]; usage: Usage };
 
 export type Sample = { id: string; title: string; kind: "auto" | "opportunity" | "conversation"; attack: boolean; description: string; text: string };
@@ -174,3 +174,11 @@ export type Draft = { id: number; contact_id: number | null; to_name: string; su
 export const fetchOutbox = () => request<{ drafts: Draft[] }>("/api/outbox");
 export const decideDraft = (id: number, status: "approved" | "discarded") =>
   request<{ ok: boolean }>(`/api/outbox/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+
+// ─── The open web: a shortlist of internships, and key people at one organisation ───
+export type NotConfirmed = { item: string; url?: string; reason: string };
+export type WebShortlistResult = RunResult & { saved: IntakeResult["saved"]; not_confirmed: NotConfirmed[]; searched_for: string[] };
+export const runWebShortlist = (focus = "") => post<WebShortlistResult>("/api/scout/web", { focus });
+export type KeyPerson = { name: string; title: string; why: string; alum: boolean; url: string };
+export type PeopleResult = RunResult & { people: KeyPerson[]; not_confirmed: NotConfirmed[]; next_best: string };
+export const findPeople = (appId: number) => post<PeopleResult>(`/api/applications/${appId}/people`);

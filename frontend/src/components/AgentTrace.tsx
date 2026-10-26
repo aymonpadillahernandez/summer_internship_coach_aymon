@@ -51,6 +51,8 @@ const EVENT: Record<string, string> = {
   link_not_from_board: "Dropped a posting whose link no board returned",
   kept: "Checked and saved the cards",
   checked_status: "Checked your setup",
+  searching_web: "Searched the web",
+  verified_web: "Opened each source page to confirm it",
 };
 
 export const fmt = (n: number) => n.toLocaleString("en-US");
@@ -64,6 +66,7 @@ export function UsageLine({ usage, seconds }: { usage: Usage; seconds?: number }
       <span><b>{fmt(usage.cached)}</b> cached</span>
       <span><b>{fmt(usage.output)}</b> output</span>
       <span><b>{usage.requests}</b> model calls</span>
+      {!!usage.web_searches && <span><b>{usage.web_searches}</b> web searches</span>}
       {seconds != null && <span><b>{seconds.toFixed(1)}</b> s</span>}
       <span className="usage-cost">{money(usage.cost_usd)}</span>
     </div>

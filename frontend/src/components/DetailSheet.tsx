@@ -4,6 +4,7 @@ import { CONTACT_STATUS, FROM_LABEL, OFFICIAL_STATUS, concepts, formatDate, init
 import { CloseIcon, EyeOffIcon, PeopleIcon } from "./Icons";
 import Logo from "./Logo";
 import DoorsSection from "./DoorsSection";
+import PeopleSection from "./PeopleSection";
 
 type Props = {
   app: Application;
@@ -126,6 +127,7 @@ export default function DetailSheet({ app, stages, onMove, onClose, findContact,
         )}
 
         {onUpdated && <DoorsSection app={app} findContact={findContact} onOpenContact={onOpenContact} onUpdated={onUpdated} />}
+        {onUpdated && <PeopleSection app={app} />}
 
         <section className="sheet-section">
           <h4>Context · 3 key concepts to keep in mind</h4>

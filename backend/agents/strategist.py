@@ -25,7 +25,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from functools import lru_cache
 
-from pydantic_ai import Agent, ModelRetry, NativeOutput, RunContext
+from pydantic_ai import Agent, ModelRetry, NativeOutput, RunContext, WebSearchTool
+from pydantic_ai.capabilities.native_tool import NativeTool
 
 import checks
 import config
@@ -128,7 +129,8 @@ def plan_agent() -> Agent:
 def chat_agent() -> Agent:
     return Agent(config.build_model(), deps_type=StrategistDeps, output_type=str,
                  instructions=f"{prompt('strategist_chat')}\n\n{skills.catalog_block('coach')}",
-                 tools=CHAT_TOOLS, model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+                 tools=CHAT_TOOLS, capabilities=[NativeTool(WebSearchTool(search_context_size=config.WEB_SEARCH_CONTEXT))],
+                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 def _aliases(candidates: list[dict]) -> dict[str, dict]:

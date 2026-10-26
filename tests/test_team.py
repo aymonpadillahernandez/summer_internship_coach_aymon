@@ -361,3 +361,46 @@ def test_the_connector_demo_mode_runs_only_with_a_demo_key(demo_client, tmp_path
     key = demo_client.post("/api/connector/keys", json={}).json()["key"]
     with TestClient(main.app) as c:
         assert c.get("/api/connector/context", headers={"Authorization": f"Bearer {key}"}).json()["demo"] is True
+
+
+# ─── The open web (Oct 26): shortlist and key people, every result confirmed on its own page ─
+def test_web_results_are_saved_only_when_their_page_confirms_them(demo_client, accept_test_model, monkeypatch):
+    import keeper
+    pages = {"https://jobs.example.com/acme-mba": "<p>Acme Corp is hiring a Strategy MBA Summer Associate for Summer 2027 in New York.</p>",
+             "https://jobs.example.com/ghost": "<p>We are a great place to work.</p>"}
+    monkeypatch.setattr(keeper.web, "fetch", lambda url: (url, pages[url]))
+    reply = {"opportunities": [
+        {"company": "Acme Corp", "role": "Strategy MBA Summer Associate", "url": "https://jobs.example.com/acme-mba",
+         "quote": "a paraphrase the page does not contain"},  # the keeper quotes the page itself instead
+        {"company": "Ghost Inc", "role": "MBA Intern", "url": "https://jobs.example.com/ghost", "quote": "Ghost Inc MBA Intern 2027"},
+        {"company": "LinkedIn Co", "role": "MBA Intern", "url": "https://www.linkedin.com/jobs/view/1", "quote": "x"}],
+        "searched_for": ["strategy MBA summer"]}
+    with scout.web_agent().override(model=FunctionModel(lambda m, i: ModelResponse(parts=[TextPart(json.dumps(reply))]))):
+        r = demo_client.post("/api/scout/web", json={"focus": "strategy"}).json()
+    saved = r["saved"]["opportunities_added"]
+    assert [o["company"] for o in saved] == ["Acme Corp"]
+    reasons = {x["item"]: x["reason"] for x in r["not_confirmed"]}
+    assert "does not show" in reasons["Ghost Inc"] and "does not allow" in reasons["LinkedIn Co"]  # never read, never saved
+    card = next(a for a in db.list_applications(_uid(demo_client)) if a["company"] == "Acme Corp")
+    assert card["source_url"] == "https://jobs.example.com/acme-mba" or "acme-mba" in json.dumps(card)
+
+
+def test_key_people_need_a_public_page_that_names_them(demo_client, accept_test_model, monkeypatch):
+    import keeper
+    pages = {"https://acme.example.com/team": "<p>Dana Lee, Head of Strategy at Northbridge Sports Group, is a Yale SOM graduate.</p>"}
+    monkeypatch.setattr(keeper.web, "fetch", lambda url: (url, pages[url]))
+    reply = {"people": [
+        {"name": "Dana Lee", "title": "Head of Strategy", "why": "Leads the team behind the role.", "alum": "yes",
+         "url": "https://acme.example.com/team", "quote": "Dana Lee, Head of Strategy at Northbridge Sports Group"},
+        {"name": "Invented Person", "title": "VP", "why": "x", "url": "https://acme.example.com/team", "quote": "Invented Person, VP"}],
+        "next_best": ""}
+    app = next(a for a in db.list_applications(_uid(demo_client)) if a["company"] == "Northbridge Sports Group")
+    with network.people_agent().override(model=FunctionModel(lambda m, i: ModelResponse(parts=[TextPart(json.dumps(reply))]))):
+        r = demo_client.post(f"/api/applications/{app['id']}/people").json()
+    assert [p["name"] for p in r["people"]] == ["Dana Lee"] and r["people"][0]["alum"] is True
+    dana = next(c for c in db.list_contacts(_uid(demo_client)) if c["name"] == "Dana Lee")
+    assert dana["status"] == "to_contact" and "Yale alum" in dana["how_met"]
+    assert not any(c["name"] == "Invented Person" for c in db.list_contacts(_uid(demo_client)))
+    with TestClient(main.app) as other:
+        other.post("/api/auth/signup", json={"email": "student-people@example.com", "password": "long-password-1"})
+        assert other.post(f"/api/applications/{app['id']}/people").status_code == 404

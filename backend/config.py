@@ -50,6 +50,7 @@ PRICE_INPUT_PER_M: float | None = 0.10
 PRICE_CACHED_INPUT_PER_M: float | None = 0.01
 PRICE_OUTPUT_PER_M: float | None = 0.50
 PRICE_SOURCE = "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
+PRICE_WEB_SEARCH_PER_CALL = 0.01  # same page: "Web search (all models) | $10.00 / 1k calls"; the pages it reads are billed as tokens
 
 # ─── Limits (stopping rules and guardrails) ─────────────────────────────
 MAX_INPUT_CHARS = 20_000  # one paste or upload; longer is refused before any model call (422, 0 tokens)
@@ -84,6 +85,12 @@ DISCOVER_TOOL_CALLS_LIMIT = 12  # job-board searches + page reads in one discove
 DISCOVER_TOTAL_TOKENS_LIMIT = 120_000  # 8 boards of postings + 3 pages, re-sent on each request of the run
 DISCOVER_POSTING_CHARS = 700  # per posting sent to the model (internship-like postings only)
 DISCOVER_TIMEOUT_SECONDS = 120
+# Web search (OpenAI's built-in tool through Portkey): the scout's web-wide shortlist, Network intelligence's key people and
+# alumni, and the Career coach's answers. Every saved result is verified in code: its page is read and must contain the quote.
+WEB_SEARCH_CONTEXT = "low"  # less page text fed to the model per search
+MAX_WEB_SHORTLIST = 8  # opportunities the scout may propose from one web search run
+MAX_STAKEHOLDERS = 5  # people Network intelligence may propose for one organisation
+MAX_VERIFY_PAGES = 8  # source pages the Records keeper reads to verify one run's results
 CONNECTOR_REQUESTS_PER_15_MIN = 60  # Coach Connector calls per key; it batches items, so a normal sync needs a few  # optional: when set, sign-up asks for it
 
 
@@ -113,9 +120,10 @@ def build_model() -> OpenAIResponsesModel:
     return OpenAIResponsesModel(MODEL, provider=OpenAIProvider(openai_client=client))
 
 
-def cost_usd(input_tokens: int, cached_tokens: int, output_tokens: int) -> float | None:
+def cost_usd(input_tokens: int, cached_tokens: int, output_tokens: int, web_searches: int = 0) -> float | None:
     """Cost of one call; None while prices are unknown. input_tokens already include cached ones."""
     if None in (PRICE_INPUT_PER_M, PRICE_CACHED_INPUT_PER_M, PRICE_OUTPUT_PER_M):
         return None
     fresh = max(0, input_tokens - cached_tokens)
-    return (fresh * PRICE_INPUT_PER_M + cached_tokens * PRICE_CACHED_INPUT_PER_M + output_tokens * PRICE_OUTPUT_PER_M) / 1e6
+    tokens = (fresh * PRICE_INPUT_PER_M + cached_tokens * PRICE_CACHED_INPUT_PER_M + output_tokens * PRICE_OUTPUT_PER_M) / 1e6
+    return tokens + web_searches * PRICE_WEB_SEARCH_PER_CALL

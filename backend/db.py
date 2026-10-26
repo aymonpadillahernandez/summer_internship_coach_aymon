@@ -179,7 +179,8 @@ CREATE TABLE IF NOT EXISTS model_runs (
     reasoning_tokens INTEGER NOT NULL DEFAULT 0,
     seconds          REAL NOT NULL DEFAULT 0,
     status           TEXT NOT NULL DEFAULT 'ok',
-    created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+    web_searches     INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS model_runs_user ON model_runs (user_id, created_at);
 -- The strategist's latest ranking for each user.
@@ -245,7 +246,8 @@ def pg_schema() -> str:
 
 
 ADDED_COLUMNS = {"applications": {"door_paths": "TEXT", "door_paths_at": "TEXT"},  # added after the first deploy
-                 "connector_syncs": {"ok": "INTEGER NOT NULL DEFAULT 1", "auto_minutes": "INTEGER"}}
+                 "connector_syncs": {"ok": "INTEGER NOT NULL DEFAULT 1", "auto_minutes": "INTEGER"},
+                 "model_runs": {"web_searches": "INTEGER NOT NULL DEFAULT 0"}}
 
 
 def init_db() -> None:
@@ -451,10 +453,10 @@ def decide_draft(user_id: int, draft_id: int, status: str) -> bool:
 
 def record_model_run(row: dict) -> None:
     cols = ["run_id", "user_id", "agent", "model", "requests", "input_tokens", "cached_tokens", "output_tokens",
-            "reasoning_tokens", "seconds", "status"]
+            "reasoning_tokens", "seconds", "status", "web_searches"]
     with connect() as conn:
         conn.execute(f"INSERT INTO model_runs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
-                     [row[c] for c in cols])
+                     [row.get(c, 0) for c in cols])
 
 
 def tokens_today(user_id: int | None = None) -> int:

@@ -140,3 +140,36 @@ class DiscoveryReport(BaseModel):
     opportunities: list[OpportunityFound] = Field(default_factory=list,
                                                   description="internships a tool returned in this run, each with its url and an exact quote")
     not_found: list[str] = Field(default_factory=list, description="organisations with no public board or no internship posting")
+
+
+# ─── Opportunity scout: a shortlist found on the open web ────────────────
+class WebOpportunity(BaseModel):
+    company: str
+    role: str
+    url: str = Field(description="the page of the posting itself, as found by web search")
+    quote: str = Field(description="an exact sentence from that page that shows the role (checked against the page)")
+    deadline: str = Field("", description="as written on the page, '' if none")
+    location: str = Field("")
+    mba_eligible: YesNo = "Not clear"
+    fit: Literal["strong", "possible", "weak", "unknown"] = "unknown"
+    fit_reason: str = Field("", description="one sentence against the student's profile")
+
+
+class WebShortlist(BaseModel):
+    opportunities: list[WebOpportunity] = Field(default_factory=list)
+    searched_for: list[str] = Field(default_factory=list, description="what you searched for, in a few words each")
+
+
+# ─── Network intelligence: key people and alumni at one organisation ────
+class Stakeholder(BaseModel):
+    name: str
+    title: str = Field(description="their role at the organisation, as the page states it")
+    why: str = Field(description="one sentence: why this person matters for this internship")
+    alum: Literal["yes", "no_info"] = Field("no_info", description="'yes' only if the page says they studied at the student's school")
+    url: str = Field(description="a public page about this person (company site, news, school or conference page)")
+    quote: str = Field(description="an exact sentence from that page naming the person (checked against the page)")
+
+
+class StakeholderReport(BaseModel):
+    people: list[Stakeholder] = Field(default_factory=list)
+    next_best: str = Field("", description="if few people are found: where else to look")

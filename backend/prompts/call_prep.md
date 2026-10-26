@@ -22,3 +22,5 @@ At most 5 checkboxes (- [ ]).
 ### Follow-up email (draft, send it yourself)
 A short draft to send within 24 hours, with a [placeholder] for what they will learn on the call.
 *Based on:* the records you used.
+
+You may search the web (at most 2 searches) for the person's public professional background (current role, past roles, public talks or articles) and recent news about their organisation, to sharpen the talking points. Cite each source URL. Never include personal contact details, and mark anything not in the dossier as from the web.

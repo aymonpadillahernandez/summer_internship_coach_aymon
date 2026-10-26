@@ -18,7 +18,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from functools import lru_cache
 
-from pydantic_ai import Agent, NativeOutput, RunContext
+from pydantic_ai import Agent, NativeOutput, RunContext, WebSearchTool
+from pydantic_ai.capabilities.native_tool import NativeTool
 
 import config
 import db
@@ -27,7 +28,7 @@ import retrieval
 import safety
 import web
 from agents import skills
-from agents.models import DiscoveryReport, ScoutIntake, SpecialistAnswer, trim
+from agents.models import DiscoveryReport, ScoutIntake, SpecialistAnswer, WebShortlist, trim
 from agents.runtime import CoachRun, limits, prompt, run_agent
 
 NAME = "scout"
@@ -204,3 +205,24 @@ async def discover(run: CoachRun, user_id: int, companies: list[str]) -> tuple[D
                 run.step(NAME, "link_not_from_board", f"Dropped {o.company} — {o.role}: its link was not one a job board returned")
         report.opportunities = kept
     return report, "\n\n".join(deps.returned)
+
+
+# ─── The open web: a shortlist beyond the organisations the student tracks ───
+@lru_cache(maxsize=1)
+def web_agent() -> Agent:
+    return Agent(config.build_model(), output_type=NativeOutput(WebShortlist),
+                 instructions=f"{prompt('scout_web')}\n\n{skills.inject(NAME)}",
+                 capabilities=[NativeTool(WebSearchTool(search_context_size=config.WEB_SEARCH_CONTEXT))],
+                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+
+
+async def web_shortlist(run: CoachRun, user_id: int, focus: str = "") -> WebShortlist | None:
+    tracked = sorted({a["company"] for a in db.list_applications(user_id) if a["company"].strip()})
+    user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\n\nStudent profile:\n{_profile(user_id)}\n\n"
+                   f"Organisations already tracked ({len(tracked)}): {', '.join(tracked[:40]) or 'none'}\n\n"
+                   + (f"The student's focus for this search: {focus[:300]}\n" if focus.strip() else ""))
+    run.step(NAME, "searching_web", "Searching the open web for internships that fit the profile" + (f" ({focus[:80]})" if focus else ""))
+    report = await run_agent(run, NAME, web_agent(), user_prompt, timeout=config.DISCOVER_TIMEOUT_SECONDS)
+    if report is not None:
+        report.opportunities = report.opportunities[: config.MAX_WEB_SHORTLIST]
+    return report

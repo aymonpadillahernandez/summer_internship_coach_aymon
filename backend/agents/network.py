@@ -15,14 +15,15 @@ import unicodedata
 from datetime import date, datetime
 from functools import lru_cache
 
-from pydantic_ai import Agent, NativeOutput
+from pydantic_ai import Agent, NativeOutput, WebSearchTool
+from pydantic_ai.capabilities.native_tool import NativeTool
 
 import config
 import db
 import retrieval
 import safety
 from agents import skills
-from agents.models import DoorPlan, SpecialistAnswer, trim
+from agents.models import DoorPlan, SpecialistAnswer, StakeholderReport, trim
 from agents.runtime import CoachRun, prompt, run_agent
 from agents.scout import checked_answer
 
@@ -57,7 +58,7 @@ def doors_agent() -> Agent:
 
 @lru_cache(maxsize=1)
 def call_prep_agent() -> Agent:
-    return Agent(config.build_model(), output_type=str,
+    return Agent(config.build_model(), output_type=str, capabilities=[NativeTool(WebSearchTool(search_context_size=config.WEB_SEARCH_CONTEXT))],
                  instructions=f"{prompt('call_prep')}\n\n{skills.inject(NAME, ['call-prep'])}",
                  model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
@@ -203,3 +204,31 @@ async def doors(run: CoachRun, user_id: int, app: dict) -> dict:
     if dropped:
         run.step(NAME, "ids_dropped", f"Removed people it was not given: {', '.join(dropped[:4])}")
     return {"paths": paths, "next_best": safety.scrub(trim(plan.next_best, 300)), "checked": len(people)}
+
+
+# ─── Key people and alumni at one organisation (open web) ────────────────
+@lru_cache(maxsize=1)
+def people_agent() -> Agent:
+    return Agent(config.build_model(), output_type=NativeOutput(StakeholderReport),
+                 instructions=f"{prompt('network_people')}\n\n{skills.inject(NAME, ['relationship-strength', 'warm-intro-paths'])}",
+                 capabilities=[NativeTool(WebSearchTool(search_context_size=config.WEB_SEARCH_CONTEXT))],
+                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+
+
+def school_of(user_id: int) -> str:
+    """The student's school from their profile ("Yale SOM" when the profile names Yale), else "the student's school"."""
+    p = db.get_profile(user_id).lower()
+    return "Yale (Yale School of Management)" if "yale" in p else "the school named in the student's profile"
+
+
+async def people(run: CoachRun, user_id: int, app: dict) -> StakeholderReport | None:
+    known = [c["name"] for c in db.list_contacts(user_id)]
+    user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\nStudent profile:\n{_profile(user_id)}\n\n"
+                   f"Organisation: {app['company']}\nRole the student wants: {app['role']}\nLocation: {app.get('location') or 'not stated'}\n"
+                   f"The student's school: {school_of(user_id)}\n"
+                   f"People the student already knows (do not repeat them): {', '.join(known[:60]) or 'none'}")
+    run.step(NAME, "searching_web", f"Looking on the open web for key people and alumni at {app['company']}")
+    report = await run_agent(run, NAME, people_agent(), user_prompt, timeout=config.DISCOVER_TIMEOUT_SECONDS)
+    if report is not None:
+        report.people = [p for p in report.people if p.name.strip() not in known][: config.MAX_STAKEHOLDERS]
+    return report

@@ -56,7 +56,8 @@ class CoachRun:
     delegations: int = 0
     skill_loads: int = 0
     drafts: int = 0
-    tokens: dict[str, int] = field(default_factory=lambda: {"requests": 0, "input": 0, "cached": 0, "output": 0, "reasoning": 0})
+    tokens: dict[str, int] = field(default_factory=lambda: {"requests": 0, "input": 0, "cached": 0, "output": 0, "reasoning": 0,
+                                                            "web_searches": 0})
     started: float = field(default_factory=time.perf_counter)
 
     def __post_init__(self):
@@ -70,17 +71,19 @@ class CoachRun:
         seconds = time.perf_counter() - self.started
         db.finish_run(self.run_id, status, seconds, self.trace, summary)
         return {"run_id": self.run_id, "status": status, "seconds": round(seconds, 2), "trace": self.trace,
-                "usage": {**self.tokens, "cost_usd": config.cost_usd(self.tokens["input"], self.tokens["cached"], self.tokens["output"])}}
+                "usage": {**self.tokens, "cost_usd": config.cost_usd(self.tokens["input"], self.tokens["cached"], self.tokens["output"],
+                                                                      self.tokens["web_searches"])}}
 
 
 def _usage_of(responses: list[ModelResponse]) -> dict[str, int]:
-    out = {"requests": len(responses), "input": 0, "cached": 0, "output": 0, "reasoning": 0}
+    out = {"requests": len(responses), "input": 0, "cached": 0, "output": 0, "reasoning": 0, "web_searches": 0}
     for r in responses:
         u = r.usage
         out["input"] += u.input_tokens or 0
         out["cached"] += u.cache_read_tokens or 0
         out["output"] += u.output_tokens or 0
         out["reasoning"] += (u.details or {}).get("reasoning_tokens", 0)
+        out["web_searches"] += (u.details or {}).get("web_search_requests", 0) or getattr(u, "web_searches", 0) or 0
     return out
 
 
@@ -127,11 +130,11 @@ async def run_agent(run: CoachRun, name: str, agent: Agent, user_prompt: str, de
     db.record_model_run({"run_id": run.run_id, "user_id": run.user_id, "agent": name, "model": ", ".join(models),
                          "requests": usage["requests"], "input_tokens": usage["input"], "cached_tokens": usage["cached"],
                          "output_tokens": usage["output"], "reasoning_tokens": usage["reasoning"],
-                         "seconds": seconds, "status": status})
+                         "seconds": seconds, "status": status, "web_searches": usage["web_searches"]})
     for k in run.tokens:
         run.tokens[k] += usage[k]
     run.step(name, "finished" if status == "ok" else status, error, seconds=seconds,
-             tokens={k: usage[k] for k in ("input", "cached", "output")})
+             tokens={k: usage[k] for k in ("input", "cached", "output", "web_searches")})
     if bad:
         raise ModelSubstituted(error)
     return output

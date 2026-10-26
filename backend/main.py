@@ -31,10 +31,12 @@ import files
 import intake
 import keeper
 import merge
+import safety
 import signals
 import web
 from agents import guide, network, scout, strategist
-from agents.models import ScoutIntake, trim
+from agents.models import ContactFound, NetworkIntake, OpportunityFound, ScoutIntake, trim
+from urllib.parse import urlsplit as _urlsplit
 from agents.runtime import CoachRun, ModelSubstituted
 from store import connect, is_postgres
 
@@ -172,6 +174,10 @@ class GuideBody(BaseModel):
 
 class DiscoverBody(BaseModel):
     companies: list[str] = Field(default_factory=list, max_length=config.MAX_DISCOVER_COMPANIES)
+
+
+class WebSearchBody(BaseModel):
+    focus: str = Field(default="", max_length=300)
 
 
 class DraftDecision(BaseModel):
@@ -514,6 +520,61 @@ async def find_doors(app_id: int, user: dict = Depends(auth.require_user)):
     return {**done, "doors": result, "card": _card(user["id"], app_id)}
 
 
+@app.post("/api/scout/web")
+async def web_shortlist_route(body: WebSearchBody, user: dict = Depends(auth.require_user)):
+    """The Opportunity scout searches the open web for internships that fit the student's profile. The Records keeper
+    then reads each result's page and saves only those whose page contains the quoted sentence and the organisation."""
+    require_budget(user)
+    run = CoachRun(user["id"], "web")
+    try:
+        report = await scout.web_shortlist(run, user["id"], body.focus)
+    except ModelSubstituted as e:
+        return {**run.finish("model_rejected", str(e)), "saved": {}, "not_confirmed": [], "searched_for": []}
+    if report is None:
+        return {**run.finish("failed", "No answer"), "saved": {}, "not_confirmed": [], "searched_for": []}
+    kept, not_confirmed = await keeper.verify_web(run, report.opportunities, must_contain=lambda o: [o.company])
+    found = [OpportunityFound(company=o.company, role=o.role, deadline=o.deadline, location=o.location, mba_eligible=o.mba_eligible,
+                              fit=o.fit, fit_reason=o.fit_reason, url=o.url, evidence=o.quote) for o, _ in kept]
+    source = "\n\n".join(text for _, text in kept)
+    saved = keeper.keep(run, user["id"], source, opportunities=ScoutIntake(opportunities=found), origin_opportunities="web",
+                        ref=merge.source_ref(source or "web"), label="Open web", refit=True) if found else {"saved": {}, "rejected": []}
+    counts = {k: (len(v) if isinstance(v, list) else v) for k, v in saved["saved"].items()}
+    summary = ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in counts.items() if v) or "nothing new"
+    return {**run.finish("ok", f"Open-web search: {summary}"), "saved": saved["saved"],
+            "not_confirmed": not_confirmed + saved["rejected"], "searched_for": report.searched_for[:6]}
+
+
+@app.post("/api/applications/{app_id}/people")
+async def find_people(app_id: int, user: dict = Depends(auth.require_user)):
+    """Network intelligence looks on the open web for key people and alumni of the student's school at this
+    organisation. Each person is saved (To contact, linked to this card) only if their public page names them."""
+    row = db.get_application(user["id"], app_id)
+    if row is None:
+        raise HTTPException(404, "Opportunity not found")
+    require_budget(user)
+    run = CoachRun(user["id"], "people")
+    try:
+        report = await network.people(run, user["id"], row)
+    except ModelSubstituted as e:
+        return {**run.finish("model_rejected", str(e)), "people": [], "not_confirmed": [], "next_best": ""}
+    if report is None:
+        return {**run.finish("failed", "No answer"), "people": [], "not_confirmed": [], "next_best": ""}
+    kept, not_confirmed = await keeper.verify_web(run, report.people, must_contain=lambda p: [p.name])
+    school = "Yale alum" if "Yale" in network.school_of(user["id"]) else "alum of your school"
+    contacts = [ContactFound(name=p.name, affiliation=f"{p.title} · {row['company']}"[:200], status="to_contact",
+                             how_met=f"Found on {(_urlsplit(p.url).hostname or '').removeprefix('www.')}" + (f" · {school}" if p.alum == "yes" else ""),
+                             next_step="Ask a mutual contact or the alumni directory for an introduction",
+                             can_help_ids=[app_id]) for p, _ in kept]
+    source = "\n\n".join(text for _, text in kept)
+    saved = keeper.keep(run, user["id"], source, people=NetworkIntake(contacts=contacts), origin_people="web",
+                        ref=merge.source_ref(source or "people"), label=f"Key people at {row['company']}") if contacts else {"saved": {}, "rejected": []}
+    people = [{"name": p.name, "title": p.title, "why": safety.scrub(trim(p.why, 240)), "alum": p.alum == "yes", "url": p.url}
+              for p, _ in kept]
+    return {**run.finish("ok", f"Key people at {row['company']}: {len(people)} confirmed"), "people": people,
+            "not_confirmed": not_confirmed + saved["rejected"], "next_best": safety.scrub(trim(report.next_best, 300)),
+            "saved": saved["saved"]}
+
+
 @app.get("/demo-pages/{name}")
 def demo_page(name: str):
     """Fictional careers pages for the demo (one hides text aimed at AI agents), so a link can be tried live."""
@@ -639,8 +700,9 @@ def usage(user: dict = Depends(auth.require_user)):
     runs = db.list_runs(user["id"])
     for r in runs:
         tot = {k: sum(a[f] for a in r["agents"]) for k, f in
-               (("input", "input_tokens"), ("cached", "cached_tokens"), ("output", "output_tokens"), ("requests", "requests"))}
-        r["usage"] = {**tot, "cost_usd": config.cost_usd(tot["input"], tot["cached"], tot["output"])}
+               (("input", "input_tokens"), ("cached", "cached_tokens"), ("output", "output_tokens"), ("requests", "requests"),
+                ("web_searches", "web_searches"))}
+        r["usage"] = {**tot, "cost_usd": config.cost_usd(tot["input"], tot["cached"], tot["output"], tot["web_searches"])}
     return {"runs": runs, "today_tokens": db.tokens_today(user["id"]), "daily_budget": config.DAILY_TOKEN_BUDGET,
             "model": config.MODEL, "prices": {"input_per_m": config.PRICE_INPUT_PER_M,
                                               "cached_input_per_m": config.PRICE_CACHED_INPUT_PER_M,
