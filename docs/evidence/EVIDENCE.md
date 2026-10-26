@@ -44,6 +44,7 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 | 2026-10-26 08:25 | Tokenomics | **Measured cost per request** from the live database's own log (`scripts/token_report.py`, 42 model calls in 31 requests): median intake $0.00032 (1,586 in / 1,029 cached / 468 out, 1 request), plan $0.0018 (8,078 / 1,933 / 2,392, 4 requests), job-board search $0.0010, call prep / chat $0.0006, doors $0.00046, Setup guide $0.0004; cached share of input 44% overall | `docs/evidence/runs/2026-10-26_tokenomics_live.json` |
 | 2026-10-26 08:28 | Tokenomics (scale) | **Cost model**: measured per-request costs × an ESTIMATED month of use (no pilot user yet). Typical student (~98 requests: 60 intakes, 8 plans, 20 chats, 4 searches, 4 doors, 2 guide) $0.055 per month → $5.51 for 100 students, $551 for 10,000; heavy student (~256 requests) $0.15 → $14.66 / $1,466. Token cost only. The daily budget caps any one student at $0.15 per day at worst | `docs/evidence/runs/2026-10-26_cost_model.json` |
 | 2026-10-26 09:17 | Staff can run it (limit) | **The keep-awake schedule does not keep the site awake**: GitHub ran the every-10-minutes Action only 4 times between Oct 25 13:08 and Oct 26 09:17 ET (none after 01:02 ET), and the live site answered after a **32.3 s cold start** at 09:16 ET. The report and slides now say so; open the URL a minute before using or grading it | `docs/evidence/runs/2026-10-26_keep_awake_runs.txt` |
+| 2026-10-26 09:24 | Staff can run it | **Final acceptance test on the final commit `8e05b59`**: fresh clone from GitHub into a new `submissions/` folder with `.env` one folder above, README steps followed: 18 s of setup (warm caches), `/api/health` says "one folder above the repo", demo seeds, a real paste went through the Inbox organizer (4,459 in / 290 out, $0.00059), 72 tests pass in the clone, `.env` removed afterwards. Report prints to 14 letter pages; slides: 9, arrow keys and F tested | `docs/evidence/runs/2026-10-26_fresh_clone.txt` (first run, commit e54fa73) and this row |
 
 ## Still to collect
 
@@ -51,6 +52,6 @@ gets at most half credit. Never fabricate; failed or imperfect runs are evidence
 - [x] Screenshots of a real end-to-end run with the agent trace (delegation), from the live site
 - [x] Token usage per run (input / cached input / output) from the app's own log (above; repeat 3× per scenario for the report)
 - [x] Prompt-injection attack stopped by a defense: test output and live screenshots (above)
-- [ ] Real user test: task, time, outcome, quote (after)
+- [ ] Real user test: task, time, outcome, quote (after): placeholders in report and slides until it is run
 - [x] Key UI states for look + feel (live screenshots)
 - [x] gpt-6-luna prices (source + date) to turn token counts into cost (OpenAI pricing page, 2026-10-26)
