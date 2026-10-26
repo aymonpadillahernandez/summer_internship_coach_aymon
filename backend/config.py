@@ -44,11 +44,12 @@ AGENT_MAX_OUTPUT_TOKENS = 8_000  # per model response, reasoning included: a run
 # structured answer still fits: measured intake answers are ~1,000 output tokens)
 MODEL_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort=REASONING_EFFORT, max_tokens=AGENT_MAX_OUTPUT_TOKENS)
 
-# Price per 1M tokens in USD. None = not known yet: the app shows token counts and leaves cost blank rather than guess.
-PRICE_INPUT_PER_M: float | None = None
-PRICE_CACHED_INPUT_PER_M: float | None = None
-PRICE_OUTPUT_PER_M: float | None = None
-PRICE_SOURCE = ""  # where the prices came from (URL + date), shown next to every cost
+# Price per 1M tokens in USD (None = unknown: the app would show token counts and leave cost blank rather than guess).
+# OpenAI's list price for gpt-6-luna, standard tier (prompts up to 272K input tokens). Portkey may add its own fee.
+PRICE_INPUT_PER_M: float | None = 0.10
+PRICE_CACHED_INPUT_PER_M: float | None = 0.01
+PRICE_OUTPUT_PER_M: float | None = 0.50
+PRICE_SOURCE = "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
 
 # ─── Limits (stopping rules and guardrails) ─────────────────────────────
 MAX_INPUT_CHARS = 20_000  # one paste or upload; longer is refused before any model call (422, 0 tokens)

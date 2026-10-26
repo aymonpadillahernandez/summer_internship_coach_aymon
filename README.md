@@ -6,8 +6,9 @@
 > outside those hours the first visit can take up to a minute.
 
 From scattered opportunities and conversations to the next best career action. An AI career operating system for MBA
-students recruiting for summer internships: paste what's new (emails, chat exports, job postings, your LinkedIn CSV),
-and three agents keep one evidence-backed picture of your search and tell you where to spend this week.
+students recruiting for summer internships. Connect or export your channels (Gmail, Messages, WhatsApp, LinkedIn,
+Slack, calendar, postings): five agents keep one evidence-backed picture of your search, find openings on public job
+boards, and tell you where to spend this week. Nothing is ever sent for you.
 
 ## What it does
 
