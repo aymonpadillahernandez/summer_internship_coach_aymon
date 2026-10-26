@@ -35,6 +35,36 @@ function CopyLine({ text }: { text: string }) {
   );
 }
 
+type Tone = "on" | "warn" | "manual" | "off";
+
+/** What the last connector check says about one channel: auto-sync on, needs attention, synced by hand, or not connected. */
+function syncState(s: ConnectorSync | undefined): { tone: Tone; text: string } {
+  if (!s) return { tone: "off", text: "Not connected yet" };
+  const at = new Date(`${s.synced_at.replace(" ", "T")}Z`);  // stored in UTC
+  const when = at.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  const minutes = (Date.now() - at.getTime()) / 60_000;
+  if (!s.ok) return { tone: "warn", text: `${s.summary} · ${when}` };
+  if (s.auto_minutes && minutes <= s.auto_minutes * 2 + 10) return { tone: "on", text: `Auto-sync on · last check ${when} · ${s.summary}` };
+  if (s.auto_minutes) return { tone: "warn", text: `Auto-sync hasn't checked since ${when} (Mac asleep or off?)` };
+  return { tone: "manual", text: `Synced by hand · ${when} · ${s.summary}` };
+}
+
+const AUTOMATIC: { id?: string; title: string; how: string }[] = [
+  { id: "gmail", title: "Gmail", how: "Read with an app password, read-only; emails stay unread." },
+  { title: "School email (Outlook)", how: "Forward it to that Gmail once (Outlook → Settings → Mail → Forwarding)." },
+  { id: "imessage", title: "iMessage / SMS", how: "Messages on your Mac; iPhone texts too when they sync to the Mac." },
+  { id: "whatsapp", title: "WhatsApp", how: "WhatsApp Desktop on your Mac, kept open in the background." },
+];
+
+const BY_HAND: { title: string; how: string }[] = [
+  { title: "LinkedIn messages and connections", how: "Download your data → upload the CSVs. LinkedIn lets no app read messages." },
+  { title: "Slack", how: "Copy and paste. School workspaces only allow apps their admins approve." },
+  { title: "Android texts", how: "Copy the thread from Google Messages for web. Texts stay on the phone." },
+  { title: "Calendar invites", how: "Upload the invite's .ics file." },
+  { title: "WhatsApp without a Mac", how: "Export chat → upload the .zip." },
+  { title: "Job postings", how: "Paste the link on Today; Handshake or LinkedIn Jobs: paste the text." },
+];
+
 type Channel = {
   id: string;
   title: string;
@@ -45,11 +75,11 @@ type Channel = {
 };
 
 const CHANNELS: Channel[] = [
-  { id: "whatsapp", title: "WhatsApp", kind: "conversation", accept: ".zip,.txt",
+  { id: "whatsapp", title: "WhatsApp without a Mac (Export chat)", kind: "conversation", accept: ".zip,.txt",
     steps: ["iPhone: open the chat → tap the name at the top → Export chat → Without media → Save to Files.",
       "Android: open the chat → ⋮ → More → Export chat → Without media.",
       "Upload the .zip here. One chat at a time: export only recruiting chats."],
-    note: "WhatsApp has no way for apps to read your chats, and its terms forbid automated copying, so its own Export chat is the way in." },
+    note: "On a Mac, the Coach Connector reads WhatsApp Desktop on its own instead (above). Export chat is WhatsApp's own, official way." },
   { id: "linkedin", title: "LinkedIn connections and messages", kind: "auto", accept: ".csv",
     steps: ["On a computer: Me → Settings & Privacy → Data privacy → Download your data.",
       "Pick Connections and Messages → Request archive (it arrives by email, usually within minutes).",
@@ -117,14 +147,41 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
         <h2>Connect your channels</h2>
         <p>Free, and read-only: the coach never sends anything from your accounts. Only what matches your search (your organisations,
           your people, recruiting topics) is shared, every fact keeps the quote it came from, and Profile → Delete removes everything.</p>
+        <div className="glance">
+          <div className="glance-col is-auto">
+            <h3>Updates on its own</h3>
+            <p className="muted small">After a one-time setup on your Mac (Coach Connector, below): it checks every 30 minutes while
+              the Mac is awake and sends only new messages that matter, with a little context.</p>
+            <ul>
+              {AUTOMATIC.map((c) => {
+                const st = c.id ? syncState(syncOf(c.id)) : null;
+                return (
+                  <li key={c.title}>
+                    <div><b>{c.title}</b><span>{c.how}</span></div>
+                    {st && <span className={`sync-chip is-${st.tone}`}>{{ on: "On", warn: "Check", manual: "By hand", off: "Not yet" }[st.tone]}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="glance-col">
+            <h3>Export or paste each time</h3>
+            <p className="muted small">These apps don't let other apps read your messages, so you bring them in yourself (upload cards below).</p>
+            <ul>
+              {BY_HAND.map((c) => (
+                <li key={c.title}><div><b>{c.title}</b><span>{c.how}</span></div></li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </section>
 
       <section className="panel">
         <header className="panel-head">
           <div>
             <h2>Automatic · Coach Connector</h2>
-            <p>A small script you run on your own Mac. It reads your Gmail and your Messages (iMessage / SMS) read-only, filters them on
-              your computer, and sends only the matches to your coach. Your passwords never leave your Mac.</p>
+            <p>A small script on your own Mac. It reads your Gmail, Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters
+              them on your computer, and sends only the matches to your coach. Your passwords never leave your Mac.</p>
           </div>
         </header>
         <ol className="guide-steps connect-steps">
@@ -150,7 +207,8 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
             <span className="guide-num">2</span>
             <div>
               <b>Download and set it up</b>
-              <p>Open Terminal (Applications → Utilities) and run these two lines. Setup asks for your key and, if you want Gmail, an app password.</p>
+              <p>Open Terminal (Applications → Utilities) and run these two lines. Setup asks for your key, then which channels to
+                connect: Gmail (with an app password), Messages and WhatsApp Desktop.</p>
               <CopyLine text={`curl -fsSL ${origin}/connector/coach_connector.py -o ~/coach_connector.py`} />
               <CopyLine text="python3 ~/coach_connector.py setup" />
             </div>
@@ -167,27 +225,42 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
           <li>
             <span className="guide-num">4</span>
             <div>
-              <b>Messages: allow access on your Mac</b>
-              <p>System Settings → Privacy &amp; Security → Full Disk Access → turn on Terminal, then quit and reopen Terminal. The script only reads.</p>
+              <b>Messages and WhatsApp: allow access on your Mac</b>
+              <p>System Settings → Privacy &amp; Security → Full Disk Access → turn on Terminal, then quit and reopen Terminal. The script only
+                reads. WhatsApp: install WhatsApp Desktop (whatsapp.com/download) and link your phone; this reads the app's own data on your
+                Mac and never connects to WhatsApp. It isn't a WhatsApp feature, so if you prefer, skip it and use Export chat below.</p>
             </div>
           </li>
           <li>
             <span className="guide-num">5</span>
             <div>
               <b>Check, then sync</b>
-              <p>The first line shows what would be shared and sends nothing. The second sends it. Run it whenever you want an update, e.g. each morning.</p>
+              <p>The first line shows what would be shared and sends nothing. The second sends it once.</p>
               <CopyLine text="python3 ~/coach_connector.py run --dry-run" />
               <CopyLine text="python3 ~/coach_connector.py run" />
             </div>
           </li>
+          <li>
+            <span className="guide-num">6</span>
+            <div>
+              <b>Turn on auto-sync</b>
+              <p>From then on it runs by itself every 30 minutes while your Mac is awake and sends only new messages that matter, with a
+                little context: when nothing new happened, no messages are sent and no AI is used. macOS asks once more for Full Disk
+                Access, this time for Python, so auto-sync can read Messages and WhatsApp: the command shows the exact path and opens the
+                right settings page. That gives your Mac's Python itself the access, so other scripts run with it get it too; if you'd
+                rather not, skip it: Gmail still syncs on its own, and the run line above syncs Messages and WhatsApp by hand.</p>
+              <CopyLine text="python3 ~/coach_connector.py schedule" />
+              <p className="muted small">Check it: <code>python3 ~/coach_connector.py status</code> · stop it: <code>python3 ~/coach_connector.py unschedule</code></p>
+            </div>
+          </li>
         </ol>
         <div className="sync-row">
-          {["gmail", "imessage"].map((c) => {
-            const s = syncOf(c);
+          {(["gmail", "imessage", "whatsapp"] as const).map((c) => {
+            const st = syncState(syncOf(c));
             return (
-              <div key={c} className={`sync-card${s ? " is-on" : ""}`}>
-                <b>{c === "gmail" ? "Gmail" : "Messages"}</b>
-                <span>{s ? `Last sync ${formatDate(s.synced_at.slice(0, 10), false)} · ${s.items} items · ${s.summary}` : "Not connected yet"}</span>
+              <div key={c} className={`sync-card is-${st.tone}`}>
+                <b>{{ gmail: "Gmail", imessage: "Messages", whatsapp: "WhatsApp" }[c]}</b>
+                <span>{st.text}</span>
               </div>
             );
           })}

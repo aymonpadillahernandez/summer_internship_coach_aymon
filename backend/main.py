@@ -119,6 +119,28 @@ class ConnectorIntakeBody(BaseModel):
     items: int = Field(default=1, ge=0, le=500)
 
 
+CHECK_REASONS = {  # fixed wording: a connector reports a code, never free text that the page would show
+    "full_disk_access": "Needs Full Disk Access on the Mac",
+    "not_installed": "App not found on the Mac",
+    "sign_in": "Gmail refused the sign-in: create a new app password",
+    "server": "Could not reach the coach; the next run retries",
+    "error": "Could not read this channel (see the connector's log)",
+}
+
+
+class ChannelCheck(BaseModel):
+    ok: bool
+    checked: int = Field(default=0, ge=0, le=1_000_000)
+    sent: int = Field(default=0, ge=0, le=100_000)
+    reason: Literal["full_disk_access", "not_installed", "sign_in", "server", "error"] | None = None
+
+
+class ConnectorCheckBody(BaseModel):
+    channels: dict[Literal["gmail", "imessage", "whatsapp"], ChannelCheck] = {}
+    every_minutes: int | None = Field(default=None, ge=5, le=1440)  # set while auto-sync is on
+    stopped: bool = False  # auto-sync was just turned off
+
+
 class LinkBody(BaseModel):
     url: str = Field(min_length=8, max_length=2000)
     kind: Literal["auto", "opportunity", "conversation"] = "auto"
@@ -399,6 +421,18 @@ async def connector_intake(body: ConnectorIntakeBody, user: dict = Depends(conne
                    ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in counts.items() if v) or "nothing new")
     return {"status": r["status"], "run_id": r["run_id"], "saved": counts, "rejected": len(r["rejected"]),
             "shield": len(r["flagged"]) + len(r["hidden"]), "usage": r["usage"]}
+
+
+@app.post("/api/connector/checked")
+def connector_checked(body: ConnectorCheckBody, user: dict = Depends(connector_user)):
+    """What one connector run checked, per channel: counts and a reason code only, no content, zero tokens.
+    It lets the Connect page show that auto-sync is on and working (or that Messages still needs Full Disk Access)."""
+    if body.stopped:
+        db.stop_auto_sync(user["id"])
+    for channel, c in body.channels.items():
+        summary = f"{c.checked} checked, {c.sent} sent" if c.ok else CHECK_REASONS[c.reason or "error"]
+        db.record_check(user["id"], channel, c.ok, c.sent, summary, body.every_minutes)
+    return {"ok": True}
 
 
 @app.get("/connector/coach_connector.py")

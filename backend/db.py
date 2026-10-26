@@ -207,6 +207,8 @@ CREATE TABLE IF NOT EXISTS connector_syncs (
     items     INTEGER NOT NULL DEFAULT 0,
     run_id    TEXT NOT NULL DEFAULT '',
     summary   TEXT NOT NULL DEFAULT '',
+    ok        INTEGER NOT NULL DEFAULT 1,  -- 0: the last check could not read the channel (e.g. no Full Disk Access)
+    auto_minutes INTEGER,                  -- set when the connector runs on its own schedule
     PRIMARY KEY (user_id, channel)
 );
 CREATE TABLE IF NOT EXISTS meta (
@@ -227,7 +229,8 @@ def pg_schema() -> str:
     return s + "\n".join(f"ALTER TABLE {t} ENABLE ROW LEVEL SECURITY;" for t in tables)
 
 
-ADDED_COLUMNS = {"applications": {"door_paths": "TEXT", "door_paths_at": "TEXT"}}  # added after the first deploy
+ADDED_COLUMNS = {"applications": {"door_paths": "TEXT", "door_paths_at": "TEXT"},  # added after the first deploy
+                 "connector_syncs": {"ok": "INTEGER NOT NULL DEFAULT 1", "auto_minutes": "INTEGER"}}
 
 
 def init_db() -> None:
@@ -503,10 +506,27 @@ def record_sync(user_id: int, channel: str, items: int, run_id: str, summary: st
             (user_id, channel, items, run_id, summary[:300]))
 
 
+def record_check(user_id: int, channel: str, ok: bool, sent: int, summary: str, auto_minutes: int | None) -> None:
+    """One connector run's result for a channel (counts only): shows whether auto-sync is on and working."""
+    with connect() as conn:
+        conn.execute(
+            """INSERT INTO connector_syncs (user_id, channel, synced_at, items, run_id, summary, ok, auto_minutes)
+               VALUES (?, ?, datetime('now'), ?, '', ?, ?, ?)
+               ON CONFLICT(user_id, channel) DO UPDATE SET synced_at = excluded.synced_at, items = excluded.items,
+               summary = excluded.summary, ok = excluded.ok, auto_minutes = excluded.auto_minutes""",
+            (user_id, channel, sent, summary[:300], 1 if ok else 0, auto_minutes))
+
+
+def stop_auto_sync(user_id: int) -> None:
+    with connect() as conn:
+        conn.execute("UPDATE connector_syncs SET auto_minutes = NULL WHERE user_id = ?", (user_id,))
+
+
 def list_syncs(user_id: int) -> list[dict]:
     with connect() as conn:
-        return [dict(r) for r in conn.execute("SELECT channel, synced_at, items, summary FROM connector_syncs WHERE user_id = ?",
-                                              (user_id,))]
+        rows = conn.execute("SELECT channel, synced_at, items, summary, ok, auto_minutes FROM connector_syncs WHERE user_id = ?",
+                            (user_id,))
+        return [{**dict(r), "ok": bool(r["ok"])} for r in rows]
 
 
 def new_id(conn, sql: str, params: tuple | list) -> int:

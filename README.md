@@ -18,7 +18,7 @@ and three agents keep one evidence-backed picture of your search and tell you wh
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
 | **Ask your coach** | Chat with the Career strategist; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
-| **Connect** | Free ways to bring every channel in, step by step. **Automatic:** the Coach Connector, a small script on your own Mac, reads Gmail and Messages (iMessage / SMS) read-only, filters them on your computer and sends only what matches your targets, people and recruiting topics. **Upload:** WhatsApp's Export chat (.zip), LinkedIn's data download (Connections.csv, messages.csv), emails (.eml), calendar invites (.ics), Messages printed to PDF. Slack and job boards: copy and paste. |
+| **Connect** | Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters on your computer and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
 | **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent. |
 
 It never sends anything on your behalf: drafts are for you to send.
@@ -93,15 +93,29 @@ All free and read-only; nothing is ever sent from a student's accounts.
   `python3`). The student creates a connector key on the Connect tab (shown once, stored hashed, revocable), then:
   `curl -fsSL <site>/connector/coach_connector.py -o ~/coach_connector.py`, `python3 ~/coach_connector.py setup`,
   `python3 ~/coach_connector.py run --dry-run` (shows counts, sends nothing), `python3 ~/coach_connector.py run`.
-  Gmail uses an app password kept in the macOS Keychain (IMAP, read-only, messages stay unread); Messages needs Full
-  Disk Access for Terminal and opens `chat.db` read-only. Only matches go to the server, in batches, through the
-  same shield and specialists as a paste.
+  - **Gmail:** an app password kept in the macOS Keychain (IMAP, read-only, emails stay unread).
+  - **Messages:** opens `~/Library/Messages/chat.db` read-only; needs Full Disk Access.
+  - **WhatsApp:** opens WhatsApp Desktop's own database on the Mac read-only and never connects to WhatsApp. It is not a
+    WhatsApp feature, so setup asks first, and Export chat stays available.
+  - **What is sent:** email matching the student's organisations, people or recruiting words. Chats only if one of their
+    people is in it, a target organisation comes up with a recruiting word or an introduction, or a clear recruiting
+    phrase appears. Phone numbers are masked (also when saved as a name), groups of more than 8 members are skipped, and
+    only new messages that matter are sent, with 10 messages of context. Progress is tracked by database row id (late
+    messages still count) and saved per upload, so a failure never re-sends what the coach already has. Everything goes
+    through the same shield and specialists as a paste.
+- **Auto-sync:** `python3 ~/coach_connector.py schedule` installs a per-user macOS LaunchAgent that runs every 30
+  minutes while the Mac is awake (`--every N` to change, `status`, `unschedule`). Each run reports counts and a fixed
+  reason code only to `POST /api/connector/checked` (zero tokens; the full error stays in the Mac's log), so the Connect
+  tab shows "Auto-sync on", "Needs Full Disk Access", "Synced by hand" or "hasn't checked since …". One channel failing
+  never stops the others. macOS asks once more for Full Disk Access for the scheduled Python; the command prints
+  the exact path and opens the settings page. That grant covers that Python for every script, which the tab says;
+  without it Gmail still syncs on its own and Messages / WhatsApp can be synced by hand.
 - **Uploads** go to `POST /api/intake/file`: `.zip` (WhatsApp export, zip-bomb limits), `.pdf`, `.eml` (sender name
   only, hidden HTML removed), `.ics`, `.csv`, `.txt`, `.html`; 5 MB max. LinkedIn `messages.csv` is filtered in code
   to conversations with the student's people, about their targets or about recruiting.
-- **Why not automatic everywhere:** WhatsApp, iMessage and LinkedIn have no API for personal messages (WhatsApp's
-  terms forbid automated copying), school Slack workspaces only allow admin-approved apps, and Handshake / LinkedIn
-  Jobs forbid scraping. Official sources: `docs/research/channels.md`.
+- **Why not automatic everywhere:** LinkedIn has no API to read messages, school Slack workspaces only allow
+  admin-approved apps, Android keeps texts on the phone, and Handshake / LinkedIn Jobs forbid scraping. iMessage
+  and WhatsApp have no API either: they are automatic only because the connector reads the Mac apps' own data. Official sources: `docs/research/channels.md`.
 
 ## Environment variables
 
@@ -119,13 +133,14 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 31 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 39 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
 addresses (also after a redirect), bot protection, invented quotes and people, a 600-row LinkedIn export filtered in code, connector keys (hashed, revocable, one
 student only), file uploads (WhatsApp zip, email, zip bombs, unsupported types refused at 0 tokens), LinkedIn
-messages filtered to the student's people and targets, one student
+messages filtered to the student's people and targets, auto-sync (the LaunchAgent, WhatsApp Desktop read and
+masked, unchanged chats never re-sent, one failing channel not stopping the others, counts-only reports), one student
 reading another's data, runaway delegation and tool loops, invented actions, model substitution, oversized input
 and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_LIMIT`, `MAX_DELEGATIONS_PER_RUN`,
 `AGENT_TOTAL_TOKENS_LIMIT`, `MAX_INPUT_CHARS`, `DAILY_TOKEN_BUDGET`, …).
@@ -136,7 +151,7 @@ and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_L
 backend/   FastAPI app (main.py), agents/ (strategist, scout, network, runtime), prompts/, safety.py, merge.py,
            intake.py, web.py (link reader), retrieval.py (BM25), db.py + store.py (SQLite / Postgres), auth.py,
            files.py (uploads), signals.py (what to keep), demo.py, check_setup.py
-connector/ coach_connector.py, the free local Gmail + Messages reader students download from the Connect tab
+connector/ coach_connector.py, the free local Gmail + Messages + WhatsApp Desktop reader (with auto-sync)
 frontend/  React + Vite + TypeScript (Today, boards, action plan, Connect, chat, usage)
 data/demo/ the fictional test dataset and paste samples
 tests/     safety tests (pytest)

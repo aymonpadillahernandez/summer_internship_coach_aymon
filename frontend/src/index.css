@@ -1026,15 +1026,29 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .connect-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .connect-head p { color: var(--ink-soft); max-width: 900px; text-align: justify; }
 .connect-steps { grid-template-columns: 1fr; }
-.connect-steps li { grid-template-columns: 30px 1fr; }
+.connect-steps > li { grid-template-columns: 30px 1fr; }
+.connect-steps .key-list li { display: block; background: none; padding: 0; border: 0; }
 .code-line { display: flex; align-items: center; gap: 8px; margin-top: 6px; background: var(--fill-soft); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px 6px 12px; }
 .code-line code { flex: 1; font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; white-space: nowrap; }
 .key-list { list-style: none; margin-top: 8px; display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-muted); }
 .key-list .link-btn { margin-left: 8px; color: var(--red-ink); }
-.sync-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sync-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .sync-card { border-radius: 12px; padding: 10px 12px; background: var(--fill-soft); display: grid; gap: 2px; font-size: 13px; }
 .sync-card span { color: var(--ink-muted); }
 .sync-card.is-on { background: var(--ok-bg); }
+.sync-card.is-warn { background: rgba(255, 149, 0, 0.12); }
+.glance { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.glance-col { border-radius: 14px; padding: 14px 16px; background: var(--fill-soft); display: flex; flex-direction: column; gap: 6px; }
+.glance-col.is-auto { background: var(--brand-soft); }
+.glance-col h3 { font-size: 15px; font-weight: 700; }
+.glance-col ul { list-style: none; display: grid; gap: 8px; margin-top: 4px; }
+.glance-col li { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.glance-col li > div { display: grid; gap: 1px; font-size: 13px; }
+.glance-col li span { color: var(--ink-muted); }
+.sync-chip { flex: none; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 2px 9px; background: var(--fill); color: var(--ink-muted); }
+.sync-chip.is-on { background: var(--ok-bg); color: var(--green); }
+.sync-chip.is-warn { background: rgba(255, 149, 0, 0.14); color: var(--orange-ink); }
+@media (max-width: 760px) { .glance, .sync-row { grid-template-columns: 1fr; } }
 .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
 .channel-card { background: var(--fill-soft); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .channel-card h3 { font-size: 15px; font-weight: 700; }

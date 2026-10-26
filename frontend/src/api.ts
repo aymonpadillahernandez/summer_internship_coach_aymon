@@ -123,7 +123,7 @@ export const fileToBase64 = (f: File) =>
 
 // ─── Coach Connector (a script the student runs on their own computer) ──
 export type ConnectorKey = { id: number; label: string; created_at: string; last_used_at: string | null; revoked_at: string | null };
-export type ConnectorSync = { channel: string; synced_at: string; items: number; summary: string };
+export type ConnectorSync = { channel: string; synced_at: string; items: number; summary: string; ok: boolean; auto_minutes: number | null };
 export const fetchConnectorStatus = () => request<{ syncs: ConnectorSync[]; keys: ConnectorKey[] }>("/api/connector/status");
 export const createConnectorKey = (label: string) => post<{ id: number; key: string; note: string }>("/api/connector/keys", { label });
 export const revokeConnectorKey = (id: number) => request<{ ok: boolean }>(`/api/connector/keys/${id}`, { method: "DELETE" });
