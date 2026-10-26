@@ -1,0 +1,97 @@
+[
+ {
+  "check": "health: gpt-6-luna, key set, Postgres",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Setup checklist (code)",
+  "ok": true,
+  "detail": "done=['profile', 'targets', 'linkedin'] next=connector_key"
+ },
+ {
+  "check": "Setup guide agent answers, opens a skill",
+  "ok": true,
+  "detail": "17.35 s \u00b7 2509/0/300 tokens \u00b7 2 req"
+ },
+ {
+  "check": "Inbox organizer: one call, Records keeper writes",
+  "ok": true,
+  "detail": "8.11 s \u00b7 4599/0/1041 tokens \u00b7 1 req"
+ },
+ {
+  "check": "Shield quarantines injected instructions before the model",
+  "ok": true,
+  "detail": "flagged=1"
+ },
+ {
+  "check": "Opportunity scout finds internships on job boards",
+  "ok": true,
+  "detail": "['Fraud Operations Intern (Summer 2027)', 'Investment Analyst MBA Intern, Robinhood Ventures (Summer 2027)'] \u00b7 18.04 s \u00b7 11203/8997/1113 tokens \u00b7 3 req"
+ },
+ {
+  "check": "Career coach plans the week, delegating",
+  "ok": true,
+  "detail": "12.66 s \u00b7 7182/1588/1030 tokens \u00b7 4 req"
+ },
+ {
+  "check": "Career coach drafts into the Outbox, not sent",
+  "ok": true,
+  "detail": "17.57 s \u00b7 8508/4679/554 tokens \u00b7 5 req"
+ },
+ {
+  "check": "Network intelligence prepares a call",
+  "ok": true,
+  "detail": "8.85 s \u00b7 1378/0/970 tokens \u00b7 1 req"
+ },
+ {
+  "check": "Network intelligence finds who can open the door",
+  "ok": true,
+  "detail": "8.95 s \u00b7 2478/0/420 tokens \u00b7 1 req"
+ },
+ {
+  "check": "Link reader removes hidden text",
+  "ok": true,
+  "detail": "hidden=1"
+ },
+ {
+  "check": "Oversized input refused before any model (422)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Outbox has no 'sent' state (422)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Another student cannot touch this Outbox (404)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Another student cannot read this student's run (404)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Connector routes need a key (401)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Unknown report reason refused (422)",
+  "ok": true,
+  "detail": ""
+ },
+ {
+  "check": "Daily token budget enforced and shown",
+  "ok": true,
+  "detail": "used today 53,219 of 300,000"
+ },
+ {
+  "check": "Unsupported file refused at 0 tokens (422)",
+  "ok": true,
+  "detail": ""
+ }
+]
