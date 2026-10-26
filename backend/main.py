@@ -29,9 +29,12 @@ import db
 import demo
 import files
 import intake
+import keeper
+import merge
 import signals
 import web
-from agents import network, strategist
+from agents import guide, network, scout, strategist
+from agents.models import ScoutIntake, trim
 from agents.runtime import CoachRun, ModelSubstituted
 from store import is_postgres
 
@@ -163,13 +166,27 @@ class ChatTurn(BaseModel):
     content: str = Field(min_length=1, max_length=config.MAX_CHAT_CHARS)
 
 
+class GuideBody(BaseModel):
+    messages: list[ChatTurn] = Field(min_length=1, max_length=40)
+
+
+class DiscoverBody(BaseModel):
+    companies: list[str] = Field(default_factory=list, max_length=config.MAX_DISCOVER_COMPANIES)
+
+
+class DraftDecision(BaseModel):
+    status: Literal["approved", "discarded"]
+
+
 class ChatBody(BaseModel):
     messages: list[ChatTurn] = Field(min_length=1, max_length=40)
     candidates: list[Candidate] = Field(default_factory=list, max_length=config.MAX_CANDIDATES)
 
 
 def require_budget(user: dict) -> None:
-    """Token overspending guard: per student and for the whole site, per UTC day."""
+    """Token overspending guard: the AI_PAUSED kill switch, then per student and for the whole site, per UTC day."""
+    if config.AI_PAUSED:
+        raise HTTPException(503, "The AI is paused on this server right now. Everything else still works.")
     used = db.tokens_today(user["id"])
     if used >= config.DAILY_TOKEN_BUDGET:
         raise HTTPException(429, f"You have used today's AI budget ({used:,} of {config.DAILY_TOKEN_BUDGET:,} tokens). "
@@ -373,7 +390,7 @@ def connector_user(request: Request) -> dict:
     raw = header[7:].strip() if header.lower().startswith("bearer ") else ""
     found = db.user_for_connector_key(raw) if raw.startswith("sic_") else None
     if found is None:
-        raise HTTPException(401, "Unknown or revoked connector key. Create a new one on the Connect page.")
+        raise HTTPException(401, "Unknown or revoked connector key. Create a new one on the Setup page.")
     user, key_id = found
     if not auth._hit(f"connector:{key_id}", config.CONNECTOR_REQUESTS_PER_15_MIN, time.monotonic()):
         raise HTTPException(429, "Too many connector requests. Try again in a few minutes.")
@@ -416,6 +433,8 @@ async def connector_intake(body: ConnectorIntakeBody, user: dict = Depends(conne
     label = body.label or {"gmail": "Gmail", "imessage": "Messages", "whatsapp": "WhatsApp"}.get(body.channel, "Connector")
     kind = "conversation" if body.channel in ("imessage", "whatsapp") else "auto"
     r = await intake.process(user["id"], body.text, kind, label)
+    if r["status"] != "ok":  # paused or failed: answer non-2xx so the connector keeps these items for its next run
+        raise HTTPException(503, "The coach could not read this batch right now; the connector will retry it on its next run.")
     counts = {k: (len(v) if isinstance(v, list) else v) for k, v in r["saved"].items()}
     db.record_sync(user["id"], body.channel, body.items, r["run_id"],
                    ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in counts.items() if v) or "nothing new")
@@ -426,7 +445,7 @@ async def connector_intake(body: ConnectorIntakeBody, user: dict = Depends(conne
 @app.post("/api/connector/checked")
 def connector_checked(body: ConnectorCheckBody, user: dict = Depends(connector_user)):
     """What one connector run checked, per channel: counts and a reason code only, no content, zero tokens.
-    It lets the Connect page show that auto-sync is on and working (or that Messages still needs Full Disk Access)."""
+    It lets the Setup page show that auto-sync is on and working (or that Messages still needs Full Disk Access)."""
     if body.stopped:
         db.stop_auto_sync(user["id"])
     for channel, c in body.channels.items():
@@ -524,6 +543,72 @@ async def chat_route(body: ChatBody, user: dict = Depends(auth.require_user)):
         return {**run.finish("failed", "No answer"), "answer": None, "agent": agent}
     return {**run.finish("ok", answer.splitlines()[0][:200]), "answer": answer, "agent": agent, "model": config.MODEL,
             "person": person["name"] if person else None}
+
+
+@app.post("/api/guide")
+async def guide_route(body: GuideBody, user: dict = Depends(auth.require_user)):
+    """The Setup guide (first step of a new account): one step at a time through every channel."""
+    if body.messages[-1].role != "user":
+        raise HTTPException(422, "The last message must be a question")
+    require_budget(user)
+    messages = [m.model_dump() for m in body.messages][-config.MAX_CHAT_TURNS:]
+    run = CoachRun(user["id"], "guide")
+    try:
+        answer = await guide.ask(run, user["id"], messages)
+    except ModelSubstituted as e:
+        return {**run.finish("model_rejected", str(e)), "answer": None, "agent": "guide"}
+    if not answer:
+        return {**run.finish("failed", "No answer"), "answer": None, "agent": "guide"}
+    return {**run.finish("ok", answer.splitlines()[0][:200]), "answer": answer, "agent": "guide", "model": config.MODEL}
+
+
+@app.get("/api/setup")
+def setup_status(user: dict = Depends(auth.require_user)):
+    """The Setup page's checklist (code, zero tokens): what is connected and the recommended next step."""
+    return {**guide.next_step(user["id"]), "status": guide.status(user["id"])}
+
+
+@app.post("/api/scout/discover")
+async def discover_route(body: DiscoverBody, user: dict = Depends(auth.require_user)):
+    """The Opportunity scout looks for summer internships on public job boards at the student's organisations (or the
+    ones given); the Records keeper checks every posting against what the tools returned before saving it."""
+    require_budget(user)
+    companies = [c.strip()[:80] for c in body.companies if c.strip()]
+    if not companies:  # default: tracked organisations not applied to yet, most recently added first
+        apps = [a for a in db.list_applications(user["id"]) if not a.get("not_interested_at")
+                and a["status"] in ("not_started", "wip")]
+        companies = list(dict.fromkeys(a["company"] for a in reversed(apps) if a["company"].strip()))
+    companies = companies[: config.MAX_DISCOVER_COMPANIES]
+    if not companies:
+        raise HTTPException(422, "Add a few target organisations first (paste your target list on Today).")
+    run = CoachRun(user["id"], "discover")
+    try:
+        report, source = await scout.discover(run, user["id"], companies)
+    except ModelSubstituted as e:
+        return {**run.finish("model_rejected", str(e)), "saved": {}, "rejected": [], "not_found": []}
+    if report is None:
+        return {**run.finish("failed", "No answer"), "saved": {}, "rejected": [], "not_found": []}
+    kept = keeper.keep(run, user["id"], source, opportunities=ScoutIntake(opportunities=report.opportunities),
+                       origin_opportunities="job_board", ref=merge.source_ref(source or "discover"),
+                       label="Public job boards", refit=True)
+    counts = {k: (len(v) if isinstance(v, list) else v) for k, v in kept["saved"].items()}
+    summary = ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in counts.items() if v) or "nothing new"
+    return {**run.finish("ok", f"Discovery at {len(companies)} organisation(s): {summary}"), "companies": companies,
+            "saved": kept["saved"], "rejected": kept["rejected"], "not_found": [trim(n, 200) for n in report.not_found[:8]]}
+
+
+@app.get("/api/outbox")
+def outbox(user: dict = Depends(auth.require_user)):
+    """Drafts the coach wrote. The app never sends them."""
+    return {"drafts": db.list_drafts(user["id"])}
+
+
+@app.patch("/api/outbox/{draft_id}")
+def decide_draft(draft_id: int, body: DraftDecision, user: dict = Depends(auth.require_user)):
+    """Approve (the student then copies it or opens it in their own mail app) or discard. Never sends."""
+    if not db.decide_draft(user["id"], draft_id, body.status):
+        raise HTTPException(404, "Draft not found")
+    return {"ok": True, "status": body.status}
 
 
 # ─── Usage and run traces ───────────────────────────────────────────────

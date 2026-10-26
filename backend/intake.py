@@ -2,18 +2,16 @@
 
 1. Shield (code): HTML is reduced to what a person would see (hidden text removed and listed); lines that read
    like instructions to an AI are quarantined (removed before any model sees them, and shown to the student).
-2. Router (code, zero tokens): job posts and careers pages go to the Opportunity scout; conversations, chat
-   exports and contact lists go to Network intelligence; a text with both signals goes to both, in parallel.
-3. The specialist(s) extract typed records with exact quotes.
-4. Validation (code): quotes, names, links and ids are checked against the pasted text and the student's own data;
-   anything unsupported is rejected and reported with its reason.
-5. Merge (code): the tracker's merge rules write what survived.
+2. Router (code, zero tokens): decides what the text is about (opportunities, people or both) and which channel it
+   came from, and filters exports (LinkedIn) before any model sees them.
+3. The Inbox organizer (one model call) extracts typed opportunities, leads and people with exact quotes.
+4. The Records keeper (code) checks every quote, name, link and id against the text and the student's own data,
+   rejects what is unsupported (with its reason), writes the rest with the merge rules and re-runs the data checks.
 The pasted text itself is not stored: only the quotes that back each saved fact.
 """
 
 from __future__ import annotations
 
-import asyncio
 import csv
 import io
 import re
@@ -23,7 +21,8 @@ import db
 import merge
 import safety
 import signals
-from agents import network, scout
+import keeper
+from agents import inbox
 from agents.runtime import CoachRun, ModelSubstituted
 
 POSTING = re.compile(r"\b(apply|application|deadline|internship|intern|qualifications?|responsibilit(y|ies)|requirements?|"
@@ -153,32 +152,23 @@ async def process(user_id: int, text: str, kind: str, label: str, page_url: str 
                  f"{len(flagged)} line(s) read like instructions to an AI and were removed before any model saw them",
                  lines=flagged[:5])
     routes = ["scout"] if page_url and kind == "auto" else route_for(text, kind)
-    run.step("router", "routed", "Sent to " + " and ".join({"scout": "Opportunity scout", "network": "Network intelligence"}[r] for r in routes))
+    run.step("router", "routed", f"Sent to the Inbox organizer (focus: {inbox.focus_of(routes)})")
 
     ref = merge.source_ref(text)
-    jobs = [scout.intake(run, user_id, text, label) if r == "scout" else network.intake(run, user_id, text, label) for r in routes]
     try:
-        outputs = await asyncio.gather(*jobs)
+        report = await inbox.read(run, user_id, text, label, routes)
     except ModelSubstituted as e:
-        return {**run.finish("model_rejected", str(e)), "routes": routes, "flagged": flagged, "hidden": hidden,
+        return {**run.finish("model_rejected", str(e)), "routes": ["inbox"], "flagged": flagged, "hidden": hidden,
                 "saved": {}, "rejected": [], "fields_not_found": []}
-
-    saved: dict = {}
-    rejected: list[dict] = []
-    not_found: list[str] = []
+    outputs = [report]
     origin = "linkedin" if linkedin else None
-    for route, out in zip(routes, outputs):
-        if out is None:
-            continue
-        if route == "scout":
-            good, bad = merge.validate_scout(out, text, user_id)
-            saved.update(merge.apply_scout(user_id, good, origin or ORIGIN[route], ref, label, page_url,
-                                           refit=bool(page_url) or routes == ["scout"]))
-        else:
-            good, bad = merge.validate_network(out, text, user_id)
-            saved.update(merge.apply_network(user_id, good, origin or ORIGIN[route], ref, label))
-        rejected += bad
-        not_found += good.fields_not_found
+    kept = keeper.keep(run, user_id, text, ref=ref, label=label, page_url=page_url,
+                       opportunities=report.scout_part() if report else None,
+                       people=report.network_part() if report and inbox.focus_of(routes) != "opportunities" else None,
+                       origin_opportunities=origin or ORIGIN["scout"], origin_people=origin or ORIGIN["network"],
+                       refit=bool(page_url) or routes == ["scout"]) if report else {"saved": {}, "rejected": [], "fields_not_found": []}
+    saved, rejected, not_found = kept["saved"], kept["rejected"], kept["fields_not_found"]
+    routes = ["inbox"]
     if rejected:
         run.step("shield", "rejected_unsupported", f"{len(rejected)} item(s) rejected: not backed by the pasted text",
                  items=rejected[:6])

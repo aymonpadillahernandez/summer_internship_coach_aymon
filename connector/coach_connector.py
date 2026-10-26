@@ -218,7 +218,7 @@ def setup() -> None:
     cfg = load(CONFIG, {})
     say("Summer Internship Coach · Coach Connector setup\n")
     base = input(f"Coach address [{cfg.get('base', DEFAULT_COACH)}]: ").strip() or cfg.get("base", DEFAULT_COACH)
-    say("Connector key: create one in the coach on the Connect page (it starts with sic_).")
+    say("Connector key: create one in the coach on the Setup page (it starts with sic_).")
     key = getpass("Paste your connector key (hidden): ").strip() or cfg.get("key", "")
     if not key.startswith("sic_"):
         sys.exit("That does not look like a connector key (it starts with sic_).")
@@ -249,13 +249,13 @@ def setup() -> None:
     cfg["messages"] = mac and ask_yes("Connect Messages (iMessage / SMS) on this Mac? [Y/n]: ")
     if mac and WHATSAPP_DB.exists():
         say("WhatsApp: reads the WhatsApp Desktop app's data on this Mac, read-only. It never connects to WhatsApp and is not\n"
-            "a WhatsApp feature; if you prefer, skip it and upload Export chat files on the Connect page instead.")
+            "a WhatsApp feature; if you prefer, skip it and upload Export chat files on the Setup page instead.")
         cfg["whatsapp"] = ask_yes("Connect WhatsApp Desktop on this Mac? [Y/n]: ")
     else:
         cfg["whatsapp"] = False
         if mac:
             say("WhatsApp Desktop is not on this Mac. To connect it: install it from whatsapp.com/download, link your phone,\n"
-                "then run setup again. Or upload Export chat files on the Connect page.")
+                "then run setup again. Or upload Export chat files on the Setup page.")
     save(CONFIG, cfg)
     say("\nDone. Try:  python3 coach_connector.py run --dry-run\nThen turn on auto-sync:  python3 coach_connector.py schedule")
 
@@ -300,6 +300,8 @@ def send(cfg: dict, channel: str, blocks: list[tuple], noun: str, done=None) -> 
         r = coach("POST", "/api/connector/intake", cfg, {"channel": channel, "text": "\n\n---\n\n".join(t for _, t in group),
                                                           "label": f"{CHANNEL_NAMES[channel]} · {len(group)} {noun}",
                                                           "items": len(group)})
+        if r.get("status", "ok") != "ok":  # not read: keep these items for the next run
+            raise ConnectorError(f"The coach could not read this batch ({r.get('status')}); the next run retries it.", "server")
         if done:
             done([k for k, _ in group])
         sent += len(group)
@@ -551,7 +553,7 @@ def whatsapp(cfg: dict, ctx: dict, since: str | None, dry_run: bool) -> dict:
     start = chat_start("whatsapp", since)
     if not WHATSAPP_DB.exists():
         raise ConnectorError("WhatsApp Desktop is not on this Mac (install it from whatsapp.com/download and link your "
-                             "phone), or use Export chat on the Connect page.", "not_installed")
+                             "phone), or use Export chat on the Setup page.", "not_installed")
     try:
         con = read_only(str(WHATSAPP_DB))
         con.execute("SELECT 1 FROM ZWAMESSAGE LIMIT 1")
@@ -576,7 +578,7 @@ def whatsapp(cfg: dict, ctx: dict, since: str | None, dry_run: bool) -> dict:
                            (oldest,)).fetchall()
     except sqlite3.Error as e:
         raise ConnectorError(f"This WhatsApp Desktop version stores chats differently ({e}). Use Export chat on the "
-                             "Connect page for now.") from None
+                             "Setup page for now.") from None
     finally:
         con.close()
 
@@ -727,7 +729,7 @@ def unschedule() -> int:
     if cfg.pop("schedule_minutes", None) is not None:
         save(CONFIG, cfg)
     if cfg.get("key"):
-        try:  # so the Connect page stops showing auto-sync
+        try:  # so the Setup page stops showing auto-sync
             coach("POST", "/api/connector/checked", cfg, {"channels": {}, "stopped": True})
         except ConnectorError:
             pass
@@ -808,7 +810,7 @@ def run(command: str, since: str | None, dry_run: bool, scheduled: bool) -> int:
     elif result["channels"]:
         auto = scheduled or (sys.platform == "darwin" and plist_path().exists())
         report = {ch: {k: v for k, v in c.items() if k != "note"} for ch, c in result["channels"].items()}
-        try:  # counts and a reason code only (the message stays here), so the Connect page shows auto-sync is working
+        try:  # counts and a reason code only (the message stays here), so the Setup page shows auto-sync is working
             coach("POST", "/api/connector/checked", cfg, {"channels": report,
                                                           "every_minutes": cfg.get("schedule_minutes") if auto else None})
         except ConnectorError as e:

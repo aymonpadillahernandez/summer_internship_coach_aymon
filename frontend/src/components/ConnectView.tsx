@@ -5,6 +5,7 @@ import {
 } from "../api";
 import { formatDate } from "../format";
 import { AGENTS } from "./AgentTrace";
+import GuidePanel from "./GuidePanel";
 
 type Result = { ok: boolean; text: string };
 
@@ -97,7 +98,7 @@ const CHANNELS: Channel[] = [
     note: "School Slack workspaces only let apps approved by their admins read messages, so copying is the free way in." },
   { id: "calendar", title: "Calendar invites (booked calls)", kind: "conversation", accept: ".ics",
     steps: ["Open the invite email → download invite.ics (or export one event from your calendar).",
-      "Upload it here: Network intelligence records the call with its date and the person."] },
+      "Upload it here: the Inbox organizer records the call with its date and the person."] },
   { id: "pages", title: "Careers pages and postings", steps: ["Paste the link on Today: the Opportunity scout reads the page itself, without hidden text.",
     "Handshake, LinkedIn Jobs or school career sites: copy the posting's text and paste it (their terms forbid automated reading)."] },
 ];
@@ -143,6 +144,7 @@ export default function ConnectView({ onChanged, onGoToday }: { onChanged: () =>
 
   return (
     <main className="today connect">
+      <GuidePanel refreshKey={syncs.length + keys.length} />
       <section className="panel connect-head">
         <h2>Connect your channels</h2>
         <p>Free, and read-only: the coach never sends anything from your accounts. Only what matches your search (your organisations,

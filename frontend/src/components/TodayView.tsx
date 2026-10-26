@@ -5,6 +5,8 @@ import {
 } from "../api";
 import { formatDate } from "../format";
 import AgentTrace, { AGENTS, UsageLine } from "./AgentTrace";
+import DiscoverPanel from "./DiscoverPanel";
+import OutboxPanel from "./OutboxPanel";
 
 type PlanView = CoachPlan & { run_id: string; usage: Usage; seconds: number; trace: TraceStep[]; created_at?: string };
 
@@ -51,7 +53,7 @@ const TARGETS_TEMPLATE = `My target list for next summer (organisation — role 
 
 /** The coach's home: this week's ranked plan (Career strategist) and "Add what's new" (the two specialists).
  *  New accounts first see a three-step guide: profile, targets, people. */
-export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile, onOpenConnect }: {
+export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile, onOpenConnect, outboxKey = 0 }: {
   candidates: Candidate[];
   onOpenRecord: (id: string) => void;
   onChanged: () => Promise<void> | void;
@@ -61,6 +63,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   profileFilled: boolean;
   onOpenProfile: () => void;
   onOpenConnect: () => void;
+  outboxKey?: number;
 }) {
   const [plan, setPlan] = useState<PlanView | null>(null);
   const [planBusy, setPlanBusy] = useState(false);
@@ -178,7 +181,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   return (
     <main className="today">
       <section className="team-strip" aria-label="Your coaching team">
-        {(["strategist", "scout", "network"] as const).map((k) => (
+        {(["guide", "inbox", "scout", "network", "strategist", "keeper"] as const).map((k) => (
           <div key={k} className={`team-card ${AGENTS[k].tone}`}>
             <b>{AGENTS[k].name}</b>
             <span>{AGENTS[k].role}</span>
@@ -356,6 +359,8 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
           )}
         </section>
       </div>
+      <OutboxPanel refreshKey={outboxKey} />
+      <DiscoverPanel onChanged={onChanged} onOpenRecord={onOpenRecord} />
     </main>
   );
 }

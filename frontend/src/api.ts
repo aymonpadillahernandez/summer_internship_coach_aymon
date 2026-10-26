@@ -162,3 +162,15 @@ export type UsageReport = {
 };
 export const fetchUsage = () => request<UsageReport>("/api/usage");
 export const fetchRun = (id: string) => request<{ run_id: string; kind: string; status: string; seconds: number; trace: TraceStep[]; agents: AgentRow[] }>(`/api/runs/${id}`);
+
+// ─── The agent team: Setup guide, scout discovery, Outbox ───────────────
+export const askGuide = (messages: ChatMessage[]) =>
+  post<RunResult & { answer: string | null; agent: string }>("/api/guide", { messages });
+export type SetupStatus = { done: string[]; next: { key: string; what: string } | null; total: number };
+export const fetchSetup = () => request<SetupStatus>("/api/setup");
+export type DiscoverResult = RunResult & { companies?: string[]; saved: IntakeResult["saved"]; rejected: IntakeResult["rejected"]; not_found: string[] };
+export const runDiscover = (companies: string[] = []) => post<DiscoverResult>("/api/scout/discover", { companies });
+export type Draft = { id: number; contact_id: number | null; to_name: string; subject: string; body: string; status: "draft" | "approved"; created_at: string };
+export const fetchOutbox = () => request<{ drafts: Draft[] }>("/api/outbox");
+export const decideDraft = (id: number, status: "approved" | "discarded") =>
+  request<{ ok: boolean }>(`/api/outbox/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });

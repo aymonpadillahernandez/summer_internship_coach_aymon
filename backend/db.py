@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 import secrets
+from datetime import datetime, timezone
 
 from store import connect, insert_id, is_postgres
 
@@ -39,7 +40,7 @@ NETWORK_KEYS = [s["key"] for s in NETWORK_STAGES]
 FOLLOW_UP_DAYS = 14
 
 DATA_TABLES = ["events", "leads", "contacts", "applications", "actions_done", "profiles", "plans", "model_runs",
-               "agent_runs", "connector_syncs", "connector_keys", "sessions"]  # deletion order (children first)
+               "agent_runs", "connector_syncs", "connector_keys", "outbox", "sessions"]  # deletion order (children first)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -199,7 +200,7 @@ CREATE TABLE IF NOT EXISTS connector_keys (
     last_used_at TEXT,
     revoked_at   TEXT
 );
--- What the connector last sent, per channel (shown on the Connect page).
+-- What the connector last sent, per channel (shown on the Setup page).
 CREATE TABLE IF NOT EXISTS connector_syncs (
     user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     channel   TEXT NOT NULL,
@@ -210,6 +211,20 @@ CREATE TABLE IF NOT EXISTS connector_syncs (
     ok        INTEGER NOT NULL DEFAULT 1,  -- 0: the last check could not read the channel (e.g. no Full Disk Access)
     auto_minutes INTEGER,                  -- set when the connector runs on its own schedule
     PRIMARY KEY (user_id, channel)
+);
+-- Drafts the Career coach wrote (an email or message to one of the student's people). The app never sends them:
+-- the student approves, then copies the text or opens it in their own mail app.
+CREATE TABLE IF NOT EXISTS outbox (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    contact_id  INTEGER,
+    to_name     TEXT NOT NULL DEFAULT '',
+    subject     TEXT NOT NULL DEFAULT '',
+    body        TEXT NOT NULL DEFAULT '',
+    status      TEXT NOT NULL DEFAULT 'draft',  -- draft | approved | discarded
+    run_id      TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    decided_at  TEXT
 );
 CREATE TABLE IF NOT EXISTS meta (
     key   TEXT PRIMARY KEY,
@@ -388,6 +403,44 @@ def finish_run(run_id: str, status: str, seconds: float, trace: list[dict], summ
     with connect() as conn:
         conn.execute("UPDATE agent_runs SET status = ?, seconds = ?, trace = ?, summary = ? WHERE run_id = ?",
                      (status, round(seconds, 2), json.dumps(trace, ensure_ascii=False), summary[:500], run_id))
+
+
+def failure_streak(user_id: int, agent: str, minutes: int) -> int:
+    """Consecutive failed runs of one agent for one student, counted only if the latest is recent (circuit breaker)."""
+    with connect() as conn:
+        rows = conn.execute("SELECT status, created_at FROM model_runs WHERE user_id = ? AND agent = ? ORDER BY id DESC LIMIT 10",
+                            (user_id, agent)).fetchall()
+    if not rows:
+        return 0
+    latest = datetime.strptime(str(rows[0]["created_at"])[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")
+    if (datetime.now(timezone.utc).replace(tzinfo=None) - latest).total_seconds() > minutes * 60:
+        return 0
+    streak = 0
+    for r in rows:  # only real failures count: a run cut off by the app's own limits is not a broken input
+        if r["status"] not in ("error", "model_rejected"):
+            break
+        streak += 1
+    return streak
+
+
+def create_draft(user_id: int, contact_id: int | None, to_name: str, subject: str, body: str, run_id: str) -> int:
+    with connect() as conn:
+        return insert_id(conn, "INSERT INTO outbox (user_id, contact_id, to_name, subject, body, run_id) VALUES (?, ?, ?, ?, ?, ?)",
+                         (user_id, contact_id, to_name[:120], subject[:200], body[:4000], run_id))
+
+
+def list_drafts(user_id: int) -> list[dict]:
+    with connect() as conn:
+        return [dict(r) for r in conn.execute(
+            "SELECT id, contact_id, to_name, subject, body, status, created_at, decided_at FROM outbox "
+            "WHERE user_id = ? AND status != 'discarded' ORDER BY id DESC LIMIT 30", (user_id,))]
+
+
+def decide_draft(user_id: int, draft_id: int, status: str) -> bool:
+    with connect() as conn:
+        cur = conn.execute("UPDATE outbox SET status = ?, decided_at = datetime('now') WHERE id = ? AND user_id = ?",
+                           (status, draft_id, user_id))
+        return (cur.rowcount or 0) > 0
 
 
 def record_model_run(row: dict) -> None:

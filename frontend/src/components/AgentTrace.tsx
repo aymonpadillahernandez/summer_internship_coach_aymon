@@ -1,11 +1,14 @@
 import type { TraceStep, Usage } from "../api";
 
 export const AGENTS: Record<string, { name: string; short: string; tone: string; role: string }> = {
-  strategist: { name: "Career strategist", short: "Strategist", tone: "ag-strategist", role: "Boss · ranks your week" },
-  scout: { name: "Opportunity scout", short: "Scout", tone: "ag-scout", role: "Opportunities · fit · deadlines" },
-  network: { name: "Network intelligence", short: "Network", tone: "ag-network", role: "People · relationships · call prep" },
+  strategist: { name: "Career coach", short: "Coach", tone: "ag-strategist", role: "Boss · priorities, chat, coffee-chat prep" },
+  scout: { name: "Opportunity scout", short: "Scout", tone: "ag-scout", role: "Finds internships on job boards · fit · deadlines" },
+  network: { name: "Network intelligence", short: "Network", tone: "ag-network", role: "Relationships · who opens doors · call prep" },
+  inbox: { name: "Inbox organizer", short: "Inbox", tone: "ag-inbox", role: "Reads every channel into people, roles and dates" },
+  guide: { name: "Setup guide", short: "Guide", tone: "ag-guide", role: "Step 1 · connects or exports every channel" },
+  keeper: { name: "Records keeper", short: "Keeper", tone: "ag-keeper", role: "Code · checks and writes every card, keeps them consistent" },
   shield: { name: "Shield", short: "Shield", tone: "ag-shield", role: "Code: hidden text, injected instructions, unsupported facts" },
-  router: { name: "Router", short: "Router", tone: "ag-router", role: "Code: sends each paste to the right specialist" },
+  router: { name: "Router", short: "Router", tone: "ag-router", role: "Code: channel and focus for each text" },
 };
 
 const EVENT: Record<string, string> = {
@@ -32,6 +35,22 @@ const EVENT: Record<string, string> = {
   timeout: "Timed out",
   error: "Failed",
   model_rejected: "Rejected a substituted model",
+  opened_skill: "Opened a skill",
+  skill_refused: "Skill cap reached",
+  drafted: "Saved a draft in the Outbox (not sent)",
+  draft_refused: "Draft cap reached",
+  paused: "Paused (AI switched off)",
+  paused_after_failures: "Paused after repeated failures",
+  discovering: "Started searching job boards",
+  searched_job_board: "Searched a job board",
+  search_refused: "Organisation cap reached",
+  read_page: "Read a careers page",
+  page_refused: "Page cap reached",
+  page_not_read: "Could not read a page",
+  page_not_allowed: "Refused a link it was not given",
+  link_not_from_board: "Dropped a posting whose link no board returned",
+  kept: "Checked and saved the cards",
+  checked_status: "Checked your setup",
 };
 
 export const fmt = (n: number) => n.toLocaleString("en-US");

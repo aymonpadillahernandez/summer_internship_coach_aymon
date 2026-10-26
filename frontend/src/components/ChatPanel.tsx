@@ -117,7 +117,8 @@ export default function ChatPanel({ onClose, seed, candidates, onOpenRecord }: {
               <div key={i} className="chat-q">{t.content}</div>
             ) : (
               <div key={i} className="chat-a">
-                <Markdown remarkPlugins={[remarkGfm]} components={{ a: (p) => <a {...p} target="_blank" rel="noopener noreferrer" /> }}>
+                <Markdown remarkPlugins={[remarkGfm]} disallowedElements={["img"]} unwrapDisallowed  // no image can load (and leak data) from a reply
+                  components={{ a: (p) => <a {...p} target="_blank" rel="noopener noreferrer" /> }}>
                   {t.content}
                 </Markdown>
                 {t.usage && (

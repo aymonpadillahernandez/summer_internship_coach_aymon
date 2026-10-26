@@ -60,6 +60,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
   const loadProfile = () => fetchProfile().then((r) => setProfileFilled(r.text.trim().length > 0)).catch(() => {});
   const [asking, setAsking] = useState(false);
   const [askSeed, setAskSeed] = useState<string | undefined>(undefined);
+  const [outboxKey, setOutboxKey] = useState(0);  // bumped when the coach chat closes, so new drafts show on Today
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === "dark");
   const toggleTheme = () => {
     const next = !dark;
@@ -134,6 +135,15 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
     window.location.hash = t;
     setTabState(t);
   };
+  // A new account starts at Setup (the Setup guide is step 1); only once, and never over a link to another tab.
+  useEffect(() => {
+    Promise.all([fetchBoard(), fetchNetwork()]).then(([b, n]) => {
+      if (!b.applications.length && !n.contacts.length && !window.location.hash && !localStorage.getItem("coach-setup-landed")) {
+        localStorage.setItem("coach-setup-landed", "1");
+        setTab("connect");
+      }
+    }).catch(() => {});
+  }, []);
   const openApp = (a: Application) => {
     setOpenContactId(null);
     setTab("internships");
@@ -357,7 +367,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
             Action plan <span>{allActions.length}</span>
           </button>
           <button role="tab" aria-selected={tab === "connect"} className={tab === "connect" ? "is-active" : ""} onClick={() => setTab("connect")}>
-            Connect
+            Setup
           </button>
         </div>
         <dl className="stats">
@@ -490,6 +500,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
           profileFilled={profileFilled}
           onOpenProfile={() => setShowProfile(true)}
           onOpenConnect={() => setTab("connect")}
+          outboxKey={outboxKey}
         />
       ) : tab === "plan" ? (
         <ActionPlan actions={planActions} onDone={completeAction} onOpen={openAction} readOnly={readOnly} />
@@ -518,7 +529,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
       {showUsage && <UsagePanel onClose={() => setShowUsage(false)} onOpenRecord={openRecord} />}
       {showProfile && <ProfilePanel user={user} onClose={() => { setShowProfile(false); loadProfile(); }} onSaved={loadProfile} onDeleted={onSignOut} />}
       {asking && (
-        <ChatPanel seed={askSeed} candidates={candidates} onOpenRecord={openRecord} onClose={() => { setAsking(false); setAskSeed(undefined); }} />
+        <ChatPanel seed={askSeed} candidates={candidates} onOpenRecord={openRecord} onClose={() => { setAsking(false); setAskSeed(undefined); setOutboxKey((k) => k + 1); }} />
       )}
 
       {toast && (

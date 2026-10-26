@@ -1,10 +1,14 @@
-"""Career strategist (the boss): decides where the student should spend this week, and answers questions in chat.
+"""Career coach (the boss; internal name "strategist"): decides where the student should spend this week, and in chat
+answers questions, sets priorities and prepares coffee chats, like a business-school career-development coach.
 
 It never reads the database directly. It delegates through two tools, each starting a separate specialist run:
   ask_opportunity_scout(question) -> Opportunity scout (retrieves OPP- records)
   ask_network_intel(question)     -> Network intelligence (retrieves CON- records)
 and one deterministic tool, get_data_checks(). Delegation is capped at MAX_DELEGATIONS_PER_RUN per request; a call
-over the cap returns a refusal as data, so the strategist still finishes.
+over the cap returns a refusal as data, so the coach still finishes. Specialists have no delegation tools of their
+own, so delegation is one level deep and cannot loop.
+In chat it also has load_skill(name) (its coaching playbooks, backend/skills/coach/) and save_draft(...), which only
+puts a draft in the student's Outbox (at most MAX_DRAFTS_PER_RUN per request). Nothing in the app can send a message.
 
 Plans: it may only rank the candidate actions the app derived from the student's data (the action plan). It sees
 them under short aliases (A1, A2, …; measured: the model shortened the app's long keys, which failed validation),
@@ -26,7 +30,8 @@ from pydantic_ai import Agent, ModelRetry, NativeOutput, RunContext
 import checks
 import config
 import db
-from agents import network, scout
+import safety
+from agents import network, scout, skills
 from agents.models import CoachPlan, trim
 from agents.runtime import CoachRun, prompt, run_agent
 
@@ -78,13 +83,34 @@ def get_data_checks(ctx: RunContext[StrategistDeps]) -> str:
     return json.dumps([{k: i[k] for k in ("name", "problem", "fix")} for i in found[:10]], ensure_ascii=False)
 
 
+async def save_draft(ctx: RunContext[StrategistDeps], to_name: str, subject: str, body: str) -> str:
+    """Put a short email or message draft to one of the student's people in their Outbox, only when the student
+    asked for a draft. It is never sent by the app: the student reviews it, then copies it or opens it in their mail."""
+    run, uid = ctx.deps.run, ctx.deps.user_id
+    if run.drafts >= config.MAX_DRAFTS_PER_RUN:
+        run.step(NAME, "draft_refused", f"Cap of {config.MAX_DRAFTS_PER_RUN} drafts per request reached")
+        return f"Draft limit reached ({config.MAX_DRAFTS_PER_RUN} per request)."
+    person = network.find_person(to_name, [c for c in db.list_contacts(uid) if not c.get("not_interested_at")])
+    if person is None:
+        return (f"No one called {to_name!r} is in the student's records. Drafts go only to people in the records: "
+                "ask the student who it is for.")
+    draft_id = db.create_draft(uid, person["id"], person["name"], safety.scrub(trim(subject, 200)), safety.scrub(trim(body, 3000)),
+                               run.run_id)
+    run.drafts += 1
+    run.step(NAME, "drafted", f"Draft #{draft_id} to {person['name']} saved in the Outbox (not sent)", draft_id=draft_id)
+    return (f"Saved as draft #{draft_id} in the student's Outbox, addressed to {person['name']}. It is NOT sent: tell the "
+            "student to review it in the Outbox, then copy it or open it in their mail app.")
+
+
 TOOLS = [ask_opportunity_scout, ask_network_intel, get_data_checks]
+CHAT_TOOLS = TOOLS + [skills.load_skill_tool("coach", actor=NAME), save_draft]
 
 
 @lru_cache(maxsize=1)
 def plan_agent() -> Agent:
     agent = Agent(config.build_model(), deps_type=StrategistDeps, output_type=NativeOutput(CoachPlan),
-                  instructions=prompt("strategist_plan"), tools=TOOLS, model_settings=config.MODEL_SETTINGS,
+                  instructions=f"{prompt('strategist_plan')}\n\n{skills.inject('coach', ['prioritization'])}",
+                  tools=TOOLS, model_settings=config.MODEL_SETTINGS,
                   retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
     @agent.output_validator
@@ -100,8 +126,9 @@ def plan_agent() -> Agent:
 
 @lru_cache(maxsize=1)
 def chat_agent() -> Agent:
-    return Agent(config.build_model(), deps_type=StrategistDeps, output_type=str, instructions=prompt("strategist_chat"),
-                 tools=TOOLS, model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+    return Agent(config.build_model(), deps_type=StrategistDeps, output_type=str,
+                 instructions=f"{prompt('strategist_chat')}\n\n{skills.catalog_block('coach')}",
+                 tools=CHAT_TOOLS, model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 def _aliases(candidates: list[dict]) -> dict[str, dict]:

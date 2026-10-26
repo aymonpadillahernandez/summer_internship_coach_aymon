@@ -1,0 +1,320 @@
+{
+ "note": "Real gpt-6-luna runs of the new agent team on the local server, demo (fictional) account; job-board data is public. Oct 25, 2026 ~22:45 ET.",
+ "runs": {
+  "guide": {
+   "run_id": "cb7e483bfe28",
+   "status": "ok",
+   "seconds": 9.5,
+   "usage": {
+    "requests": 4,
+    "input": 5579,
+    "cached": 2669,
+    "output": 338,
+    "reasoning": 0,
+    "cost_usd": null
+   },
+   "trace": [
+    {
+     "t": 0.0,
+     "agent": "guide",
+     "event": "thinking",
+     "detail": "I am new here. What should I connect first, and how do I bring in WhatsApp?"
+    },
+    {
+     "t": 2.38,
+     "agent": "guide",
+     "event": "checked_status",
+     "detail": "Read the student's setup status"
+    },
+    {
+     "t": 4.56,
+     "agent": "guide",
+     "event": "opened_skill",
+     "detail": "setup-order"
+    },
+    {
+     "t": 6.01,
+     "agent": "guide",
+     "event": "opened_skill",
+     "detail": "whatsapp"
+    },
+    {
+     "t": 9.5,
+     "agent": "guide",
+     "event": "finished",
+     "detail": "",
+     "seconds": 9.43,
+     "tokens": {
+      "input": 5579,
+      "cached": 2669,
+      "output": 338
+     }
+    }
+   ],
+   "answer": "**First, create your Coach Connector key on the Setup page.**\n\n1. Your targets are already set. The recommended next step is **Setup → Step 1: create your connector key**. Keep it private; don’t paste it here.\n2. For WhatsApp on a Mac, install WhatsApp Desktop, link your phone, and leave the app open in the background. The connector reads WhatsApp Desktop’s data on your Mac, read-only; it does not connect to WhatsApp itself.\n3. Continue the Mac setup in Terminal, following the Setup page: run `setup`, grant Terminal Full Disk Access if prompted, then run the WhatsApp dry run before the connector run. Once set up, WhatsApp Desktop can auto-sync.\n4. Without a Mac, export a recruiting chat from WhatsApp (without media) and upload it using the **Connect → WhatsApp without a Mac** card. You’ll need to export and upload again for new chats; it won’t auto-sync.\n\n**After the connector key, follow the remaining Coach Connector setup steps; then connect channels one at a time.** LinkedIn, Slack, Android texts, calendar invites, job postings, and WhatsApp without a Mac require an export or paste each time."
+  },
+  "inbox": {
+   "run_id": "5a7a53169702",
+   "status": "ok",
+   "seconds": 6.42,
+   "usage": {
+    "requests": 1,
+    "input": 4583,
+    "cached": 0,
+    "output": 1003,
+    "reasoning": 366,
+    "cost_usd": null
+   },
+   "trace": [
+    {
+     "t": 0.0,
+     "agent": "router",
+     "event": "routed",
+     "detail": "Sent to the Inbox organizer (focus: both)"
+    },
+    {
+     "t": 0.0,
+     "agent": "inbox",
+     "event": "reading",
+     "detail": "Reading “email” for opportunities, people and dates (focus: both)"
+    },
+    {
+     "t": 6.41,
+     "agent": "inbox",
+     "event": "finished",
+     "detail": "",
+     "seconds": 6.4,
+     "tokens": {
+      "input": 4583,
+      "cached": 0,
+      "output": 1003
+     }
+    },
+    {
+     "t": 6.42,
+     "agent": "keeper",
+     "event": "kept",
+     "detail": "Checked and saved: 1 opportunities updated, 1 contacts added, 1 contacts updated, 2 events added; 0 rejected; 1 record(s) need attention",
+     "issues": 1
+    }
+   ],
+   "routes": [
+    "inbox"
+   ],
+   "saved": {
+    "opportunities_added": [],
+    "opportunities_updated": [
+     {
+      "id": 200,
+      "company": "Harborview Media",
+      "role": "Content Partnerships MBA Summer Associate"
+     }
+    ],
+    "leads_added": 0,
+    "contacts_added": [
+     {
+      "id": 212,
+      "name": "Elena Petrova"
+     }
+    ],
+    "contacts_updated": [
+     {
+      "id": 203,
+      "name": "David Okafor"
+     }
+    ],
+    "events_added": 2
+   },
+   "rejected": []
+  },
+  "discover": {
+   "run_id": "8c93247e49cf",
+   "status": "ok",
+   "seconds": 5.91,
+   "usage": {
+    "requests": 2,
+    "input": 13023,
+    "cached": 2548,
+    "output": 245,
+    "reasoning": 0,
+    "cost_usd": null
+   },
+   "trace": [
+    {
+     "t": 0.0,
+     "agent": "scout",
+     "event": "discovering",
+     "detail": "Looking for summer internships at 4 organisation(s) on public job boards"
+    },
+    {
+     "t": 2.26,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Ramp: 1 internship-like posting(s) on greenhouse:ramp",
+     "board": "greenhouse:ramp"
+    },
+    {
+     "t": 2.53,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Figma: 10 internship-like posting(s) on greenhouse:figma",
+     "board": "greenhouse:figma"
+    },
+    {
+     "t": 2.68,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Stripe: 10 internship-like posting(s) on greenhouse:stripe",
+     "board": "greenhouse:stripe"
+    },
+    {
+     "t": 3.02,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Notion: 10 internship-like posting(s) on ashby:notion",
+     "board": "ashby:notion"
+    },
+    {
+     "t": 5.91,
+     "agent": "scout",
+     "event": "finished",
+     "detail": "",
+     "seconds": 5.9,
+     "tokens": {
+      "input": 13023,
+      "cached": 2548,
+      "output": 245
+     }
+    },
+    {
+     "t": 5.91,
+     "agent": "keeper",
+     "event": "kept",
+     "detail": "Checked and saved: nothing new; 0 rejected; 1 record(s) need attention",
+     "issues": 1
+    }
+   ],
+   "saved": {},
+   "rejected": [],
+   "not_found": [
+    "Stripe — the returned internship postings were high-school-, PhD-, or software/data-focused, not a Summer 2027 MBA-eligible strategy, business development, or partnerships internship.",
+    "Figma — returned Summer 2027 roles were technical or design internships; the PhD internships exclude an MBA profile, and no matching strategy, business development, or partnerships internship was ret…",
+    "Ramp — no matching Summer 2027 internship posting was returned; the only result was “Copy of Chief Legal Officer.”",
+    "Notion — the returned Summer 2027 posting was a software engineering internship requiring a computer science, engineering, or related degree; other internship results were for Winter 2027, not Summer…"
+   ]
+  },
+  "discover2": {
+   "run_id": "f5e61e17b02c",
+   "status": "ok",
+   "seconds": 7.99,
+   "usage": {
+    "requests": 2,
+    "input": 15422,
+    "cached": 4972,
+    "output": 486,
+    "reasoning": 0,
+    "cost_usd": null
+   },
+   "trace": [
+    {
+     "t": 0.0,
+     "agent": "scout",
+     "event": "discovering",
+     "detail": "Looking for summer internships at 3 organisation(s) on public job boards"
+    },
+    {
+     "t": 2.55,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Duolingo: 10 internship-like posting(s) on greenhouse:duolingo",
+     "board": "greenhouse:duolingo"
+    },
+    {
+     "t": 2.78,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Robinhood: 10 internship-like posting(s) on greenhouse:robinhood",
+     "board": "greenhouse:robinhood"
+    },
+    {
+     "t": 3.08,
+     "agent": "scout",
+     "event": "searched_job_board",
+     "detail": "Airbnb: 10 internship-like posting(s) on greenhouse:airbnb",
+     "board": "greenhouse:airbnb"
+    },
+    {
+     "t": 7.98,
+     "agent": "scout",
+     "event": "finished",
+     "detail": "",
+     "seconds": 7.97,
+     "tokens": {
+      "input": 15422,
+      "cached": 4972,
+      "output": 486
+     }
+    },
+    {
+     "t": 7.99,
+     "agent": "keeper",
+     "event": "kept",
+     "detail": "Checked and saved: 2 opportunities added; 0 rejected; 1 record(s) need attention",
+     "issues": 1
+    }
+   ],
+   "saved": {
+    "opportunities_added": [
+     {
+      "id": 211,
+      "company": "Robinhood",
+      "role": "Investment Analyst MBA Intern, Robinhood Ventures (Summer 2027)"
+     },
+     {
+      "id": 212,
+      "company": "Duolingo",
+      "role": "Product Manager, MBA Intern"
+     }
+    ],
+    "opportunities_updated": [],
+    "leads_added": 0
+   },
+   "rejected": [],
+   "not_found": []
+  },
+  "coach": {
+   "run_id": "0f4ba152745c",
+   "status": "ok",
+   "seconds": 8.65,
+   "usage": {
+    "requests": 1,
+    "input": 1396,
+    "cached": 0,
+    "output": 957,
+    "reasoning": 223,
+    "cost_usd": null
+   },
+   "trace": [
+    {
+     "t": 0.0,
+     "agent": "network",
+     "event": "preparing",
+     "detail": "Preparing the call with Maya Chen from their dossier (CON-200)"
+    },
+    {
+     "t": 8.65,
+     "agent": "network",
+     "event": "finished",
+     "detail": "",
+     "seconds": 8.64,
+     "tokens": {
+      "input": 1396,
+      "cached": 0,
+      "output": 957
+     }
+    }
+   ],
+   "answer": "**Maya Chen — Monday, October 26, 2026 (time not provided); learn about the Strategy & Business Development MBA intern team and the work.**\n\n### Why this call matters\n- Maya is a Senior Manager in Strategy at Northbridge Sports Group, where you are pursuing a Summer 2027 strategy internship.\n- You have already met for coffee, and she offered to flag your application to the hiring manager once you submit it.\n- The application deadline is October 31, so this is a timely chance to understand the team and its work.\n\n### Call plan\n\n| Time | Topic | Purpose |\n|---|---|---|\n| 0–3 min | Reconnect and thank her | Pick up naturally from your October 16 coffee |\n| 3–8 min | Her strategy work | Hear what she focuses on at Northbridge |\n| 8–15 min | Intern team and role | Understand the team’s work and what the internship involves |\n| 15–21 min | Skills and preparation | Learn what helps someone contribute in the role |\n| 21–25 min | Advice and close | Ask for perspective and, if useful, one person or place to learn from |\n\n### Opening (30 seconds)\n“Hi Maya, thanks again for making time to speak with me. I enjoyed our coffee on October 16, and I appreciated your offer to flag my application once I submit it. I’d love to learn more about the intern team and the kind of strategy work it does, especially given my consulting experience across retail and media.”\n\n### Questions to ask\n1. “Could you tell me more about the Strategy & Business Development team and the work the MBA intern would support?”\n2. “What kinds of strategy questions or projects are most important to the group right now?”\n3. “How does the team approach fan-growth analytics, which I saw mentioned in the role description?”\n4. “Given your experience in strategy at Northbridge, what distinguishes someone who contributes well on this team?”\n5. “Where might my retail and media consulting background be most relevant to the role?”\n6. “What would you recommend I learn more about before starting in a league-office strategy role?”\n7. “Is there one person or resource you’d suggest I speak with or explore to understand the team or sports strategy landscape better?”\n\n### Emphasise / Avoid\n**Emphasise**\n- Your four years of strategy consulting experience in retail and media.\n- Your interest in strategy, fan growth, and the team’s work.\n- Curiosity about what would help you contribute effectively.\n\n**Avoid**\n- Asking for a job or internship directly.\n- Treating her offer to flag your application as an obligation.\n- Assuming she has reviewed your application or that you have submitted it.\n\n### Prep checklist\n- [ ] Review the internship description and note questions about the team’s work.\n- [ ] Prepare a concise example from consulting that connects retail or media strategy to the role.\n- [ ] Be ready to clarify whether you have submitted your application, if it comes up.\n- [ ] Note one or two takeaways and any suggested next steps during the call.\n\n### Follow-up email (draft, send it yourself)\nHi Maya,\n\nThank you again for taking the time to speak with me today. I especially appreciated your perspective on [what you learned on the call]. It was helpful as I learn more about the team and the role.\n\nBest,  \nJordan\n\n*Based on:* Maya Chen’s record and October 16, 2026 conversation; Northbridge Sports Group internship listing; Jordan Rivera’s profile."
+  }
+ }
+}

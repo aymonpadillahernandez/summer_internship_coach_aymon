@@ -13,7 +13,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 import config
 import db
 import web
-from agents import scout
+from agents import inbox, scout
 
 PAGE = (config.ROOT / "data" / "demo" / "pages" / "cobalt-careers.html").read_text()
 FAKE_DNS = {"localhost": ["127.0.0.1"], "jobs.example.org": ["93.184.216.34"], "example.com": ["93.184.216.34"]}
@@ -69,7 +69,7 @@ def test_a_linked_page_is_read_without_its_hidden_text(demo_client, scripted_web
             "fit": "possible", "fit_reason": "Strategy role", "key_points": ["Applications open now"],
             "evidence": "Applications are open now."}], "leads": [], "fields_not_found": []}))])
 
-    with scout.intake_agent().override(model=FunctionModel(model)):
+    with inbox.agent().override(model=FunctionModel(model)):
         r = demo_client.post("/api/intake/link", json={"url": "https://jobs.example.org/careers"}).json()
 
     assert "already received an offer" not in seen["prompt"]  # the hidden text never reached the model

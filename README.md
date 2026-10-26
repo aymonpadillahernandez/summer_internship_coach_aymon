@@ -13,39 +13,62 @@ and three agents keep one evidence-backed picture of your search and tell you wh
 
 | Screen | What you get |
 |---|---|
-| **Today** | **Plan my week**: the Career strategist ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the specialists file opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. |
+| **Today** | **Plan my week**: the Career strategist ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the specialists file opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. **Find openings**: the Opportunity scout searches the public job boards of your organisations. **Outbox**: drafts the coach wrote, never sent by the app. |
 | **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Who can open the door**: Network intelligence finds up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
 | **Ask your coach** | Chat with the Career strategist; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
-| **Connect** | Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters on your computer and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
+| **Setup** (step 1 for new accounts) | The **Setup guide** agent walks you through it next to a checklist. Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters on your computer and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
 | **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent. |
 
 It never sends anything on your behalf: drafts are for you to send.
 
 ## The agents (all on `gpt-6-luna` through the course Portkey key)
 
+Five AI agents, each with its own tools and skills, and one component in code that writes every card:
+
 ```
-                    ┌──────────────────────────────┐
-  Plan / chat  ───▶ │  Career strategist (boss)    │  ranks only the actions the app derived; output validated
-                    └──────┬────────────────┬──────┘
-          ask_opportunity_scout()      ask_network_intel()        (max 4 questions per request)
-                    ┌──────▼──────┐   ┌─────▼──────────────┐
-                    │ Opportunity │   │ Network            │  each reads only the 10 records BM25 finds
-                    │ scout       │   │ intelligence       │  for the question, and cites OPP-/CON- ids
-                    └──────▲──────┘   └─────▲──────────────┘
-  Paste / upload ─▶ Shield ─▶ Router ───────┘   (code, zero tokens: hidden text removed, injected
-                    (code)    (code)              instructions quarantined, then routed by content)
+ New account ─▶ Setup guide ............ walks you through connecting or exporting every channel (step 1)
+                tools: connection_status, next_setup_step, load_skill (11 channel playbooks)
+
+ Any channel ─▶ Shield ─▶ Router ─▶ Inbox organizer ─▶ Records keeper ─▶ cards (Opportunities, Networking,
+ (paste, file,  (code)    (code)    one call per text:   (code, 0 tokens:   Action plan)
+  connector)                        roles, people, dates  checks every quote, name, link, id;
+                                                          merge rules; data checks)
+ Find openings ─▶ Opportunity scout ─▶ Records keeper
+                  tools: search_job_boards (Greenhouse, Lever, Ashby, SmartRecruiters public APIs), read_careers_page
+
+ Plan / chat ─▶ Career coach (boss) ── ask_opportunity_scout ─▶ Opportunity scout   (BM25: 10 records per question)
+                tools: load_skill,    ── ask_network_intel ────▶ Network intelligence (doors, call prep)
+                save_draft (Outbox), get_data_checks             max 4 questions per request; specialists cannot delegate
 ```
 
-- **Opportunity scout** turns postings, emails and linked careers pages into opportunities (deadline, MBA eligibility,
-  whether applications are open, fit with your profile). Its one internet tool reads a page you link (`backend/web.py`:
-  public addresses only, every redirect re-checked, size and time limits, robots.txt respected, no bot-bypassing).
-- **Network intelligence** turns conversations and exports into people, stages and dated, quoted facts; finds who can
-  open the door at each target; prepares calls.
-- **Career strategist** decides where your week goes, delegating questions to the two specialists.
-- After every model answer, code checks it: quotes must appear in your text, people must be named in it, ids must
-  be yours, invented actions are refused, and email addresses / phone numbers are never stored.
+| Agent | What it does | Tools | Skills (`backend/skills/`) |
+|---|---|---|---|
+| **Setup guide** | Step 1 of a new account: one step at a time through Gmail, school mail, Messages, WhatsApp, LinkedIn, Slack, Android texts, calendar, postings | `connection_status`, `next_setup_step`, `load_skill` | 11 channel playbooks + troubleshooting |
+| **Inbox organizer** | Reads one text from any channel into opportunities, leads and people with exact quotes (one call per text) | none (reads only the text) | reading email, chats, LinkedIn exports, postings, invites; stage definitions |
+| **Opportunity scout** | Finds summer internships on public job boards and careers pages, judges fit; answers the coach about opportunities | `search_job_boards`, `read_careers_page` | source policy, MBA eligibility, reading a posting, fit rubric |
+| **Career coach** | The boss: plans the week, answers questions, prepares coffee chats, drafts notes into the Outbox | `ask_opportunity_scout`, `ask_network_intel`, `get_data_checks`, `load_skill`, `save_draft` | coffee-chat prep, prioritization, follow-ups, outreach drafts, interview prep, recruiting timeline |
+| **Network intelligence** | Relationships, who can open the door, call prep | none (reads retrieved records or a dossier) | relationship strength, warm-intro paths, call prep |
+| **Records keeper** (code) | The only writer of cards: validates every item against its source, merge rules, data checks | n/a | n/a |
+
+Chat agents open a skill only when needed (`load_skill`); pipeline agents get theirs in their instructions, a stable
+prefix the provider can cache. The scout never scrapes Handshake or LinkedIn (their terms forbid it), and a posting is
+saved only if it quotes what a tool returned in that run, with a link the tool returned.
+
+### Guardrails (all in `backend/config.py`, all tested in `tests/test_team.py` and `tests/test_safety.py`)
+
+- **Nothing is sent without you:** no agent has a sending tool (a test fails if one ever does). The coach's drafts wait in
+  the Outbox; approving one only copies it or opens your own mail app.
+- **No endless loops:** per-run caps on model requests, tool calls and tokens; timeouts; delegation one level deep (max 4
+  questions); skills (3), drafts (2), organisations (8, only the ones you asked about), pages (3, only links a board
+  returned or you gave) and job-board requests (24) per run; an agent that errors 3 times in a row for a student is paused
+  for 15 minutes, and a paused intake is not acknowledged to the Coach Connector, so nothing is lost.
+- **Cost:** an 8,000-token cap per model answer, 60,000 tokens per agent run (120,000 for a job-board search), daily
+  token budgets per student and for the site (429 when reached), and an `AI_PAUSED` switch that stops every AI route at
+  zero tokens. Tokens of a run cut off at a limit are still counted against the budget.
+- **Facts:** quotes, names, links and ids are checked in code; invented actions are refused; emails and phone numbers are
+  never stored; a substituted model's answer is rejected.
 
 ## Run it locally (about 5 minutes)
 
@@ -85,12 +108,12 @@ Developing the frontend with hot reload: run step 4, then `cd frontend && npm ru
   created on first start, git-ignored). Set `DATABASE_URL` to a Postgres URL to use Postgres instead (the live app
   uses Supabase). The pasted texts themselves are never stored, only the facts and the quotes that back them.
 
-## Connecting channels (Connect tab)
+## Connecting channels (Setup tab)
 
 All free and read-only; nothing is ever sent from a student's accounts.
 
 - **Coach Connector** (`connector/coach_connector.py`, Python standard library only, works with macOS's built-in
-  `python3`). The student creates a connector key on the Connect tab (shown once, stored hashed, revocable), then:
+  `python3`). The student creates a connector key on the Setup tab (shown once, stored hashed, revocable), then:
   `curl -fsSL <site>/connector/coach_connector.py -o ~/coach_connector.py`, `python3 ~/coach_connector.py setup`,
   `python3 ~/coach_connector.py run --dry-run` (shows counts, sends nothing), `python3 ~/coach_connector.py run`.
   - **Gmail:** an app password kept in the macOS Keychain (IMAP, read-only, emails stay unread).
@@ -105,7 +128,7 @@ All free and read-only; nothing is ever sent from a student's accounts.
     through the same shield and specialists as a paste.
 - **Auto-sync:** `python3 ~/coach_connector.py schedule` installs a per-user macOS LaunchAgent that runs every 30
   minutes while the Mac is awake (`--every N` to change, `status`, `unschedule`). Each run reports counts and a fixed
-  reason code only to `POST /api/connector/checked` (zero tokens; the full error stays in the Mac's log), so the Connect
+  reason code only to `POST /api/connector/checked` (zero tokens; the full error stays in the Mac's log), so the Setup
   tab shows "Auto-sync on", "Needs Full Disk Access", "Synced by hand" or "hasn't checked since …". One channel failing
   never stops the others. macOS asks once more for Full Disk Access for the scheduled Python; the command prints
   the exact path and opens the settings page. That grant covers that Python for every script, which the tab says;
@@ -133,7 +156,7 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 39 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 71 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
@@ -148,7 +171,8 @@ and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_L
 ## Project structure
 
 ```
-backend/   FastAPI app (main.py), agents/ (strategist, scout, network, runtime), prompts/, safety.py, merge.py,
+backend/   FastAPI app (main.py), agents/ (strategist = Career coach, scout, network, inbox, guide, skills, runtime),
+           skills/ (playbooks per agent), keeper.py (Records keeper), jobboards.py (public job-board APIs), prompts/, safety.py, merge.py,
            intake.py, web.py (link reader), retrieval.py (BM25), db.py + store.py (SQLite / Postgres), auth.py,
            files.py (uploads), signals.py (what to keep), demo.py, check_setup.py
 connector/ coach_connector.py, the free local Gmail + Messages + WhatsApp Desktop reader (with auto-sync)

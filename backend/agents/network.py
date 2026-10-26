@@ -1,8 +1,9 @@
-"""Network intelligence: turns a pasted conversation / export into people, stages and dated, quoted events;
-answers the strategist's questions about relationships; and prepares calls (the call-prep expert from the
-author's tracker, generalised to any student).
+"""Network intelligence: answers the Career coach's questions about relationships, finds who can open the door at an
+opportunity, and prepares calls (the call-prep expert from the author's tracker, generalised to any student).
+Reading conversations into records moved to the Inbox organizer.
 
-Tools: none that reach outside. It reads only the pasted text, the BM25-retrieved records, or one person's dossier.
+Tools: none that reach outside. It reads only the BM25-retrieved records or one person's dossier. Skills:
+relationship strength, warm-intro paths, call prep (in its instructions).
 It never sends anything: the follow-up email it drafts is for the student to send.
 """
 
@@ -20,7 +21,8 @@ import config
 import db
 import retrieval
 import safety
-from agents.models import DoorPlan, NetworkIntake, SpecialistAnswer, trim
+from agents import skills
+from agents.models import DoorPlan, SpecialistAnswer, trim
 from agents.runtime import CoachRun, prompt, run_agent
 from agents.scout import checked_answer
 
@@ -36,43 +38,32 @@ INTENT = re.compile(
 )
 
 
-@lru_cache(maxsize=1)
-def intake_agent() -> Agent:
-    return Agent(config.build_model(), output_type=NativeOutput(NetworkIntake), instructions=prompt("network_intake"),
-                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+DRAFTING = re.compile(r"\b(draft|write|email|e-mail|message|note|outbox|thank[- ]you)\b", re.I)
 
 
 @lru_cache(maxsize=1)
 def consult_agent() -> Agent:
-    return Agent(config.build_model(), output_type=NativeOutput(SpecialistAnswer), instructions=prompt("network_consult"),
+    return Agent(config.build_model(), output_type=NativeOutput(SpecialistAnswer),
+                 instructions=f"{prompt('network_consult')}\n\n{skills.inject(NAME, ['relationship-strength'])}",
                  model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 @lru_cache(maxsize=1)
 def doors_agent() -> Agent:
-    return Agent(config.build_model(), output_type=NativeOutput(DoorPlan), instructions=prompt("network_doors"),
+    return Agent(config.build_model(), output_type=NativeOutput(DoorPlan),
+                 instructions=f"{prompt('network_doors')}\n\n{skills.inject(NAME, ['relationship-strength', 'warm-intro-paths'])}",
                  model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 @lru_cache(maxsize=1)
 def call_prep_agent() -> Agent:
-    return Agent(config.build_model(), output_type=str, instructions=prompt("call_prep"),
+    return Agent(config.build_model(), output_type=str,
+                 instructions=f"{prompt('call_prep')}\n\n{skills.inject(NAME, ['call-prep'])}",
                  model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 def _profile(user_id: int) -> str:
     return db.get_profile(user_id)[:1200] or "(no profile yet)"
-
-
-async def intake(run: CoachRun, user_id: int, text: str, label: str) -> NetworkIntake | None:
-    apps = [f"{a['id']} · {a['company']} · {a['role']}" for a in db.list_applications(user_id)]
-    people = [f"{c['id']} · {c['name']} · {c['affiliation']} · {NET_STAGE.get(c['status'], c['status'])}"
-              for c in db.list_contacts(user_id)]
-    user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\n\nStudent profile:\n{_profile(user_id)}\n\n"
-                   "Opportunities:\n" + ("\n".join(apps) or "(none yet)") + "\n\nCurrent contacts:\n"
-                   + ("\n".join(people) or "(none yet)") + "\n\n" + safety.wrap_untrusted(text, label))
-    run.step(NAME, "reading", f"Reading “{label}” for people, stages and dated facts")
-    return await run_agent(run, NAME, intake_agent(), user_prompt)
 
 
 async def consult(run: CoachRun, user_id: int, question: str) -> dict:
@@ -81,7 +72,7 @@ async def consult(run: CoachRun, user_id: int, question: str) -> dict:
     allowed = {rid for rid, _ in picked} | {f"OPP-{a['id']}" for a in db.list_applications(user_id)}
     block = "\n".join(text for _, text in picked) or "(no contacts yet)"
     user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\nStudent profile:\n{_profile(user_id)}\n\n"
-                   f"Question from the Career strategist: {question}\n\n"
+                   f"Question from the Career coach: {question}\n\n"
                    + safety.wrap_untrusted(block, f"student records: {len(picked)} of {len(records)} contacts"))
     run.step(NAME, "searching", f"Read {len(picked)} of {len(records)} contact records (BM25)",
              records=[rid for rid, _ in picked])
@@ -124,6 +115,8 @@ def detect(user_id: int, messages: list[dict]) -> dict | None:
     named = find_person(latest, contacts)
     if INTENT.search(latest):
         return named or next_call(contacts)
+    if DRAFTING.search(latest):  # "now draft the thank-you": the coach (with the Outbox) takes over
+        return None
     for earlier in reversed(users[:-1]):
         if INTENT.search(earlier):
             return named or find_person(earlier, contacts) or next_call(contacts)

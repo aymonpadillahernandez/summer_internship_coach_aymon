@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -27,7 +28,8 @@ import config
 import db
 
 PROMPTS = Path(__file__).resolve().parent.parent / "prompts"
-AGENT_TITLES = {"strategist": "Career strategist", "scout": "Opportunity scout", "network": "Network intelligence"}
+AGENT_TITLES = {"strategist": "Career coach", "scout": "Opportunity scout", "network": "Network intelligence",
+                "inbox": "Inbox organizer", "guide": "Setup guide", "keeper": "Records keeper"}
 
 
 def prompt(name: str) -> str:
@@ -35,9 +37,10 @@ def prompt(name: str) -> str:
     return f"{(PROMPTS / f'{name}.md').read_text(encoding='utf-8').strip()}\n\n{(PROMPTS / '_safety.md').read_text(encoding='utf-8').strip()}"
 
 
-def limits() -> UsageLimits:
-    return UsageLimits(request_limit=config.AGENT_REQUEST_LIMIT, tool_calls_limit=config.AGENT_TOOL_CALLS_LIMIT,
-                       total_tokens_limit=config.AGENT_TOTAL_TOKENS_LIMIT)
+def limits(requests: int | None = None, tool_calls: int | None = None, total_tokens: int | None = None) -> UsageLimits:
+    return UsageLimits(request_limit=requests or config.AGENT_REQUEST_LIMIT,
+                       tool_calls_limit=tool_calls or config.AGENT_TOOL_CALLS_LIMIT,
+                       total_tokens_limit=total_tokens or config.AGENT_TOTAL_TOKENS_LIMIT)
 
 
 class ModelSubstituted(RuntimeError):
@@ -51,6 +54,8 @@ class CoachRun:
     run_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     trace: list[dict] = field(default_factory=list)
     delegations: int = 0
+    skill_loads: int = 0
+    drafts: int = 0
     tokens: dict[str, int] = field(default_factory=lambda: {"requests": 0, "input": 0, "cached": 0, "output": 0, "reasoning": 0})
     started: float = field(default_factory=time.perf_counter)
 
@@ -80,15 +85,26 @@ def _usage_of(responses: list[ModelResponse]) -> dict[str, int]:
 
 
 async def run_agent(run: CoachRun, name: str, agent: Agent, user_prompt: str, deps: Any = None,
-                    message_history: list | None = None, timeout: float | None = None) -> Any:
-    """Run one agent; returns its output, or None when it failed or hit a limit (recorded in the trace)."""
+                    message_history: list | None = None, timeout: float | None = None,
+                    usage_limits: UsageLimits | None = None) -> Any:
+    """Run one agent; returns its output, or None when it failed, hit a limit or was paused (recorded in the trace).
+
+    Two stops before any model call (0 tokens): the AI_PAUSED kill switch, and a circuit breaker that pauses an agent
+    for a student after FAILURE_PAUSE_AFTER failures in a row (a broken input is not paid for again and again)."""
+    if config.AI_PAUSED:
+        run.step(name, "paused", "AI is paused on this server (AI_PAUSED)")
+        return None
+    if db.failure_streak(run.user_id, name, config.FAILURE_PAUSE_MINUTES) >= config.FAILURE_PAUSE_AFTER:
+        run.step(name, "paused_after_failures",
+                 f"{config.FAILURE_PAUSE_AFTER} failed runs in a row: paused for {config.FAILURE_PAUSE_MINUTES} minutes")
+        return None
     timeout = timeout or config.AGENT_TIMEOUT_SECONDS
     start = time.perf_counter()
     status, output, error = "ok", None, ""
     with capture_run_messages() as messages:
         try:
             result = await asyncio.wait_for(
-                agent.run(user_prompt, deps=deps, usage_limits=limits(), message_history=message_history),
+                agent.run(user_prompt, deps=deps, usage_limits=usage_limits or limits(), message_history=message_history),
                 timeout=timeout)
             output = result.output
         except UsageLimitExceeded as e:
@@ -99,6 +115,10 @@ async def run_agent(run: CoachRun, name: str, agent: Agent, user_prompt: str, de
             status, error = "error", f"{type(e).__name__}: {str(e)[:200]}"
     responses = [m for m in messages if isinstance(m, ModelResponse)]
     usage = _usage_of(responses)
+    if status == "usage_limit":  # the response that crossed the limit is billed but never captured: count it too
+        m = re.search(r"total_tokens=(\d+)", error)
+        if m and int(m.group(1)) > usage["input"] + usage["output"]:
+            usage["input"] += int(m.group(1)) - usage["input"] - usage["output"]
     models = sorted({r.model_name for r in responses if r.model_name})
     bad = [m for m in models if not m.startswith(config.MODEL)]
     if bad:

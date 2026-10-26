@@ -40,7 +40,9 @@ MODEL = "gpt-6-luna"  # the course Portkey key allows this model only; replies f
 PORTKEY_BASE_URL = "https://api.portkey.ai/v1"
 FORCE_FRESH_ANSWERS = True  # Portkey's response cache replays identical requests; measured runs must reach the model
 REASONING_EFFORT = "low"  # every agent; fewer hidden reasoning tokens per request
-MODEL_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort=REASONING_EFFORT)
+AGENT_MAX_OUTPUT_TOKENS = 8_000  # per model response, reasoning included: a runaway answer is cut off (a long, valid
+# structured answer still fits: measured intake answers are ~1,000 output tokens)
+MODEL_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort=REASONING_EFFORT, max_tokens=AGENT_MAX_OUTPUT_TOKENS)
 
 # Price per 1M tokens in USD. None = not known yet: the app shows token counts and leaves cost blank rather than guess.
 PRICE_INPUT_PER_M: float | None = None
@@ -67,6 +69,20 @@ GLOBAL_DAILY_TOKEN_BUDGET = int(os.getenv("GLOBAL_DAILY_TOKEN_BUDGET", "3000000"
 RETRIEVAL_TOP_K = 10  # records a specialist reads per question (BM25), instead of the whole database
 DEMO_TTL_DAYS = 3  # demo accounts (and their data) are deleted after this many days
 SIGNUP_CODE = os.getenv("SIGNUP_CODE", "").strip()
+
+# ─── Guardrails for the agent team (each enforced in code and covered by tests/test_team.py) ───
+AI_PAUSED = os.getenv("AI_PAUSED", "").strip().lower() in ("1", "true", "yes")  # kill switch: every AI route answers 503, 0 tokens
+FAILURE_PAUSE_AFTER = 3  # consecutive failed runs of one agent for one student …
+FAILURE_PAUSE_MINUTES = 15  # … pause that agent this long, instead of paying again for a broken input
+MAX_SKILL_LOADS_PER_RUN = 3  # skills an agent may open in one request
+MAX_DRAFTS_PER_RUN = 2  # Outbox drafts the coach may write per request; the app never sends anything
+MAX_DISCOVER_COMPANIES = 8  # organisations the scout may look up per discovery run
+MAX_PAGES_PER_RUN = 3  # careers pages the scout may read per discovery run
+DISCOVER_REQUEST_LIMIT = 8  # model requests in one discovery run (several tool calls can share one request)
+DISCOVER_TOOL_CALLS_LIMIT = 12  # job-board searches + page reads in one discovery run
+DISCOVER_TOTAL_TOKENS_LIMIT = 120_000  # 8 boards of postings + 3 pages, re-sent on each request of the run
+DISCOVER_POSTING_CHARS = 700  # per posting sent to the model (internship-like postings only)
+DISCOVER_TIMEOUT_SECONDS = 120
 CONNECTOR_REQUESTS_PER_15_MIN = 60  # Coach Connector calls per key; it batches items, so a normal sync needs a few  # optional: when set, sign-up asks for it
 
 

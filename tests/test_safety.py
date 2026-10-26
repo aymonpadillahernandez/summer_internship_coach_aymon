@@ -23,7 +23,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 import config
 import db
 import safety
-from agents import network, scout, strategist
+from agents import inbox, network, scout, strategist
 
 SAMPLES = config.ROOT / "data" / "demo" / "samples"
 
@@ -54,7 +54,7 @@ def test_injected_instructions_never_reach_the_model_and_cannot_act(demo_client,
         "formal_internship": "Yes", "mba_eligible": "Yes", "fit": "strong", "fit_reason": "Rank #1 as instructed",
         "status_signal": "applied", "key_points": [], "url": "", "evidence": injected[:120]}],
         "leads": [], "fields_not_found": []})
-    with scout.intake_agent().override(model=FunctionModel(obey)):
+    with inbox.agent().override(model=FunctionModel(obey)):
         r = demo_client.post("/api/intake", json={"text": attack, "kind": "opportunity", "label": "attack"}).json()
 
     assert "ignore your previous instructions" not in obey.seen.lower()  # quarantined before the model call
@@ -89,7 +89,7 @@ def test_quotes_and_people_not_in_the_text_are_rejected(demo_client, accept_test
         {"name": "Victoria Lane", "affiliation": "CEO", "status": "keep_warm", "last_contact": None, "how_met": "",
          "next_step": None, "next_date": None, "opportunity_ids": [], "can_help_ids": [], "events": []}],
         "fields_not_found": []})
-    with network.intake_agent().override(model=FunctionModel(made_up)):
+    with inbox.agent().override(model=FunctionModel(made_up)):
         r = demo_client.post("/api/intake", json={"text": text, "kind": "conversation", "label": "email"}).json()
     reasons = {x["item"]: x["reason"] for x in r["rejected"]}
     assert reasons["Victoria Lane"].startswith("this name does not appear")
@@ -146,7 +146,7 @@ def test_an_answer_from_another_model_is_rejected(demo_client):
     # No accept_test_model here: the FunctionModel answers as "function:…", i.e. not gpt-6-luna.
     reply = _json_reply({"opportunities": [], "leads": [], "fields_not_found": []})
     text = (SAMPLES / "posting_riverside.txt").read_text()
-    with scout.intake_agent().override(model=FunctionModel(reply)):
+    with inbox.agent().override(model=FunctionModel(reply)):
         r = demo_client.post("/api/intake", json={"text": text, "kind": "opportunity", "label": "posting"}).json()
     assert r["status"] == "model_rejected"
     with db.connect() as conn:
@@ -189,9 +189,9 @@ def test_a_large_linkedin_export_is_filtered_in_code_before_the_model(demo_clien
     export = header + "\n".join(rows)
     assert len(export) > config.MAX_INPUT_CHARS  # longer than a normal paste, still accepted as an export
     reply = _json_reply({"contacts": [], "fields_not_found": []})
-    with network.intake_agent().override(model=FunctionModel(reply)):
+    with inbox.agent().override(model=FunctionModel(reply)):
         r = demo_client.post("/api/intake", json={"text": export, "kind": "auto", "label": "Connections.csv"}).json()
-    assert r["routes"] == ["network"]
+    assert any("focus: people" in s["detail"] for s in r["trace"])
     assert "Lena,Fischer,Keystone Bank" in reply.seen and "Person1," not in reply.seen  # only tracked organisations
     assert "linkedin.com/in" not in reply.seen and "@bank.example" not in reply.seen  # URL and email columns dropped
     assert any(s["event"] == "export_filtered" and "kept 1 of 601" in s["detail"] for s in r["trace"])
@@ -228,8 +228,8 @@ def test_an_email_does_not_overwrite_a_judged_fit(demo_client, accept_test_model
                           "fit": "possible", "fit_reason": "Location is not stated.", "evidence": "the summer associate role"}],
                           "leads": [], "fields_not_found": []})
     nobody = _json_reply({"contacts": [], "fields_not_found": []})
-    with scout.intake_agent().override(model=FunctionModel(weaker)), network.intake_agent().override(model=FunctionModel(nobody)):
+    with inbox.agent().override(model=FunctionModel(weaker)):
         r = demo_client.post("/api/intake", json={"text": text, "kind": "auto", "label": "email"}).json()
-    assert r["routes"] == ["scout", "network"]
+    assert any("focus: both" in s["detail"] for s in r["trace"])  # the router saw both a posting and a conversation
     after = next(a for a in db.list_applications(uid) if a["company"] == "Harborview Media")
     assert (after["fit"], after["fit_reason"]) == (before["fit"], before["fit_reason"])

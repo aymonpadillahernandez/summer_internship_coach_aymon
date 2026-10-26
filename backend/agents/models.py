@@ -86,7 +86,7 @@ class SpecialistAnswer(BaseModel):
     unknowns: list[str] = Field(default_factory=list, description="what the records do not say")
 
 
-# ─── Career strategist ──────────────────────────────────────────────────
+# ─── Career coach (internal name: strategist) ───────────────────────────
 class PlannedAction(BaseModel):
     key: str = Field(description="the alias of one candidate action from the list given (A1, A2, …); never invent one")
     why_now: str = Field()
@@ -119,3 +119,24 @@ class DoorPath(BaseModel):
 class DoorPlan(BaseModel):
     paths: list[DoorPath] = Field(default_factory=list, description="up to 3, best first")
     next_best: str = Field("", description="if there is no strong path: how to find one")
+
+
+# ─── Inbox organizer: everything one text from any channel says (replaces the two intake modes) ──
+class InboxReport(BaseModel):
+    opportunities: list[OpportunityFound] = Field(default_factory=list)
+    leads: list[LeadFound] = Field(default_factory=list)
+    contacts: list[ContactFound] = Field(default_factory=list)
+    fields_not_found: list[str] = Field(default_factory=list)
+
+    def scout_part(self) -> ScoutIntake:
+        return ScoutIntake(opportunities=self.opportunities, leads=self.leads, fields_not_found=self.fields_not_found)
+
+    def network_part(self) -> NetworkIntake:
+        return NetworkIntake(contacts=self.contacts, fields_not_found=[])
+
+
+# ─── Opportunity scout: what it found on public job boards / careers pages ──
+class DiscoveryReport(BaseModel):
+    opportunities: list[OpportunityFound] = Field(default_factory=list,
+                                                  description="internships a tool returned in this run, each with its url and an exact quote")
+    not_found: list[str] = Field(default_factory=list, description="organisations with no public board or no internship posting")
