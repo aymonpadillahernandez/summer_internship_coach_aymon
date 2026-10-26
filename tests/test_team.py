@@ -310,3 +310,14 @@ def test_failed_job_board_searches_do_not_pause_the_coachs_questions_to_the_scou
                              "input_tokens": 1, "cached_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "seconds": 1, "status": "error"})
     assert db.failure_streak(uid, "scout", config.FAILURE_PAUSE_MINUTES, "discover") == config.FAILURE_PAUSE_AFTER
     assert db.failure_streak(uid, "scout", config.FAILURE_PAUSE_MINUTES, "chat") == 0
+
+
+def test_samples_and_attacks_are_offered_in_demo_accounts_only(demo_client):
+    assert demo_client.get("/api/samples").json()["samples"]  # graders and visitors still get them
+    with TestClient(main.app) as real:
+        real.post("/api/auth/signup", json={"email": "student-samples@example.com", "password": "long-password-1"})
+        assert real.get("/api/samples").json()["samples"] == []  # a real student's Today never offers fictional data
+
+
+def test_health_touches_the_database(client):
+    assert client.get("/api/health").json()["db_ok"] is True

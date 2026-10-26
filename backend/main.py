@@ -36,7 +36,7 @@ import web
 from agents import guide, network, scout, strategist
 from agents.models import ScoutIntake, trim
 from agents.runtime import CoachRun, ModelSubstituted
-from store import is_postgres
+from store import connect, is_postgres
 
 db.init_db()
 auth.purge_old_demos()
@@ -200,8 +200,16 @@ def require_budget(user: dict) -> None:
 # ─── Health, auth ───────────────────────────────────────────────────────
 @app.get("/api/health")
 def health():
+    """Also touches the database: the keep-awake pings then count as activity, so a free Supabase project never
+    pauses for inactivity. Always 200, so a database hiccup never makes the host restart the app."""
+    try:
+        with connect() as conn:
+            conn.execute("SELECT 1")
+        db_ok = True
+    except Exception:  # noqa: BLE001 - reported, never raised
+        db_ok = False
     return {"ok": True, "model": config.MODEL, "portkey_key_set": config.key_is_set(), "env_file": config.env_slot(),
-            "database": "postgres" if is_postgres() else "sqlite"}
+            "database": "postgres" if is_postgres() else "sqlite", "db_ok": db_ok}
 
 
 @app.get("/api/version")
@@ -349,9 +357,10 @@ def contact_interest(contact_id: int, body: InterestBody, user: dict = Depends(a
 
 
 @app.get("/api/samples")
-def samples(_: dict = Depends(auth.require_user)):
-    """Demo texts to paste (fictional), including two prompt-injection attacks."""
-    return {"samples": demo.samples()}
+def samples(user: dict = Depends(auth.require_user)):
+    """Demo texts to paste (fictional), including two prompt-injection attacks: shown in demo accounts only, so a real
+    student never pastes fictional data or attacks into their own records."""
+    return {"samples": demo.samples() if user.get("is_demo") else []}
 
 
 # ─── AI: intake, plan, chat ─────────────────────────────────────────────

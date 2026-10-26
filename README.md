@@ -74,7 +74,8 @@ saved only if it quotes what a tool returned in that run, with a link the tool r
 ## Run it locally (about 5 minutes)
 
 Needs **Python 3.12+** and **Node 20+**. Check with `python3 --version`: macOS's built-in `python3` is 3.9, too old,
-so if yours is older than 3.12 use a newer one in step 2 (e.g. `python3.13 -m venv .venv`).
+so if yours is older than 3.12 use a newer one in step 2 (e.g. `python3.13 -m venv .venv`). On Windows, write
+`.venv\Scripts\python` wherever the steps say `.venv/bin/python`.
 
 1. Put a `.env` with `PORTKEY_API_KEY=…` in this folder **or one folder above it** (see `.env.example`).
 2. Install the backend:
