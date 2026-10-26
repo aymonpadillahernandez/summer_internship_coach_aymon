@@ -17,7 +17,9 @@ body {
   font-size: 10.5pt; line-height: 1.42; font-kerning: normal;
 }
 main { max-width: 8.5in; margin: 24px auto; background: #fff; padding: 0.7in; box-shadow: 0 2px 18px rgba(0,0,0,.08); border-radius: 10px; }
-@media print { body { background: #fff; } main { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: none; } }
+/* Print at 93%: the scale Chrome used to apply on its own (shrink-to-fit) while one element was wider than the page;
+   now explicit, so the printed layout does not depend on an overflow. */
+@media print { body { background: #fff; } main { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: none; zoom: 0.93; } }
 
 p, li { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
 p { margin: 0 0 7pt; }
@@ -92,11 +94,6 @@ table.compact td { padding: 2.6pt 4pt; }
 .oneline b { color: var(--accent); }
 .estimate { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: #8a5a00; background: #fff1c2; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
 .measured { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: var(--green); background: #e3f6e8; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
-.placeholder { background: var(--yellow); border: 1.2pt solid var(--yellow-line); border-radius: 7pt; padding: 8pt 10pt; margin: 8pt 0 10pt; break-inside: avoid; }
-.placeholder .ph-title { font-weight: 700; font-size: 10pt; margin-bottom: 4pt; text-align: left; }
-.placeholder table { margin-bottom: 4pt; }
-.placeholder td, .placeholder th { border-color: #ead48a; }
-.ph { background: #ffe680; border-radius: 3pt; padding: 0 3pt; font-weight: 600; white-space: nowrap; }
 
 /* Competitor tiles */
 .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6pt; margin: 6pt 0 10pt; }

@@ -182,12 +182,14 @@ table.scale td b.v { font-size: 21px; }
 .meas { display: flex; flex-direction: column; gap: 11px; }
 .meas .m { font-size: 18.5px; line-height: 1.34; padding-left: 16px; border-left: 3px solid #9be2ae; }
 .meas .m b.n { color: var(--green); }
-.placeholder { background: var(--yellow); border: 2px solid var(--yellow-line); border-radius: 14px; padding: 13px 16px 14px; }
-.placeholder .ph-title { font-weight: 750; font-size: 17.5px; margin-bottom: 7px; }
-.placeholder .task { font-size: 16.5px; line-height: 1.38; padding: 6px 0; border-top: 1px solid #ead48a; }
-.placeholder .task b.t { display: block; font-size: 17.5px; }
-.ph { background: #ffe680; border-radius: 4px; padding: 0 4px; font-weight: 650; white-space: nowrap; }
-.ph.wrap { white-space: normal; }
+table.hours { width: 100%; border-collapse: collapse; font-size: 19px; margin: 2px 0 10px; }
+table.hours th { text-align: left; font-size: 14px; font-weight: 750; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); padding: 3px 8px 5px; vertical-align: bottom; }
+table.hours td { border-bottom: 1px solid var(--line); padding: 5px 8px; vertical-align: top; }
+table.hours .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.hours td.num:last-child { color: var(--accent); font-weight: 650; }
+table.hours tr.tot td { font-weight: 700; border-top: 1.5px solid var(--ink); border-bottom: 0; padding-top: 7px; }
+table.hours tr.tot + tr.tot td { border-top: 1px solid var(--line); }
+table.hours td .sub { display: block; font-size: 15px; font-weight: 500; color: var(--muted); }
 .protocol { font-size: 17px; color: var(--muted); margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
 
 /* 10 · Limits + next */

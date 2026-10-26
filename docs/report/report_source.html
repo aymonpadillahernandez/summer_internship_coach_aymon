@@ -29,7 +29,7 @@
     <div class="stat"><b>5 AI agents</b><span>plus a Records keeper in code that writes every card</span></div>
     <div class="stat"><b>gpt-6-luna</b><span>the only model, through the course Portkey key; web search through the same key</span></div>
     <div class="stat"><b>$0.0020 · $0.042</b><span>measured: one “Plan my week” · one whole-web shortlist (4 searches)</span></div>
-    <div class="stat"><b>80 tests · 19/19</b><span>tests pass with no key · live check of every agent and guardrail (Oct 26 morning)</span></div>
+    <div class="stat"><b>81 tests · 19/19</b><span>tests pass with no key · live check of every agent and guardrail (Oct 26 morning)</span></div>
   </div>
   <figure>
     <div class="journey">
@@ -48,7 +48,7 @@
     <figcaption><b>Figure 1. The one-stop shop: every capability, in the order a student meets it</b>, with the agents and code behind each step and the figure that shows it working on the live site.</figcaption>
   </figure>
   <div class="note small">
-    <p><b>For graders (about 5 minutes).</b> Open the live link (the free plan sleeps: allow up to a minute) and click <b>Try the demo</b>: every step of Figure 1 works there with fictional data, from <b>Setup</b> (preferences, Setup guide, <b>Try a sample file</b>, <code>python3 coach_connector.py demo</code>) to <b>Find openings</b>, <b>Key people and alumni</b> on any card, <b>Plan my week</b>, <b>Ask your coach</b> and <b>Usage</b>. Locally: the README, with the <code>.env</code> one folder above the repo. <b>Every number names its source</b> (a run id shown in the app, or a repo file); estimates are tagged <span class="estimate">estimate</span>; Section 7's user-test results are placeholders until the test is run. Screenshots: live site, Oct 26; the student is fictional, the web results are real public pages.</p>
+    <p><b>For graders (about 5 minutes).</b> Open the live link (the free plan sleeps: allow up to a minute) and click <b>Try the demo</b>: every step of Figure 1 works there with fictional data, from <b>Setup</b> (preferences, Setup guide, <b>Try a sample file</b>, <code>python3 coach_connector.py demo</code>) to <b>Find openings</b>, <b>Key people and alumni</b> on any card, <b>Plan my week</b>, <b>Ask your coach</b> and <b>Usage</b>. Locally: the README, with the <code>.env</code> one folder above the repo. <b>Every number names its source</b> (a run id shown in the app, or a repo file; <code>runs/</code> is <code>docs/evidence/runs/</code>); estimates are tagged <span class="estimate">estimate</span>; Section 7's hours are an estimate; no user test was run. Screenshots: live site, Oct 26; fictional student, real public web pages.</p>
   </div>
 </section>
 
@@ -66,7 +66,7 @@
   <h3>What the current process costs</h3>
   <ul>
     <li><b>Attention.</b> The useful signal is a small share of the noise. On the author's own accounts, the app's local filter (counting only, nothing sent) passed only 29 of 150 recent Gmail emails, 23 of 125 WhatsApp conversations and 3 of 36 iMessage conversations as touching his targets, his contacts or recruiting (<code>EVIDENCE.md</code>, Oct 25). A student reads all of it to find that part (one student's accounts: the share, not the minutes).</li>
-    <li><b>Quality.</b> A follow-up promised in a chat, a deadline moved in a recruiter's email, or an alum on the team who was never found is easy to miss when no tool sees all of it. How often this happens is not yet measured; Section 7 sets out how the user test will.</li>
+    <li><b>Quality.</b> A follow-up promised in a chat, a deadline moved in a recruiter's email, or an alum on the team who was never found is easy to miss when no tool sees all of it. How often this happens is not measured (Section 7).</li>
     <li><b>Money.</b> Each paid tool covers one piece for $29 to $40 a month: Teal+ $29 per 30 days, Simplify+ $39.99, LinkedIn Premium Career $39.99, Huntr Pro $40 (vendor pages, read Oct 26, 2026). Their pages describe no reading of WhatsApp or iMessage.</li>
   </ul>
   <h3>Why it matters, and why one place</h3>
@@ -261,7 +261,7 @@
   </div>
   <h3>Tests, a live check and two adversarial reviews</h3>
   <ul>
-    <li><b>80 automated tests pass</b> with no API key and no tokens (fake models stand in for gpt-6-luna; <code>tests/</code>, rerun after the web features on Oct 26), among them: <i>injected instructions never reach the model and cannot act</i>; <i>web results are saved only when their page confirms them</i>; <i>key people need a public page that names them</i>; <i>no agent has a tool that could send anything</i>; <i>one student cannot see another's records</i>; <i>a looping agent is stopped</i>; <i>web searches have their own daily cap</i>.</li>
+    <li><b>81 automated tests pass</b> with no API key and no tokens (fake models stand in for gpt-6-luna; <code>tests/</code>, rerun after the web features on Oct 26), among them: <i>injected instructions never reach the model and cannot act</i>; <i>web results are saved only when their page confirms them</i>; <i>key people need a public page that names them</i>; <i>no agent has a tool that could send anything</i>; <i>one student cannot see another's records</i>; <i>a looping agent is stopped</i>; <i>web searches have their own daily cap</i>.</li>
     <li><b>Live full check, 19 of 19 passed</b> on the deployed site (Oct 26 morning, before the web features; <code>runs/2026-10-26_live_full_check.json</code>): every agent answered with real tokens; the shield, the link reader and the guardrails (422, 404, 401, daily budget) worked as designed.</li>
     <li><b>Two adversarial reviews</b>, with skeptics who tried to refute every finding: auto-sync, 18 findings confirmed (13 distinct), all fixed with regression tests; agent team, among others a paused intake still acknowledged to the connector (emails could be lost), all fixed.</li>
   </ul>
@@ -271,36 +271,33 @@
 <!-- ============================== 7. IMPACT ============================== -->
 <section id="s7">
   <h2><span class="n">7</span>Impact</h2>
-  <p>The strongest evidence is a real student doing their own recruiting chores the old way and then in the app. That test has <b>not been run yet</b>. The protocol is ready (<code>docs/impact/PROTOCOL.md</code>, with a timer): the same tester does three chores twice with the same real material, first today's way, then in the app; the first tester will be the author, who is also the builder, and will be reported as such. Until then the results are placeholders.</p>
-  <h3>What the user test will add</h3>
-  <div class="placeholder">
-    <div class="ph-title">[insert after user test: task, minutes before vs after, follow-ups found, quote]</div>
-    <table>
-      <thead><tr><th style="width:34%">Task (PROTOCOL.md)</th><th class="num" style="width:15%">Before (min)</th><th class="num" style="width:15%">After (min)</th><th style="width:36%">Quality, judged by the tester</th></tr></thead>
-      <tbody>
-        <tr><td><b>Capture</b> 6 real recruiting items (2 emails, 2 chats, 2 postings) · B1 → A1</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Fields right / wrong / missed vs own rows: <span class="ph">[insert]</span></td></tr>
-        <tr><td><b>Decide the week</b>: 3 most valuable actions · B2 → A2</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Coach actions the tester would really do (0–5): <span class="ph">[insert]</span>; important follow-ups found that the tester's own list missed: <span class="ph">[insert]</span></td></tr>
-        <tr><td><b>Prepare the next call</b> · B3 → A3</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Usefulness vs own notes (1–5): <span class="ph">[insert]</span></td></tr>
-      </tbody>
-    </table>
-    <p style="margin:4pt 0 2pt;text-align:left"><b>Quote:</b> “<span class="ph">[insert after user test: the tester's own words, with permission to quote, named or anonymous]</span>”</p>
-    <p style="margin:0;text-align:left"><b>Weekly projection</b> <span class="estimate">estimate</span>: <span class="ph">[insert after user test: minutes saved per task × the tester's own count of items, plans and calls per week]</span></p>
-  </div>
-  <h3>What the one-stop shop removes: observed capability, not measured time saved</h3>
+  <p>The app does not only speed up chores: it makes practical a weekly search few students could sustain by hand. Every opening at every target, the people and alumni at each, a tracker that stays current and every conversation prepared take, by hand, <b>6.6–21.6 hours a week</b> for a focused list of 40 organisations, 16–54% of a 40-hour week (a career office compares recruiting to “an additional class or part-time job”, S1), and <b>15.8–45.8 hours</b> for a weekly sweep of the 272 organisations that hired Yale SOM MBAs (S7), 40–115%: a full-time job only at the high end. In the app: <b style="white-space:nowrap">1.8–5.5</b> and <b style="white-space:nowrap">2.5–7.6 hours</b> <span class="estimate">estimate</span>. Time is what students lack: asked what kept them from internships, more than 43% of college students in NACE's 2024 survey (mostly undergraduates) said their course load left too little time to search (S14).</p>
+  <p><b>No real user test was run.</b> Table 5 is the author's estimate: four volumes from public sources (40 targets, 272 organisations, 2–3 chats a week, 2.5 emails a chat; URLs and quotes in <code>docs/research/impact_sources.md</code>), app times from measured runs, and every minute by hand plus most weekly volumes from author assumptions, each low–high (31 of 59 inputs; no school publishes them), all computed by <code>scripts/impact_estimate.py</code>. The next step is the timed before-and-after protocol in <code>docs/impact/PROTOCOL.md</code>.</p>
   <table class="compact">
-    <thead><tr><th style="width:29%">A chore today, and the tools it takes</th><th style="width:52%">In the app (live response times, measured)</th><th style="width:19%">Source</th></tr></thead>
+    <thead><tr><th style="width:31%">Chore, focused list of 40 organisations</th><th class="num" style="width:10%">By hand h/week</th><th class="num" style="width:10%">In app h/week</th><th style="width:49%">Inputs: public source (S), measured run, author assumption</th></tr></thead>
     <tbody>
-      <tr><td><b>Find openings</b>: job boards, careers sites, school platforms, one by one</td><td><span class="measured">measured</span> one search of the whole web: 4 candidates, 2 confirmed and saved with links, 12.9 s; the job boards of 8 tracked organisations, 18.2 s</td><td>runs d1161ab12736, 924006932786</td></tr>
-      <tr><td><b>Find the people</b>: team pages, LinkedIn, the alumni directory</td><td><span class="measured">measured</span> key people at a target: 1 person confirmed on a public page in 13.9 s, and where to look for alumni when none is found; warm paths: 2 from 10 people, 3.3 s</td><td>runs be2afd11acd4, affe3255c214</td></tr>
-      <tr><td><b>Keep the tracker current</b>: retype emails and chats</td><td><span class="measured">measured</span> 3.6 to 9.3 s per text, one model call, quotes checked; or the connector every 30 minutes</td><td>Table 2 (4 intakes)</td></tr>
-      <tr><td><b>Decide the week</b> from memory, across tools</td><td><span class="measured">measured</span> 22.2 s from 23 open actions to 5 ranked moves, each with why now, first step and evidence</td><td>run c469f1ee77fc</td></tr>
-      <tr><td><b>Prepare a coffee chat</b>: notes, the person's profile, a separate AI chat</td><td><span class="measured">measured</span> a call brief in 12.1 s; a cited web answer in 6.0 s; a thank-you draft in the Outbox in 8.1 s</td><td>runs 2780889ce0f4, 692b493b6c59, 6939e33cfb41</td></tr>
-      <tr><td><b>Read everything</b> to find what matters</td><td><span class="measured">measured</span> on the author's accounts, counts only, the filter passed 29 of 150 Gmail emails (19%), 23 of 125 WhatsApp (18%) and 3 of 36 iMessage (8%) conversations; its misses are not yet measured</td><td><code>EVIDENCE.md</code>, Oct 25</td></tr>
-      <tr><td><b>Fill in each item</b> by hand</td><td><span class="estimate">design count</span> 8 fields per item on the manual capture sheet; in the app, one paste (or nothing, with the connector)</td><td><code>manual_capture_template.csv</code></td></tr>
-      <tr><td><b>Pay</b> for one tool per piece</td><td><span class="measured">measured</span> $0.0020 per weekly plan, $0.042 per web shortlist; <span class="estimate">estimate</span> $0.71 per student per month, against $29 to $40 for one paid plan</td><td>Section 5</td></tr>
+      <tr><td><span class="estimate">estimate</span> <b>Find openings</b>, confirm each</td><td class="num">2.1–6.8</td><td class="num">0.5–1.0</td><td>40 targets (S6); 3–8 boards, 2–5 min a careers page (author); app: runs 924006932786, d1161ab12736, LinkedIn and school system by hand; assumes a rotating list (not built)</td></tr>
+      <tr><td><span class="estimate">estimate</span> <b>People and alumni</b></td><td class="num">1.5–5.0</td><td class="num">0.4–1.3</td><td>3–5 new targets a week, 30–60 min each (author); app: run be2afd11acd4, alumni directory by hand</td></tr>
+      <tr><td><span class="estimate">estimate</span> <b>Keep the tracker current</b></td><td class="num">0.4–1.9</td><td class="num">0.1–0.6</td><td>5–8 messages per chat, 2–4 min each (author); app: 4 intakes (Table 2)</td></tr>
+      <tr><td><span class="estimate">estimate</span> <b>Plan the week</b>, follow-ups</td><td class="num">0.7–1.8</td><td class="num">0.1–0.2</td><td>15–30 open actions, 1–2 min each (author); app: run c469f1ee77fc</td></tr>
+      <tr><td><span class="estimate">estimate</span> <b>Coffee chats</b>: emails, prep, thanks</td><td class="num">1.9–6.0</td><td class="num">0.8–2.5</td><td>2–3 a week (S3), 2.5 emails each (S6), prep 30–60 min (author); app: runs 2780889ce0f4, 692b493b6c59, 6939e33cfb41</td></tr>
+      <tr class="total"><td>Total, 40 organisations</td><td class="num">6.6–21.6</td><td class="num">1.8–5.5</td><td style="font-weight:400">by-hand work avoided at full coverage: 4.8–16.1 h a week; if every week of the 19.6-week season (S11, S12) looked like this: 129–423 h by hand, 35–108 h in the app</td></tr>
+      <tr class="total"><td>Total, all 272 (S7)</td><td class="num">15.8–45.8</td><td class="num">2.5–7.6</td><td style="font-weight:400">openings alone 11.3–31.0 h by hand; 13.3–38.2 h avoided a week; season 310–898 h against 49–149 h</td></tr>
     </tbody>
   </table>
-  <p>One place instead of a spreadsheet, several job boards, a people search, email, chats and a separate AI chat (LinkedIn, Handshake and 12twenty still hold data the app does not read). These are response times and a count of tools, not minutes saved: whether the student is faster and misses fewer follow-ups is what the user test measures.</p>
+  <p class="tablenote"><b>Table 5. Student hours a week, low–high</b> <span class="estimate">estimate, not a user test</span> (<code>docs/evidence/runs/2026-10-26_impact_estimate.json</code>). App column: measured run times plus the author's minutes to read, check and edit, and to check the boards the app cannot read. Rows rounded; totals from unrounded values. Not counted: applications, interview prep, events and the chats themselves (0.5–1.5 h a week). Checks: advice of 15–25 h a week for all recruiting (S1); students report 4–9 h (two-thirds, 2017 survey, S2), so for most the difference is coverage they lack today, not hours they now spend. For the 272, the app's reach is not measured, and its 34 runs (about 440,000 tokens, input plus output) exceed one day's 300,000-token budget: at least 2 days. At the measured cost per request, the use assumed here costs about $1.5–2.7 a student a month (mostly people searches), more than the typical $0.71 of Section 5. Sources: S1, S13 Vanderbilt Owen; S3 Carlson; S4, S7, S9, S11, S12 Yale SOM; S5 Wharton; S6 Chicago Booth; S14 NACE; S2 Poets&amp;Quants (secondary).</p>
+  <h3>What one place makes possible (app times measured live; by-hand minutes the author's)</h3>
+  <table class="compact">
+    <thead><tr><th style="width:17%">Now possible</th><th style="width:46%">In the app</th><th style="width:21%">By hand (author minutes)</th><th style="width:16%">Source</th></tr></thead>
+    <tbody>
+      <tr><td><b>Openings at 8 targets per run</b>, each confirmed</td><td><span class="measured">measured</span> job boards of 8 organisations plus 2 careers pages in 18.2 s; the whole web: 4 candidates, 2 confirmed on their own page and saved, 12.9 s</td><td>16–40 min; 3–5 min a candidate</td><td>runs 924006932786, d1161ab12736</td></tr>
+      <tr><td><b>All 272 organisations</b> (S7)</td><td><span class="estimate">estimate</span> 34 runs × 18.2 s = 10.3 min of run time over at least 2 days, once the list rotates (not built, Section 8); reach not measured</td><td>9.1–22.7 h a week, careers pages alone (11.3–31.0 with boards, Table 5)</td><td><code>backend/config.py</code></td></tr>
+      <tr><td><b>People and alumni</b> at about 15 targets a day</td><td><span class="measured">measured</span> 1 key person confirmed in 13.9 s; warm paths: 2 from 10 people in 3.3 s. <span class="estimate">estimate</span> about 15 a day (at about 21,000 tokens a run, the 300,000-token budget binds before the 20-search cap): 3.5 min, about $1.23, + 8–15 min of reading and alumni directory each</td><td>30–60 min each, 7.5–15 h for 15; 13,000+ SOM alumni (S9)</td><td>runs be2afd11acd4, affe3255c214</td></tr>
+      <tr><td><b>A tracker that stays current</b></td><td><span class="measured">measured</span> 3.6 to 9.3 s per text; auto-sync every 30 min, up to 48 runs a day (Gmail verified, chats await Full Disk Access); the filter kept 29 of 150 emails and 23 of 125 WhatsApp chats (Section 2)</td><td>8 fields retyped per item; every message read</td><td>Table 2, <code>docs/evidence/EVIDENCE.md</code></td></tr>
+      <tr><td><b>Decide the week</b></td><td><span class="measured">measured</span> 22.2 s from 23 open actions to 5 ranked moves with evidence, + 5–10 min reading</td><td>23–46 min</td><td>run c469f1ee77fc</td></tr>
+      <tr><td><b>Every conversation prepared</b></td><td><span class="measured">measured</span> call brief 12.1 s; cited web answer 6.0 s; thank-you draft 8.1 s, never sent; + 10–20 min reading and practice</td><td>40–75 min</td><td>runs 2780889ce0f4, 692b493b6c59, 6939e33cfb41</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <!-- ============================== 8. LIMITS + NEXT STEPS ============================== -->
@@ -308,17 +305,17 @@
   <h2><span class="n">8</span>Limits and next steps</h2>
   <h3>What does not work yet, and current limitations</h3>
   <ul>
-    <li><b>No real user test yet.</b> The impact numbers are placeholders, and the first tester will be the author, who is also the builder. One tester is not a sample; classmates should follow.</li>
+    <li><b>No real user test yet.</b> Section 7's hours are an estimate: 31 of its 59 inputs are author assumptions (19 minutes, 12 weekly volumes), and the app's reach across the 272 organisations is not measured. The first tester will be the author, who is also the builder; one tester is not a sample, so classmates should follow.</li>
     <li><b>“The whole web” is narrower than it sounds:</b> OpenAI's web search plus four public job-board APIs and the careers pages that allow reading. LinkedIn, Handshake, 12twenty and Symplicity are never read, because their terms forbid it, so their postings and profiles must be pasted. Pages that need JavaScript, or whose robots.txt says no, cannot be confirmed, and the check is literal, so real postings can be set aside; 2 of 4 live results were not confirmed (the NBA's page did not contain the name as given).</li>
     <li><b>Alumni are found only on public pages, and the alum flag is the agent's reading of the page:</b> code confirms the page names the person, not where they studied. At DICK'S none was found; the school's alumni directory is not read, so the app can only point to it.</li>
     <li><b>Web costs are capped per day, not per request.</b> Prompts ask for at most 4 searches (2 in chat), but one request made 8; the coach's chat and call prep count toward the 20-a-day cap but are not stopped by it; search fees have no site-wide cap yet. Call prep's web search is in the code but not yet captured in a run.</li>
     <li><b>Auto-sync of chats is half verified:</b> Gmail syncs on its own; iMessage and WhatsApp wait for Full Disk Access for the scheduled Python (the refusal was verified, a real grant was not). It needs a Mac; Slack, LinkedIn and Android texts stay manual.</li>
     <li><b>Free hosting:</b> Render sleeps after 15 idle minutes (cold start 32 s) and the keep-awake Action ran only 4 times on Oct 25–26 (<code>runs/2026-10-26_keep_awake_runs.txt</code>); Supabase pauses after a week idle. Job boards are found by guessing the board's name.</li>
-    <li><b>Gaps:</b> Portkey's fee is unknown and monthly use an estimate; retrieval recall and the chat filter's misses are unmeasured; still open in the interface, the date chip in Figure 9a and two Robinhood cards (target list and scout).</li>
+    <li><b>Gaps:</b> the job-board button always searches the 8 newest open targets (Table 5 assumes a rotating list). Portkey's fee is unknown and monthly use an estimate; retrieval recall and the chat filter's misses are unmeasured; still open in the interface, the date chip in Figure 9a and two Robinhood cards (target list and scout).</li>
   </ul>
   <h3>What we would build next with another month</h3>
   <ol>
-    <li><b>Measure.</b> Run the protocol with 5 to 10 classmates and publish times, ratings and quotes.</li>
+    <li><b>Measure.</b> Run the protocol with 5 to 10 classmates and replace the assumed minutes of Table 5 with timed ones.</li>
     <li><b>An evaluation set:</b> 50 fictional messages and postings and a set of web searches with known answers, scoring extraction, recall, the chat filter, web confirmations (right ones kept, real ones set aside) and plan quality on every change.</li>
     <li><b>Enforce the web budget in code:</b> a cap on searches per request, the daily cap on chat and call prep too, and a site-wide budget for search fees.</li>
     <li><b>One-click connection:</b> a signed Mac menu-bar app instead of a Terminal script, with Full Disk Access verified; Gmail through Google's sign-in after Google's review.</li>

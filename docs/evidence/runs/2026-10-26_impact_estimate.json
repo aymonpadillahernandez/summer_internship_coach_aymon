@@ -1,0 +1,748 @@
+{
+  "label": "ESTIMATE, not a user test",
+  "date": "2026-10-26",
+  "what": "Manual minutes per unit x units per week, chore by chore along the app's five steps, against the app's measured response times plus a labelled reading and editing time. Two scenarios: a focused list of 40 organisations (S6) and a wide sweep of the 272 organisations that hired Yale SOM MBAs in 2025-26 (S7). Low = every input at its low value; high = every input at its high value.",
+  "not_modelled": "applications and cover letters, interview and case preparation, info sessions and school events, the coffee chats themselves (reported separately). These are inside the 15-25 h/week a career office advises (S1).",
+  "sanity_checks": {
+    "career_office_advice_h_week": [
+      15,
+      25
+    ],
+    "advice_source": "S1 https://business.vanderbilt.edu/news/2022/10/12/the-mba-job-recruiting-timeline/ (advice, 2022)",
+    "students_self_report_h_week": [
+      4,
+      9
+    ],
+    "self_report_source": "S2 https://poetsandquants.com/2017/08/11/relishcareers-mba-recruiting-survey-dont-procrastinate/ (66% of respondents, 2017, secondary)"
+  },
+  "cost_per_student_month_usd_typical_month": 0.7144,
+  "cost_source": "docs/evidence/runs/2026-10-26_cost_model.json (typical month of report Section 5, itself an estimate; NOT this scenario's use)",
+  "cost_per_student_month_usd_this_usage_focused_40": [
+    1.51,
+    2.73
+  ],
+  "cost_this_usage_note": "the use assumed in the focused scenario (3-5 people searches, 1-3 web shortlists, one web answer per chat a week) at the measured cost per request, 52/12 weeks a month; mostly people searches",
+  "inputs": {
+    "APP_DISCOVER_SECS": {
+      "low": 18.2,
+      "high": 18.2,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) 924006932786 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "APP_WEB_SHORTLIST_SECS": {
+      "low": 12.93,
+      "high": 12.93,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) d1161ab12736 in docs/evidence/screenshots/2026-10-26_live_web/runs.json"
+    },
+    "APP_PEOPLE_SECS": {
+      "low": 13.85,
+      "high": 13.85,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) be2afd11acd4 in docs/evidence/screenshots/2026-10-26_live_web/runs.json"
+    },
+    "APP_DOORS_SECS": {
+      "low": 3.26,
+      "high": 3.26,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) affe3255c214 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "APP_INTAKE_SECS": {
+      "low": 3.56,
+      "high": 9.34,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) 16bac70cde0d, fa319fb53b37, 2bbe610b4159, c9fea27d4495 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "APP_PLAN_SECS": {
+      "low": 22.17,
+      "high": 22.17,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) c469f1ee77fc in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "APP_CALL_BRIEF_SECS": {
+      "low": 12.09,
+      "high": 12.09,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) 2780889ce0f4 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "APP_WEB_ANSWER_SECS": {
+      "low": 5.99,
+      "high": 5.99,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) 692b493b6c59 in docs/evidence/screenshots/2026-10-26_live_web/runs.json"
+    },
+    "APP_DRAFT_SECS": {
+      "low": 8.06,
+      "high": 8.06,
+      "unit": "seconds",
+      "kind": "measured",
+      "source": "run(s) 6939e33cfb41 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    "ORGS_PER_DISCOVER_RUN": {
+      "low": 8,
+      "high": 8,
+      "unit": "organisations/run",
+      "kind": "code",
+      "source": "backend/config.py MAX_DISCOVER_COMPANIES = 8"
+    },
+    "CAREERS_PAGES_PER_RUN": {
+      "low": 3,
+      "high": 3,
+      "unit": "pages/run",
+      "kind": "code",
+      "source": "backend/config.py MAX_PAGES_PER_RUN = 3"
+    },
+    "WEB_RUNS_PER_DAY_CAP": {
+      "low": 20,
+      "high": 20,
+      "unit": "web runs/student/day",
+      "kind": "code",
+      "source": "backend/config.py MAX_WEB_RUNS_PER_DAY = 20"
+    },
+    "PEOPLE_PER_ORG_CAP": {
+      "low": 5,
+      "high": 5,
+      "unit": "people/organisation",
+      "kind": "code",
+      "source": "backend/config.py MAX_STAKEHOLDERS = 5"
+    },
+    "VERIFY_PAGES_PER_RUN": {
+      "low": 8,
+      "high": 8,
+      "unit": "pages/run",
+      "kind": "code",
+      "source": "backend/config.py MAX_VERIFY_PAGES = 8; backend/keeper.py verify_web"
+    },
+    "SYNC_EVERY_MIN": {
+      "low": 30,
+      "high": 30,
+      "unit": "minutes",
+      "kind": "code",
+      "source": "connector/coach_connector.py schedule --every default 30"
+    },
+    "SYNC_CHANNELS": {
+      "low": 3,
+      "high": 3,
+      "unit": "channels",
+      "kind": "code",
+      "source": "connector/coach_connector.py COMMAND_CHANNELS['run'] = gmail, imessage, whatsapp"
+    },
+    "RETRIEVAL_TOP_K": {
+      "low": 10,
+      "high": 10,
+      "unit": "records/specialist",
+      "kind": "code",
+      "source": "backend/config.py RETRIEVAL_TOP_K = 10"
+    },
+    "DAILY_TOKEN_BUDGET": {
+      "low": 300000,
+      "high": 300000,
+      "unit": "tokens/student/day",
+      "kind": "code",
+      "source": "backend/config.py DAILY_TOKEN_BUDGET"
+    },
+    "DISCOVER_RUN_TOKENS": {
+      "low": 12900,
+      "high": 12900,
+      "unit": "tokens/run (input + output)",
+      "kind": "measured",
+      "source": "run 924006932786 usage 12,071 in + 829 out, 2026-10-26_live/runs.json; the budget counts both (backend/db.py tokens_today)"
+    },
+    "PEOPLE_RUN_TOKENS": {
+      "low": 21039,
+      "high": 21039,
+      "unit": "tokens/run (input + output)",
+      "kind": "measured",
+      "source": "run be2afd11acd4 usage 20,634 in + 405 out, 2026-10-26_live_web/runs.json"
+    },
+    "PEOPLE_RUN_COST": {
+      "low": 0.0818,
+      "high": 0.0818,
+      "unit": "USD/run",
+      "kind": "measured",
+      "source": "run be2afd11acd4 cost_usd, 2026-10-26_live_web/runs.json"
+    },
+    "OPEN_ACTIONS_DEMO": {
+      "low": 23,
+      "high": 23,
+      "unit": "open actions",
+      "kind": "measured",
+      "source": "run c469f1ee77fc trace (report Section 4), demo account"
+    },
+    "TARGET_ORGS": {
+      "low": 40,
+      "high": 40,
+      "unit": "organisations",
+      "kind": "public",
+      "source": "S6 https://www.chicagobooth.edu/careercast/episodes/the-streamlined-job-search-steve-dalton (Dalton's 2-Hour Job Search list of 40 target employers; a method, not a measured average)"
+    },
+    "WIDE_ORGS": {
+      "low": 272,
+      "high": 272,
+      "unit": "organisations",
+      "kind": "public",
+      "source": "S7 https://som.yale.edu/index%2Ephp/programs/mba/career-paths/hiring-organizations-2025-26 (every employer of a Yale SOM Class of 2025 full-time hire or Class of 2026 intern, counted from the page)"
+    },
+    "CHATS_PER_WEEK": {
+      "low": 2,
+      "high": 3,
+      "unit": "coffee chats/week",
+      "kind": "public",
+      "source": "S3 https://pub.umn.edu/csom/Carlson-School-GBCC-Career-Guide/files/basic-html/page5.html (Carlson road map: two, then two to three a week; advice, not observed)"
+    },
+    "OUTREACH_EMAILS_PER_CHAT": {
+      "low": 2.5,
+      "high": 2.5,
+      "unit": "emails/chat",
+      "kind": "public",
+      "source": "S6 https://www.chicagobooth.edu/careercast/episodes/the-streamlined-job-search-steve-dalton (about 2 replies per 5 emails, so 2.5 emails per conversation; rule of thumb)"
+    },
+    "CHAT_LENGTH_MIN": {
+      "low": 15,
+      "high": 30,
+      "unit": "minutes/chat",
+      "kind": "public",
+      "source": "S13 https://cdn.vanderbilt.edu/t2-main/business-prd/wp-content/uploads/sites/2/2026/05/26-27-Vanderbilt-Owen-CMC-Recruiting-Toolkit_Compressed.pdf (15-20 min); S4 https://som.yale.edu/sites/default/files/2022-01/2022_Your%20Career%20Development%20Guide%20for%20Working%20Professionals_0.pdf (up to 20-30 min)"
+    },
+    "SEASON_WEEKS": {
+      "low": 19.6,
+      "high": 19.6,
+      "unit": "weeks",
+      "kind": "calculation",
+      "source": "S11 https://cdn.uconnectlabs.com/wp-content/uploads/sites/208/2026/06/Internship-Industry-Timelines.pdf (mid-September start) to S12 https://cdo.som.yale.edu/blog/2026/01/23/sompost-newsletter-january-2026/ (January 30 offer deadline): 137 days"
+    },
+    "CAREERS_PAGE_CHECK_MIN": {
+      "low": 2,
+      "high": 5,
+      "unit": "minutes/page",
+      "kind": "author",
+      "source": "open a careers page, filter for intern/MBA, scan for new postings; no published timing"
+    },
+    "CAREERS_CHECKS_PER_WEEK": {
+      "low": 1,
+      "high": 1,
+      "unit": "checks/page/week",
+      "kind": "author",
+      "source": "one weekly sweep; postings roll in from late fall (S11); closing speed unknown"
+    },
+    "BOARDS_USED": {
+      "low": 3,
+      "high": 8,
+      "unit": "job boards",
+      "kind": "author",
+      "source": "a few of the 27+ boards the Yale CDO lists (S8), plus the school system and LinkedIn"
+    },
+    "BOARD_SEARCH_MIN": {
+      "low": 10,
+      "high": 20,
+      "unit": "minutes/board/week",
+      "kind": "author",
+      "source": "run saved searches, open and skim the new results"
+    },
+    "UNREAD_BOARDS": {
+      "low": 2,
+      "high": 2,
+      "unit": "job boards",
+      "kind": "author",
+      "source": "LinkedIn and the school system: the app never reads them (report Section 8), so the student still checks them"
+    },
+    "CANDIDATES_PER_40_ORGS": {
+      "low": 5,
+      "high": 10,
+      "unit": "candidate postings/week",
+      "kind": "author",
+      "source": "new postings worth a closer look in a 40-organisation sweep"
+    },
+    "CONFIRM_MIN": {
+      "low": 3,
+      "high": 5,
+      "unit": "minutes/candidate",
+      "kind": "author",
+      "source": "open the posting, check it is real, open, MBA-eligible, then save the link"
+    },
+    "NEW_TARGETS_PER_WEEK": {
+      "low": 3,
+      "high": 5,
+      "unit": "organisations/week",
+      "kind": "author",
+      "source": "the shortlist grows a few at a time; Dalton (S6) works on 5 companies at a time"
+    },
+    "PEOPLE_SEARCH_MIN": {
+      "low": 30,
+      "high": 60,
+      "unit": "minutes/organisation",
+      "kind": "author",
+      "source": "team pages, LinkedIn, the alumni directory (13,000+ SOM alumni, S9) for 2-5 names + a contact-map row (S5)"
+    },
+    "MESSAGES_PER_CHAT": {
+      "low": 5,
+      "high": 8,
+      "unit": "messages to log/chat",
+      "kind": "author",
+      "source": "outreach emails (2.5, S6), the reply, scheduling, the thank-you (S4) and a follow-up"
+    },
+    "OTHER_ITEMS_PER_WEEK": {
+      "low": 2,
+      "high": 5,
+      "unit": "items/week",
+      "kind": "author",
+      "source": "postings, application confirmations and recruiter emails outside the chats"
+    },
+    "LOG_MIN_PER_ITEM": {
+      "low": 2,
+      "high": 4,
+      "unit": "minutes/item",
+      "kind": "author",
+      "source": "copy 8 fields into the tracker (docs/impact/manual_capture_template.csv has 8 fields)"
+    },
+    "PLAN_MIN_PER_ACTION": {
+      "low": 1,
+      "high": 2,
+      "unit": "minutes/open action",
+      "kind": "author",
+      "source": "look up each open item across email, chats and the sheet, then rank"
+    },
+    "OPEN_ACTIONS_PER_WEEK": {
+      "low": 15,
+      "high": 30,
+      "unit": "open actions",
+      "kind": "author",
+      "source": "around the 23 the demo account held (OPEN_ACTIONS_DEMO)"
+    },
+    "FOLLOWUP_CHECK_MIN_PER_DAY": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/day",
+      "kind": "author",
+      "source": "check who is owed a thank-you (24 h, S4) or a follow-up (7 business days, S5)"
+    },
+    "FOLLOWUP_CHECK_DAYS": {
+      "low": 5,
+      "high": 5,
+      "unit": "days/week",
+      "kind": "author",
+      "source": "weekdays"
+    },
+    "OUTREACH_EMAIL_MIN": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/email",
+      "kind": "author",
+      "source": "a personalised first email to a stranger"
+    },
+    "SCHEDULING_MIN": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/chat",
+      "kind": "author",
+      "source": "agree a time and send an invite; the app does not schedule"
+    },
+    "PREP_MIN": {
+      "low": 30,
+      "high": 60,
+      "unit": "minutes/chat",
+      "kind": "author",
+      "source": "the 4 prep steps the Yale CDO lists (S4) give no minutes"
+    },
+    "THANK_YOU_MIN": {
+      "low": 10,
+      "high": 15,
+      "unit": "minutes/chat",
+      "kind": "author",
+      "source": "a personalised note within 24 h (S4)"
+    },
+    "FOLLOW_UP_EMAIL_MIN": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/chat",
+      "kind": "author",
+      "source": "a short follow-up a week later (S4, S5)"
+    },
+    "FOLLOW_UPS_PER_CHAT": {
+      "low": 0,
+      "high": 1,
+      "unit": "drafts/chat",
+      "kind": "author",
+      "source": "only when a reply or a next step is owed"
+    },
+    "APP_REVIEW_CARD_MIN": {
+      "low": 1,
+      "high": 2,
+      "unit": "minutes/saved posting",
+      "kind": "author",
+      "source": "read the quote and open the link the app saved"
+    },
+    "APP_REVIEW_TARGET_MIN": {
+      "low": 3,
+      "high": 5,
+      "unit": "minutes/organisation",
+      "kind": "author",
+      "source": "read the people cards and their public pages"
+    },
+    "APP_ALUMNI_DIRECTORY_MIN": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/organisation",
+      "kind": "author",
+      "source": "the app does not read the alumni directory or LinkedIn, so the student still looks there"
+    },
+    "APP_REVIEW_ITEM_MIN": {
+      "low": 0.5,
+      "high": 1,
+      "unit": "minutes/item",
+      "kind": "author",
+      "source": "glance at the updated card; paste the items from channels the connector does not read"
+    },
+    "APP_PLAN_REVIEW_MIN": {
+      "low": 5,
+      "high": 10,
+      "unit": "minutes/week",
+      "kind": "author",
+      "source": "read the 5 ranked moves and their evidence"
+    },
+    "APP_PREP_REVIEW_MIN": {
+      "low": 10,
+      "high": 20,
+      "unit": "minutes/chat",
+      "kind": "author",
+      "source": "read the brief and practise the story; the app cannot practise for the student"
+    },
+    "APP_DRAFT_EDIT_MIN": {
+      "low": 2,
+      "high": 4,
+      "unit": "minutes/draft",
+      "kind": "author",
+      "source": "edit and send it yourself from the Outbox (the app never sends)"
+    },
+    "APP_DRAFT_SECS_SAME_AS_THANK_YOU": {
+      "low": 1,
+      "high": 1,
+      "unit": "x thank-you draft time",
+      "kind": "author",
+      "source": "outreach and follow-up drafts use the same Outbox tool; only the thank-you was timed"
+    },
+    "WEB_SHORTLISTS_PER_WEEK": {
+      "low": 1,
+      "high": 3,
+      "unit": "runs/week",
+      "kind": "author",
+      "source": "4 a month (typical) to 12 (heavy) in runs/2026-10-26_cost_model.json, itself an estimate"
+    }
+  },
+  "author_assumptions": [
+    "CAREERS_PAGE_CHECK_MIN",
+    "CAREERS_CHECKS_PER_WEEK",
+    "BOARDS_USED",
+    "BOARD_SEARCH_MIN",
+    "UNREAD_BOARDS",
+    "CANDIDATES_PER_40_ORGS",
+    "CONFIRM_MIN",
+    "NEW_TARGETS_PER_WEEK",
+    "PEOPLE_SEARCH_MIN",
+    "MESSAGES_PER_CHAT",
+    "OTHER_ITEMS_PER_WEEK",
+    "LOG_MIN_PER_ITEM",
+    "PLAN_MIN_PER_ACTION",
+    "OPEN_ACTIONS_PER_WEEK",
+    "FOLLOWUP_CHECK_MIN_PER_DAY",
+    "FOLLOWUP_CHECK_DAYS",
+    "OUTREACH_EMAIL_MIN",
+    "SCHEDULING_MIN",
+    "PREP_MIN",
+    "THANK_YOU_MIN",
+    "FOLLOW_UP_EMAIL_MIN",
+    "FOLLOW_UPS_PER_CHAT",
+    "APP_REVIEW_CARD_MIN",
+    "APP_REVIEW_TARGET_MIN",
+    "APP_ALUMNI_DIRECTORY_MIN",
+    "APP_REVIEW_ITEM_MIN",
+    "APP_PLAN_REVIEW_MIN",
+    "APP_PREP_REVIEW_MIN",
+    "APP_DRAFT_EDIT_MIN",
+    "APP_DRAFT_SECS_SAME_AS_THANK_YOU",
+    "WEB_SHORTLISTS_PER_WEEK"
+  ],
+  "author_assumptions_minutes": [
+    "CAREERS_PAGE_CHECK_MIN",
+    "BOARD_SEARCH_MIN",
+    "CONFIRM_MIN",
+    "PEOPLE_SEARCH_MIN",
+    "LOG_MIN_PER_ITEM",
+    "PLAN_MIN_PER_ACTION",
+    "FOLLOWUP_CHECK_MIN_PER_DAY",
+    "OUTREACH_EMAIL_MIN",
+    "SCHEDULING_MIN",
+    "PREP_MIN",
+    "THANK_YOU_MIN",
+    "FOLLOW_UP_EMAIL_MIN",
+    "APP_REVIEW_CARD_MIN",
+    "APP_REVIEW_TARGET_MIN",
+    "APP_ALUMNI_DIRECTORY_MIN",
+    "APP_REVIEW_ITEM_MIN",
+    "APP_PLAN_REVIEW_MIN",
+    "APP_PREP_REVIEW_MIN",
+    "APP_DRAFT_EDIT_MIN"
+  ],
+  "author_assumptions_volumes": [
+    "CAREERS_CHECKS_PER_WEEK",
+    "BOARDS_USED",
+    "UNREAD_BOARDS",
+    "CANDIDATES_PER_40_ORGS",
+    "NEW_TARGETS_PER_WEEK",
+    "MESSAGES_PER_CHAT",
+    "OTHER_ITEMS_PER_WEEK",
+    "OPEN_ACTIONS_PER_WEEK",
+    "FOLLOWUP_CHECK_DAYS",
+    "FOLLOW_UPS_PER_CHAT",
+    "APP_DRAFT_SECS_SAME_AS_THANK_YOU",
+    "WEB_SHORTLISTS_PER_WEEK"
+  ],
+  "public_inputs": [
+    "TARGET_ORGS",
+    "WIDE_ORGS",
+    "CHATS_PER_WEEK",
+    "OUTREACH_EMAILS_PER_CHAT",
+    "CHAT_LENGTH_MIN"
+  ],
+  "scenarios": {
+    "focused_40": {
+      "organisations_swept_weekly": 40,
+      "chores": {
+        "a_find_openings": {
+          "manual_h_week": [
+            2.08,
+            6.83
+          ],
+          "app_h_week": [
+            0.45,
+            1.04
+          ]
+        },
+        "b_people_and_alumni": {
+          "manual_h_week": [
+            1.5,
+            5.0
+          ],
+          "app_h_week": [
+            0.41,
+            1.27
+          ]
+        },
+        "c_keep_tracker_current": {
+          "manual_h_week": [
+            0.4,
+            1.93
+          ],
+          "app_h_week": [
+            0.11,
+            0.56
+          ]
+        },
+        "d_plan_the_week": {
+          "manual_h_week": [
+            0.67,
+            1.83
+          ],
+          "app_h_week": [
+            0.09,
+            0.17
+          ]
+        },
+        "e_coffee_chats": {
+          "manual_h_week": [
+            1.92,
+            6.0
+          ],
+          "app_h_week": [
+            0.76,
+            2.45
+          ]
+        }
+      },
+      "manual_total_h_week": [
+        6.6,
+        21.6
+      ],
+      "app_total_h_week": [
+        1.8,
+        5.5
+      ],
+      "by_hand_work_avoided_at_full_coverage_h_week": [
+        4.8,
+        16.1
+      ],
+      "share_of_40h_week_manual": [
+        0.16,
+        0.54
+      ],
+      "season_note": "only if every week of the season looked like this one (a constant week, winter break included)",
+      "manual_total_h_season": [
+        129,
+        423
+      ],
+      "app_total_h_season": [
+        35,
+        108
+      ],
+      "not_replaced_h_week_chats_themselves": [
+        0.5,
+        1.5
+      ]
+    },
+    "wide_272": {
+      "organisations_swept_weekly": 272,
+      "chores": {
+        "a_find_openings": {
+          "manual_h_week": [
+            11.27,
+            31.0
+          ],
+          "app_h_week": [
+            1.08,
+            3.12
+          ]
+        },
+        "b_people_and_alumni": {
+          "manual_h_week": [
+            1.5,
+            5.0
+          ],
+          "app_h_week": [
+            0.41,
+            1.27
+          ]
+        },
+        "c_keep_tracker_current": {
+          "manual_h_week": [
+            0.4,
+            1.93
+          ],
+          "app_h_week": [
+            0.11,
+            0.56
+          ]
+        },
+        "d_plan_the_week": {
+          "manual_h_week": [
+            0.67,
+            1.83
+          ],
+          "app_h_week": [
+            0.09,
+            0.17
+          ]
+        },
+        "e_coffee_chats": {
+          "manual_h_week": [
+            1.92,
+            6.0
+          ],
+          "app_h_week": [
+            0.76,
+            2.45
+          ]
+        }
+      },
+      "manual_total_h_week": [
+        15.8,
+        45.8
+      ],
+      "app_total_h_week": [
+        2.5,
+        7.6
+      ],
+      "by_hand_work_avoided_at_full_coverage_h_week": [
+        13.3,
+        38.2
+      ],
+      "share_of_40h_week_manual": [
+        0.4,
+        1.15
+      ],
+      "season_note": "only if every week of the season looked like this one (a constant week, winter break included)",
+      "manual_total_h_season": [
+        310,
+        898
+      ],
+      "app_total_h_season": [
+        49,
+        149
+      ],
+      "not_replaced_h_week_chats_themselves": [
+        0.5,
+        1.5
+      ]
+    }
+  },
+  "app_coverage_caveat": "In the wide scenario the app's time covers only what it can reach: boards on 4 public APIs, up to 3 careers pages per run that allow reading, and OpenAI web search. The share of the 272 organisations reached is NOT measured, so the two columns are not equal coverage.",
+  "new_possibilities": [
+    {
+      "capability": "Job boards of 8 organisations (plus 2 careers pages) in one run",
+      "app": "18.2 s (measured)",
+      "by_hand": "16-40 min at 2-5 min a page (author)",
+      "source": "run(s) 924006932786 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    {
+      "capability": "A weekly sweep of all 272 organisations that hired Yale SOM MBAs (S7)",
+      "app": "ESTIMATE 34 runs x 18.2 s = 10.3 min of run time; about 438,600 tokens (input + output), above one day's 300,000-token budget, so at least 2 days. NOT BUILT: the interface's button always searches the 8 most recently added open targets (frontend DiscoverPanel.tsx runDiscover(); backend/main.py discover_route), so this needs a rotating list. Coverage is limited to boards on the 4 public APIs (Greenhouse, Lever, Ashby, SmartRecruiters) and up to 3 careers pages per run that allow reading: the share of the 272 it reaches is NOT measured",
+      "by_hand": "9.1-22.7 h a week for the careers pages alone (author minutes; with boards and checks see wide_272 a_find_openings)",
+      "source": "run(s) 924006932786 in docs/evidence/screenshots/2026-10-26_live/runs.json; backend/config.py MAX_DISCOVER_COMPANIES = 8; backend/config.py DAILY_TOKEN_BUDGET; backend/jobboards.py"
+    },
+    {
+      "capability": "Every web result confirmed on its own page before it is saved",
+      "app": "code reads up to 8 source pages per run and keeps only results the page confirms; measured: 4 candidates, 2 confirmed, 2 set aside, 12.93 s",
+      "by_hand": "3-5 min per candidate (author), usually skipped under time pressure (not measured)",
+      "source": "run(s) d1161ab12736 in docs/evidence/screenshots/2026-10-26_live_web/runs.json; backend/config.py MAX_VERIFY_PAGES = 8; backend/keeper.py verify_web"
+    },
+    {
+      "capability": "Key people and alumni at one organisation",
+      "app": "13.85 s, 8 web searches, 1 person confirmed on a public page (up to 5 per organisation in code); alumni only from public pages, the alumni directory is not read",
+      "by_hand": "30-60 min (author) across team pages, LinkedIn and 13,000+ SOM / 190,000+ Yale alumni (S9, S10)",
+      "source": "run(s) be2afd11acd4 in docs/evidence/screenshots/2026-10-26_live_web/runs.json; backend/config.py MAX_STAKEHOLDERS = 5"
+    },
+    {
+      "capability": "People at about 15 organisations in one day (the 300,000-token daily budget binds before the 20-search cap)",
+      "app": "ESTIMATE 15 x the measured 13.85 s = 3.5 min of run time, about $1.23 at the measured cost per run, if nothing else used the day's budget; plus 8-15 min of the student's reading and alumni-directory time per organisation (author)",
+      "by_hand": "7.5-15 h (author minutes)",
+      "source": "backend/config.py MAX_WEB_RUNS_PER_DAY = 20; backend/config.py DAILY_TOKEN_BUDGET; run be2afd11acd4 usage 20,634 in + 405 out, 2026-10-26_live_web/runs.json; run be2afd11acd4 cost_usd, 2026-10-26_live_web/runs.json; backend/main.py require_web_budget"
+    },
+    {
+      "capability": "Warm paths into an organisation from the student's own people",
+      "app": "3.26 s: 2 paths from 10 people",
+      "by_hand": "not timed; the student must remember who knows whom",
+      "source": "run(s) affe3255c214 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    },
+    {
+      "capability": "A tracker that stays current on its own",
+      "app": "auto-sync every 30 min = up to 48 runs a day, each checking up to 3 channels (144 channel checks) while the Mac is awake; seen mail is never re-read and only new messages that matter are sent. Gmail verified under the scheduler; Messages and WhatsApp need Full Disk Access (a real grant not yet verified)",
+      "by_hand": "a person checks a few times a day and retypes what matters (not measured)",
+      "source": "connector/coach_connector.py schedule --every default 30; connector/coach_connector.py COMMAND_CHANNELS['run'] = gmail, imessage, whatsapp; EVIDENCE.md rows of 2026-10-25 21:14 and 21:39"
+    },
+    {
+      "capability": "Read everything, keep only what matters",
+      "app": "the filter passed 29 of 150 Gmail emails (19%), 23 of 125 WhatsApp (18%) and 3 of 36 iMessage (8%) conversations on the author's accounts (counts only); its misses are not measured",
+      "by_hand": "every message read to find them",
+      "source": "EVIDENCE.md rows of 2026-10-25 20:43 and 21:38"
+    },
+    {
+      "capability": "Decide the week from every open action",
+      "app": "22.17 s from 23 open actions to 5 ranked moves with evidence; each specialist reads the 10 most relevant records",
+      "by_hand": "23-46 min for the same 23 actions (author minutes)",
+      "source": "run(s) c469f1ee77fc in docs/evidence/screenshots/2026-10-26_live/runs.json; backend/config.py RETRIEVAL_TOP_K = 10"
+    },
+    {
+      "capability": "Prepare and follow up one coffee chat",
+      "app": "call brief 12.09 s, cited web answer 5.99 s, thank-you draft 8.06 s (in the Outbox, never sent)",
+      "by_hand": "40-75 min of prep and thank-you (author)",
+      "source": "run(s) 2780889ce0f4 in docs/evidence/screenshots/2026-10-26_live/runs.json; run(s) 692b493b6c59 in docs/evidence/screenshots/2026-10-26_live_web/runs.json; run(s) 6939e33cfb41 in docs/evidence/screenshots/2026-10-26_live/runs.json"
+    }
+  ]
+}
