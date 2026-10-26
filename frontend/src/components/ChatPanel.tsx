@@ -15,7 +15,7 @@ const SUGGESTIONS = [
 
 type Turn = ChatMessage & { agent?: string | null; usage?: Usage; seconds?: number; trace?: TraceStep[]; runId?: string };
 
-/** "Ask your coach": the Career strategist answers from your records, consulting the specialists when it needs them.
+/** "Ask your coach": the Career coach answers from your records, consulting the specialists when it needs them.
  *  Call-prep questions go straight to Network intelligence (routed in code). seed: a question to send on open. */
 export default function ChatPanel({ onClose, seed, candidates, onOpenRecord }: {
   onClose: () => void;
@@ -93,7 +93,7 @@ export default function ChatPanel({ onClose, seed, candidates, onOpenRecord }: {
         <header className="chat-head">
           <div>
             <h2>Ask your coach</h2>
-            <p>The Career strategist answers from your records and asks the specialists when needed.</p>
+            <p>The Career coach answers from your records and asks the specialists when needed.</p>
           </div>
           <div className="chat-head-actions">
             {turns.length > 0 && (
@@ -123,7 +123,7 @@ export default function ChatPanel({ onClose, seed, candidates, onOpenRecord }: {
                 </Markdown>
                 {t.usage && (
                   <details className="chat-meta">
-                    <summary>{t.agent === "network" ? "Network intelligence · call prep" : "Career strategist"} · gpt-6-luna · {(t.usage.input + t.usage.output).toLocaleString()} tokens</summary>
+                    <summary>{t.agent === "network" ? "Network intelligence · call prep" : "Career coach"} · gpt-6-luna · {(t.usage.input + t.usage.output).toLocaleString()} tokens</summary>
                     {t.trace && <AgentTrace trace={t.trace} onOpenRecord={onOpenRecord} />}
                     <UsageLine usage={t.usage} seconds={t.seconds} />
                   </details>

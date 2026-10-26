@@ -1,0 +1,117 @@
+{
+ "database": "postgres",
+ "model": "gpt-6-luna",
+ "prices_per_1m": {
+  "input": 0.1,
+  "cached_input": 0.01,
+  "output": 0.5,
+  "source": "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
+ },
+ "model_calls": 42,
+ "requests_total": 31,
+ "requests_ok": 31,
+ "by_kind": {
+  "chat": {
+   "n": 5,
+   "median_input": 1378,
+   "median_cached": 0,
+   "median_output": 881,
+   "median_reasoning": 143,
+   "median_requests": 1,
+   "median_cost_usd": 0.0006228,
+   "min_cost_usd": 0.0005388,
+   "max_cost_usd": 0.00078098,
+   "cached_share": 0.415,
+   "agents": [
+    "network",
+    "strategist"
+   ]
+  },
+  "discover": {
+   "n": 2,
+   "median_input": 11444.0,
+   "median_cached": 7927.0,
+   "median_output": 1223.5,
+   "median_reasoning": 523.0,
+   "median_requests": 3.0,
+   "median_cost_usd": 0.00104272,
+   "min_cost_usd": 0.0008670700000000001,
+   "max_cost_usd": 0.0012183699999999999,
+   "cached_share": 0.693,
+   "agents": [
+    "scout"
+   ]
+  },
+  "doors": {
+   "n": 3,
+   "median_input": 1929,
+   "median_cached": 0,
+   "median_output": 548,
+   "median_reasoning": 231,
+   "median_requests": 1,
+   "median_cost_usd": 0.000461,
+   "min_cost_usd": 0.0004578,
+   "max_cost_usd": 0.00048639999999999995,
+   "cached_share": 0.0,
+   "agents": [
+    "network"
+   ]
+  },
+  "guide": {
+   "n": 3,
+   "median_input": 2535,
+   "median_cached": 0,
+   "median_output": 208,
+   "median_reasoning": 0,
+   "median_requests": 2,
+   "median_cost_usd": 0.0004009,
+   "min_cost_usd": 0.0003575,
+   "max_cost_usd": 0.00042161,
+   "cached_share": 0.252,
+   "agents": [
+    "guide"
+   ]
+  },
+  "intake": {
+   "n": 15,
+   "median_input": 1586,
+   "median_cached": 1029,
+   "median_output": 468,
+   "median_reasoning": 239,
+   "median_requests": 1,
+   "median_cost_usd": 0.00032399,
+   "min_cost_usd": 0.00020929000000000002,
+   "max_cost_usd": 0.0009804000000000002,
+   "cached_share": 0.497,
+   "agents": [
+    "inbox",
+    "network",
+    "scout"
+   ]
+  },
+  "plan": {
+   "n": 3,
+   "median_input": 8078,
+   "median_cached": 1933,
+   "median_output": 2392,
+   "median_reasoning": 778,
+   "median_requests": 4,
+   "median_cost_usd": 0.00184256,
+   "min_cost_usd": 0.00109028,
+   "max_cost_usd": 0.00199233,
+   "cached_share": 0.319,
+   "agents": [
+    "network",
+    "scout",
+    "strategist"
+   ]
+  }
+ },
+ "totals_ok": {
+  "input": 122989,
+  "cached": 53673,
+  "output": 24024,
+  "reasoning": 8876,
+  "cost_usd": 0.01948033
+ }
+}

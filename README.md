@@ -2,8 +2,8 @@
 
 **Live app: https://summer-internship-coach.onrender.com** · click **Try the demo** (no account needed; a private sandbox with a fictional student)
 
-> The free hosting plan sleeps when idle. A scheduled GitHub Action keeps it awake from 8 AM to 1 AM US Eastern;
-> outside those hours the first visit can take up to a minute.
+> The free hosting plan sleeps after 15 idle minutes: the first visit can take up to a minute while it wakes. A
+> scheduled GitHub Action pings it, but GitHub runs schedules only sporadically, so open the URL a minute ahead.
 
 From scattered opportunities and conversations to the next best career action. An AI career operating system for MBA
 students recruiting for summer internships. Connect or export your channels (Gmail, Messages, WhatsApp, LinkedIn,
@@ -14,11 +14,11 @@ boards, and tell you where to spend this week. Nothing is ever sent for you.
 
 | Screen | What you get |
 |---|---|
-| **Today** | **Plan my week**: the Career strategist ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the specialists file opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. **Find openings**: the Opportunity scout searches the public job boards of your organisations. **Outbox**: drafts the coach wrote, never sent by the app. |
+| **Today** | **Plan my week**: the Career coach ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the Inbox organizer files opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. **Find openings**: the Opportunity scout searches the public job boards of your organisations. **Outbox**: drafts the coach wrote, never sent by the app. |
 | **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Who can open the door**: Network intelligence finds up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
-| **Ask your coach** | Chat with the Career strategist; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
+| **Ask your coach** | Chat with the Career coach; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
 | **Setup** (step 1 for new accounts) | The **Setup guide** agent walks you through it next to a checklist. Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters on your computer and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
 | **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent. |
 
@@ -73,10 +73,11 @@ saved only if it quotes what a tool returned in that run, with a link the tool r
 
 ## Run it locally (about 5 minutes)
 
-Needs **Python 3.12+** and **Node 20+**.
+Needs **Python 3.12+** and **Node 20+**. Check with `python3 --version`: macOS's built-in `python3` is 3.9, too old,
+so if yours is older than 3.12 use a newer one in step 2 (e.g. `python3.13 -m venv .venv`).
 
 1. Put a `.env` with `PORTKEY_API_KEY=…` in this folder **or one folder above it** (see `.env.example`).
-2. Install and start the backend:
+2. Install the backend:
    ```bash
    cd backend
    python3 -m venv .venv
@@ -93,7 +94,8 @@ Needs **Python 3.12+** and **Node 20+**.
    cd ../backend
    .venv/bin/python -m uvicorn main:app --port 8020
    ```
-5. Open **http://127.0.0.1:8020** and click **Try the demo**.
+5. Open **http://127.0.0.1:8020** and click **Try the demo**. (If port 8020 is busy, any free port works: use the
+   same number in steps 4 and 5.)
 
 Check the key and model on their own: `cd backend && .venv/bin/python check_setup.py` (prints which `.env` was
 used, the model that answered and the tokens of one call).

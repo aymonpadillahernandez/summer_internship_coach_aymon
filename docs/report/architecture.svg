@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 470" role="img" aria-label="Architecture and delegation diagram of Summer Internship Coach" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif">
+  <!-- Drawn from the code: backend/main.py (routes), backend/intake.py (shield, router), backend/agents/*.py (agents and
+       their tools), backend/keeper.py (the only writer), backend/config.py (limits). Colours match the app's team strip. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6e6e73"/>
+    </marker>
+    <style>
+      .t  { font-size: 11.5px; font-weight: 700; fill: #1d1d1f; }
+      .d  { font-size: 9px; fill: #3a3a3c; }
+      .dm { font-size: 8.6px; fill: #3a3a3c; font-family: ui-monospace, Menlo, monospace; }
+      .w  { font-size: 9px; fill: #6e6e73; }
+      .h  { font-size: 8px; font-weight: 700; fill: #8e8e93; letter-spacing: .6px; }
+      .ln { stroke: #6e6e73; stroke-width: 1.1; fill: none; }
+      .code { fill: #f2f2f7; stroke: #aeaeb2; stroke-width: 1; }
+      .trig { fill: #ffffff; stroke: #d1d1d6; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- column headers -->
+  <text class="h" x="6" y="9">THE STUDENT</text>
+  <text class="h" x="122" y="9">CODE FIRST</text>
+  <text class="h" x="232" y="9">AI AGENT (gpt-6-luna)</text>
+  <text class="h" x="452" y="9">RESULT</text>
+
+  <!-- Lane 1: Setup guide -->
+  <rect class="trig" x="4" y="16" width="104" height="54" rx="8"/>
+  <text class="t" x="12" y="37" style="font-size:10.5px">New account</text>
+  <text class="d" x="12" y="52">Setup tab, step 1</text>
+  <rect x="232" y="16" width="206" height="54" rx="8" fill="#e8f8ec" stroke="#34c759" stroke-width="1.4"/>
+  <text class="t" x="242" y="33">Setup guide</text>
+  <text class="dm" x="242" y="47">connection_status · next_setup_step</text>
+  <text class="d" x="242" y="61">load_skill: 11 setup playbooks</text>
+  <rect class="trig" x="452" y="16" width="184" height="54" rx="8"/>
+  <text class="d" x="460" y="35">One step at a time, next to a live</text>
+  <text class="d" x="460" y="48">checklist. It cannot click, read your</text>
+  <text class="d" x="460" y="61">accounts or send anything.</text>
+  <path class="ln" d="M108,43 H230" marker-end="url(#arr)"/>
+  <path class="ln" d="M438,43 H450" marker-end="url(#arr)"/>
+
+  <!-- Lane 2: intake -->
+  <rect class="trig" x="4" y="84" width="104" height="58" rx="8"/>
+  <text class="t" x="12" y="103" style="font-size:10.5px">Add what's new</text>
+  <text class="d" x="12" y="117">paste · upload · link</text>
+  <text class="d" x="12" y="130">or Coach Connector</text>
+  <rect class="code" x="122" y="84" width="96" height="58" rx="8"/>
+  <text class="t" x="130" y="103" style="font-size:10.5px">Shield + Router</text>
+  <text class="d" x="130" y="117">hidden text and</text>
+  <text class="d" x="130" y="130">injected lines out</text>
+  <rect x="232" y="84" width="206" height="58" rx="8" fill="#fff4e5" stroke="#ff9f0a" stroke-width="1.4"/>
+  <text class="t" x="242" y="102">Inbox organizer</text>
+  <text class="d" x="242" y="117">one model call per text: roles, people,</text>
+  <text class="d" x="242" y="130">dated facts, each with its exact quote</text>
+  <path class="ln" d="M108,113 H120" marker-end="url(#arr)"/>
+  <path class="ln" d="M218,113 H230" marker-end="url(#arr)"/>
+  <path class="ln" d="M438,113 H450" marker-end="url(#arr)"/>
+
+  <!-- Lane 3: discovery -->
+  <rect class="trig" x="4" y="156" width="104" height="62" rx="8"/>
+  <text class="t" x="12" y="182" style="font-size:10.5px">Find openings</text>
+  <text class="d" x="12" y="196">the student's targets</text>
+  <rect x="232" y="156" width="206" height="62" rx="8" fill="#e5f1ff" stroke="#0a84ff" stroke-width="1.4"/>
+  <text class="t" x="242" y="173">Opportunity scout</text>
+  <text class="dm" x="242" y="187">search_job_boards</text>
+  <text class="d" x="336" y="187">public APIs:</text>
+  <text class="d" x="242" y="199">Greenhouse, Lever, Ashby, SmartRecruiters</text>
+  <text class="dm" x="242" y="211">read_careers_page</text>
+  <text class="d" x="336" y="211">≤3 pages, shielded</text>
+  <path class="ln" d="M108,187 H230" marker-end="url(#arr)"/>
+  <path class="ln" d="M438,187 H450" marker-end="url(#arr)"/>
+
+  <!-- Records keeper spans lanes 2 and 3 -->
+  <rect class="code" x="452" y="84" width="184" height="134" rx="8" style="stroke:#8e8e93;stroke-width:1.4"/>
+  <text class="t" x="462" y="103">Records keeper</text>
+  <text class="w" x="462" y="116">code, 0 tokens, the only writer</text>
+  <text class="d" x="462" y="133">• every quote, name, link and record</text>
+  <text class="d" x="470" y="145">id checked against its source</text>
+  <text class="d" x="462" y="158">• merge rules, data checks</text>
+  <text class="d" x="462" y="171">• rejects what it cannot back, with</text>
+  <text class="d" x="470" y="183">the reason</text>
+  <text class="d" x="462" y="201" style="font-weight:600">→ Opportunities · Networking ·</text>
+  <text class="d" x="474" y="213" style="font-weight:600">Action plan (derived in code)</text>
+
+  <!-- Lane 4: Career coach -->
+  <rect class="trig" x="4" y="236" width="104" height="70" rx="8"/>
+  <text class="t" x="12" y="262" style="font-size:10.5px">Plan my week</text>
+  <text class="t" x="12" y="277" style="font-size:10.5px">Ask your coach</text>
+  <rect class="code" x="122" y="236" width="96" height="70" rx="8"/>
+  <text class="t" x="130" y="256" style="font-size:10.5px">Candidates</text>
+  <text class="d" x="130" y="270">open actions from</text>
+  <text class="d" x="130" y="282">code; the coach</text>
+  <text class="d" x="130" y="294">only ranks them</text>
+  <rect x="232" y="236" width="206" height="70" rx="8" fill="#efefff" stroke="#5e5ce6" stroke-width="1.8"/>
+  <text class="t" x="242" y="254">Career coach <tspan style="font-weight:500;fill:#5e5ce6">(boss)</tspan></text>
+  <text class="dm" x="242" y="269">ask_opportunity_scout</text>
+  <text class="dm" x="242" y="281">ask_network_intel · get_data_checks</text>
+  <text class="dm" x="242" y="293">load_skill</text>
+  <text class="d" x="298" y="293">(6 playbooks) ·</text>
+  <text class="dm" x="368" y="293">save_draft</text>
+  <rect class="trig" x="452" y="236" width="184" height="31" rx="8"/>
+  <text class="d" x="460" y="249">Ranked plan or answer; every fact</text>
+  <text class="d" x="460" y="261">cites the record id it came from</text>
+  <rect x="452" y="273" width="184" height="33" rx="8" fill="#fff1f0" stroke="#ff6961" stroke-width="1"/>
+  <text class="d" x="460" y="287" style="font-weight:600">Outbox: drafts only (≤2 per request)</text>
+  <text class="d" x="460" y="299">never sent by the app</text>
+  <path class="ln" d="M108,271 H120" marker-end="url(#arr)"/>
+  <path class="ln" d="M218,271 H230" marker-end="url(#arr)"/>
+  <path class="ln" d="M438,252 H450" marker-end="url(#arr)"/>
+  <path class="ln" d="M438,289 H450" marker-end="url(#arr)"/>
+
+  <!-- Delegation to the specialists -->
+  <path class="ln" d="M300,306 L232,352" marker-start="url(#arr)" marker-end="url(#arr)" style="stroke:#5e5ce6;stroke-width:1.4"/>
+  <path class="ln" d="M378,306 L378,352" marker-start="url(#arr)" marker-end="url(#arr)" style="stroke:#5e5ce6;stroke-width:1.4"/>
+  <text class="dm" x="170" y="326" style="fill:#5e5ce6">ask_network_intel</text>
+  <text class="dm" x="384" y="331" style="fill:#5e5ce6">ask_opportunity_scout</text>
+
+  <!-- Lane 5: specialists -->
+  <rect class="trig" x="4" y="354" width="104" height="58" rx="8"/>
+  <text class="t" x="12" y="373" style="font-size:10.5px">Prepare my call</text>
+  <text class="t" x="12" y="388" style="font-size:10.5px">Who can open</text>
+  <text class="t" x="12" y="402" style="font-size:10.5px">the door</text>
+  <rect x="122" y="354" width="186" height="58" rx="8" fill="#e3f7fa" stroke="#30b0c7" stroke-width="1.4"/>
+  <text class="t" x="131" y="372">Network intelligence</text>
+  <text class="d" x="131" y="387">reads the 10 best-matching people</text>
+  <text class="d" x="131" y="400">(BM25) or a dossier · 3 playbooks</text>
+  <rect x="318" y="354" width="120" height="58" rx="8" fill="#e5f1ff" stroke="#0a84ff" stroke-width="1.4"/>
+  <text class="t" x="326" y="372" style="font-size:10.5px">Opportunity scout</text>
+  <text class="d" x="326" y="387">reads the 10 best-</text>
+  <text class="d" x="326" y="400">matching roles (BM25)</text>
+  <path class="ln" d="M108,383 H120" marker-end="url(#arr)"/>
+  <text class="w" x="452" y="366">Routed in code: call prep and doors go</text>
+  <text class="w" x="452" y="378">straight to Network intelligence.</text>
+  <text class="w" x="452" y="394">Delegation is one level deep, ≤4</text>
+  <text class="w" x="452" y="406">questions per request; ids a specialist</text>
+  <text class="w" x="452" y="418">cites must be ones it was given.</text>
+
+  <!-- Bottom band -->
+  <rect x="4" y="430" width="632" height="36" rx="8" fill="#f5f5f7" stroke="#d1d1d6"/>
+  <rect x="14" y="441" width="11" height="11" rx="3" fill="#efefff" stroke="#5e5ce6"/>
+  <text class="d" x="30" y="450">AI agent: gpt-6-luna via the course Portkey key, reasoning effort low, ≤8,000 output tokens per answer,</text>
+  <text class="d" x="30" y="461">caps on requests, tool calls and tokens per run; every call logged with input / cached / output tokens.</text>
+  <rect x="502" y="441" width="11" height="11" rx="3" class="code"/>
+  <text class="d" x="518" y="450">Code: 0 tokens,</text>
+  <text class="d" x="518" y="461">same result every time</text>
+</svg>

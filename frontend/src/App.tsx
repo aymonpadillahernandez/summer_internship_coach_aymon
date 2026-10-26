@@ -25,7 +25,7 @@ const INACTIVE = new Set(["not_started", "rejected"]);
 const TABS: Tab[] = ["today", "internships", "networking", "plan", "connect"];
 const tabFromHash = (): Tab => TABS.find((t) => window.location.hash === `#${t}`) ?? "today";
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-/** The action plan, as the only actions the Career strategist may rank (it can never invent one). */
+/** The action plan, as the only actions the Career coach may rank (it can never invent one). */
 const toCandidate = (a: Action): Candidate => ({ key: a.key, title: a.title, subtitle: a.subtitle, due: a.due ? isoDay(a.due) : null, why: a.why });
 
 /** Optimistic status change that rolls back only this card, and only if nothing moved it since. */
@@ -407,7 +407,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
               <small>{nextCall.name}</small>
             </button>
           )}
-          <button className="stat-next stat-ask" onClick={() => setAsking(true)} title="Ask the Career strategist about your search">
+          <button className="stat-next stat-ask" onClick={() => setAsking(true)} title="Ask the Career coach about your search">
             <dt>Ask your coach</dt>
             <dd><ChatIcon /> Ask a question</dd>
             <small>Answers from your records</small>

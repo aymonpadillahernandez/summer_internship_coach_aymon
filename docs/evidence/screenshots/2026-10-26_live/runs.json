@@ -1,0 +1,438 @@
+{
+  "captured_at": "2026-10-26T08:25:24-04:00",
+  "base": "https://summer-internship-coach.onrender.com",
+  "account": "Try the demo (fresh private sandbox, fictional student)",
+  "prices": {
+    "input_per_m": 0.1,
+    "cached_input_per_m": 0.01,
+    "output_per_m": 0.5,
+    "source": "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
+  },
+  "runs": [
+    {
+      "endpoint": "/api/guide",
+      "run_id": "3057c579ec75",
+      "kind": "guide",
+      "status": "ok",
+      "seconds": 5.51,
+      "usage": {
+        "input": 2509,
+        "cached": 1521,
+        "output": 294,
+        "requests": 2,
+        "cost_usd": 0.00026101
+      },
+      "agents_in_trace": [
+        "guide"
+      ],
+      "trace_events": [
+        "guide:thinking",
+        "guide:opened_skill",
+        "guide:checked_status",
+        "guide:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "guide",
+          "model": "gpt-6-luna-global",
+          "requests": 2,
+          "input_tokens": 2509,
+          "cached_tokens": 1521,
+          "output_tokens": 294,
+          "seconds": 5.47,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/plan",
+      "run_id": "c469f1ee77fc",
+      "kind": "plan",
+      "status": "ok",
+      "seconds": 22.17,
+      "usage": {
+        "input": 9109,
+        "cached": 3634,
+        "output": 2763,
+        "requests": 4,
+        "cost_usd": 0.0019653400000000003
+      },
+      "agents_in_trace": [
+        "strategist",
+        "scout",
+        "network"
+      ],
+      "trace_events": [
+        "strategist:planning",
+        "strategist:delegated->scout",
+        "scout:searching",
+        "strategist:delegated->network",
+        "network:searching",
+        "strategist:checked_data",
+        "scout:finished",
+        "scout:answered",
+        "network:finished",
+        "network:answered",
+        "strategist:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "scout",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 1580,
+          "cached_tokens": 0,
+          "output_tokens": 626,
+          "seconds": 10.65,
+          "status": "ok"
+        },
+        {
+          "agent": "network",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 1728,
+          "cached_tokens": 0,
+          "output_tokens": 879,
+          "seconds": 11.46,
+          "status": "ok"
+        },
+        {
+          "agent": "strategist",
+          "model": "gpt-6-luna-global",
+          "requests": 2,
+          "input_tokens": 5801,
+          "cached_tokens": 3634,
+          "output_tokens": 1258,
+          "seconds": 22.09,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/intake",
+      "run_id": "fa319fb53b37",
+      "kind": "intake",
+      "status": "ok",
+      "seconds": 4.27,
+      "usage": {
+        "input": 4526,
+        "cached": 3802,
+        "output": 449,
+        "requests": 1,
+        "cost_usd": 0.00033492
+      },
+      "agents_in_trace": [
+        "shield",
+        "router",
+        "inbox",
+        "keeper"
+      ],
+      "trace_events": [
+        "shield:instructions_quarantined",
+        "router:routed",
+        "inbox:reading",
+        "inbox:finished",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "inbox",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 4526,
+          "cached_tokens": 3802,
+          "output_tokens": 449,
+          "seconds": 4.12,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/intake",
+      "run_id": "2bbe610b4159",
+      "kind": "intake",
+      "status": "ok",
+      "seconds": 6.67,
+      "usage": {
+        "input": 4528,
+        "cached": 3802,
+        "output": 351,
+        "requests": 1,
+        "cost_usd": 0.00028612
+      },
+      "agents_in_trace": [
+        "shield",
+        "router",
+        "inbox",
+        "keeper"
+      ],
+      "trace_events": [
+        "shield:hidden_text_removed",
+        "router:routed",
+        "inbox:reading",
+        "inbox:finished",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "inbox",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 4528,
+          "cached_tokens": 3802,
+          "output_tokens": 351,
+          "seconds": 6.52,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/intake",
+      "run_id": "16bac70cde0d",
+      "kind": "intake",
+      "status": "ok",
+      "seconds": 3.56,
+      "usage": {
+        "input": 4502,
+        "cached": 3802,
+        "output": 111,
+        "requests": 1,
+        "cost_usd": 0.00016352
+      },
+      "agents_in_trace": [
+        "router",
+        "inbox",
+        "keeper"
+      ],
+      "trace_events": [
+        "router:routed",
+        "inbox:reading",
+        "inbox:finished",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "inbox",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 4502,
+          "cached_tokens": 3802,
+          "output_tokens": 111,
+          "seconds": 3.42,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/intake",
+      "run_id": "c9fea27d4495",
+      "kind": "intake",
+      "status": "ok",
+      "seconds": 9.34,
+      "usage": {
+        "input": 4524,
+        "cached": 3802,
+        "output": 786,
+        "requests": 1,
+        "cost_usd": 0.0005032200000000001
+      },
+      "agents_in_trace": [
+        "router",
+        "inbox",
+        "keeper"
+      ],
+      "trace_events": [
+        "router:routed",
+        "inbox:reading",
+        "inbox:finished",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "inbox",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 4524,
+          "cached_tokens": 3802,
+          "output_tokens": 786,
+          "seconds": 9.18,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/scout/discover",
+      "run_id": "924006932786",
+      "kind": "discover",
+      "status": "ok",
+      "seconds": 18.2,
+      "usage": {
+        "input": 12071,
+        "cached": 9615,
+        "output": 829,
+        "requests": 3,
+        "cost_usd": 0.00075625
+      },
+      "agents_in_trace": [
+        "scout",
+        "keeper"
+      ],
+      "trace_events": [
+        "scout:discovering",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:searched_job_board",
+        "scout:read_page",
+        "scout:read_page",
+        "scout:finished",
+        "keeper:kept"
+      ],
+      "per_agent": [
+        {
+          "agent": "scout",
+          "model": "gpt-6-luna-global",
+          "requests": 3,
+          "input_tokens": 12071,
+          "cached_tokens": 9615,
+          "output_tokens": 829,
+          "seconds": 18.07,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat",
+      "run_id": "6939e33cfb41",
+      "kind": "chat",
+      "status": "ok",
+      "seconds": 8.06,
+      "usage": {
+        "input": 6417,
+        "cached": 4055,
+        "output": 178,
+        "requests": 3,
+        "cost_usd": 0.00036575
+      },
+      "agents_in_trace": [
+        "strategist"
+      ],
+      "trace_events": [
+        "strategist:thinking",
+        "strategist:opened_skill",
+        "strategist:drafted",
+        "strategist:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "strategist",
+          "model": "gpt-6-luna-global",
+          "requests": 3,
+          "input_tokens": 6417,
+          "cached_tokens": 4055,
+          "output_tokens": 178,
+          "seconds": 7.97,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/chat",
+      "run_id": "2780889ce0f4",
+      "kind": "chat",
+      "status": "ok",
+      "seconds": 12.09,
+      "usage": {
+        "input": 1378,
+        "cached": 0,
+        "output": 986,
+        "requests": 1,
+        "cost_usd": 0.0006307999999999999
+      },
+      "agents_in_trace": [
+        "network"
+      ],
+      "trace_events": [
+        "network:preparing",
+        "network:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "network",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 1378,
+          "cached_tokens": 0,
+          "output_tokens": 986,
+          "seconds": 11.98,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/applications/215/doors",
+      "run_id": "affe3255c214",
+      "kind": "doors",
+      "status": "ok",
+      "seconds": 3.26,
+      "usage": {
+        "input": 2403,
+        "cached": 1320,
+        "output": 269,
+        "requests": 1,
+        "cost_usd": 0.000256
+      },
+      "agents_in_trace": [
+        "network"
+      ],
+      "trace_events": [
+        "network:searching",
+        "network:finished"
+      ],
+      "per_agent": [
+        {
+          "agent": "network",
+          "model": "gpt-6-luna-global",
+          "requests": 1,
+          "input_tokens": 2403,
+          "cached_tokens": 1320,
+          "output_tokens": 269,
+          "seconds": 3.1,
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "total": {
+    "input": 51967,
+    "cached": 35353,
+    "output": 7016,
+    "requests": 18,
+    "cost_usd": 0.005523
+  },
+  "screenshots": [
+    "01_landing.png",
+    "02_setup_guide_whatsapp.png",
+    "03_channels_overview.png",
+    "04_today_team.png",
+    "05_plan_my_week.png",
+    "06_plan_trace.png",
+    "07_attack_injected_instructions.png",
+    "08_attack_hidden_text.png",
+    "18_target_names_only.png",
+    "19_target_list_with_roles.png",
+    "09_find_openings.png",
+    "10_opportunities.png",
+    "11_coach_thank_you_draft.png",
+    "12_outbox.png",
+    "13_call_prep.png",
+    "14_who_can_open_the_door.png",
+    "15_networking.png",
+    "16_usage_costs.png",
+    "17_mobile_today.png"
+  ]
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Summer Internship Coach · Slides · Aymon Padilla Hernández</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.css">
+<style>
+{{CSS}}
+</style>
+</head>
+<body>
+<!-- Source text of slides.html. Build: backend/.venv/bin/python docs/report/build_slides.py
+     {{V:…}} values are computed from docs/evidence (the same files as the report's tables); data-shot images are embedded
+     as base64 (data-crop="top,bottom" in the screenshot's own pixels). Every number must also appear in report.html:
+     the builder lists any that do not. -->
+<div class="noreveal-msg">These slides load reveal.js from the internet; without a connection they are shown as a page.</div>
+<div class="reveal"><div class="slides">
+
+<!-- ============================== 1. TITLE ============================== -->
+<section id="title">
+ <div class="slide s-title" style="padding-bottom:34px">
+  <div class="top">
+   <div>
+    <p class="kicker">Yale SOM · MGT 409 · Final project</p>
+    <h1>Summer Internship Coach</h1>
+    <p class="byline">Aymon Padilla Hernández · October 26, 2026</p>
+    <p class="pitch">Turns the recruiting emails, chats and job postings an MBA student already has into one evidence-backed picture of their search, and tells them where to spend this week, without ever sending anything on their behalf.</p>
+    <div class="pills"><span class="pill">5 AI agents + a Records keeper in code</span><span class="pill">gpt-6-luna only</span><span class="pill grey">Read-only: never sends</span></div>
+   </div>
+   <figure>
+    <img data-shot="04_today_team.png" data-width="1220" alt="The Today screen of Summer Internship Coach">
+    <figcaption><b>The Today screen</b> on the live site: the five agents and the Records keeper, <i>Plan my week</i>, <i>Add what's new</i> and <i>Find openings</i>. Demo data: the student is fictional.</figcaption>
+   </figure>
+  </div>
+  <div class="links">
+   <div class="row"><span class="k">Code · public repo</span><span><a href="https://github.com/aymonpadillahernandez/summer_internship_coach_aymon">https://github.com/aymonpadillahernandez/summer_internship_coach_aymon</a><span class="s">A <b>public</b> GitHub repository: anyone can clone it, no invitation needed. The README explains how to run it.</span></span></div>
+   <div class="row"><span class="k">Live app</span><span><a href="https://summer-internship-coach.onrender.com">https://summer-internship-coach.onrender.com</a><span class="s">Click <b>Try the demo</b>: no account needed, a private sandbox with a fictional MBA student, deleted after 3 days.</span></span></div>
+  </div>
+ </div>
+</section>
+
+<!-- ============================== 2. PROBLEM ============================== -->
+<section id="problem">
+ <div class="slide">
+  <p class="kicker">The problem, and who has it</p>
+  <h2>The information is not missing. It is scattered.</h2>
+  <div class="body" style="grid-template-columns: 1fr 590px">
+   <div class="blocks">
+    <div><span class="lbl">Who has it</span><p class="just">MBA students recruiting for summer internships: many organisations at once, each with its own deadlines, and alumni, recruiters and classmates who can open a door.</p></div>
+    <div><span class="lbl">How it is solved today</span><p class="just">The student is the integration layer: they read every channel, retype what matters into a spreadsheet or a tracker, and decide from memory where this week goes.</p></div>
+    <div><span class="lbl">What it costs</span><p class="just">Attention; follow-ups promised in a chat that never reach the tracker (not yet measured); and $29 to $40 a month for a paid job-search plan (Teal, Simplify, LinkedIn Premium, Huntr) that covers only part of it.</p></div>
+   </div>
+   <div>
+    <figure>
+     <img data-shot="03_channels_overview.png" data-width="1200" alt="The Setup tab's channel overview">
+     <figcaption><b>9 channels</b>, as the app's Setup tab shows them: 4 update on their own from a Mac; the rest are exported or pasted.</figcaption>
+    </figure>
+    <div class="tiles">
+     <div class="tile"><b>29 of 150</b><span>Gmail emails</span></div>
+     <div class="tile"><b>23 of 125</b><span>WhatsApp conversations</span></div>
+     <div class="tile"><b>3 of 36</b><span>iMessage conversations</span></div>
+    </div>
+    <p class="note" style="margin-top:8px">The share that touched target organisations, contacts or recruiting on the author's own accounts (the app's local filter, counts only, nothing sent). One student: it shows the share, not the minutes.</p>
+   </div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span></div>
+ </div>
+</section>
+
+<!-- ============================== 3. WHAT IS NEW ============================== -->
+<section id="new">
+ <div class="slide">
+  <p class="kicker">What is new here</p>
+  <h2>Parts exist. No product we read combines all three.</h2>
+  <div class="body" style="grid-template-columns: 1fr 440px; gap: 34px">
+   <div class="alts">
+    <div class="alt"><div class="ini-group"><i class="ini lg" style="background:#2563eb">S</i></div><div><span class="name">Simplify</span><span class="price">Simplify+ $39.99/mo</span><p>Closest: reads Gmail to update tracked jobs. Built to act (Autopilot submits applications); chats and a weekly plan are not described.</p></div></div>
+    <div class="alt"><div class="ini-group"><i class="ini lg" style="background:#10a37f">C</i></div><div><span class="name">ChatGPT</span><span class="price">Plus $20/mo</span><p>The honest benchmark: its agent can read Gmail on a schedule, but keeps no recruiting pipeline and checks no fact against a quote.</p></div></div>
+    <div class="alt"><div class="ini-group"><i class="ini lg" style="background:#1f2937">D</i></div><div><span class="name">Dex</span><span class="price">Premium $20/mo</span><p>Remembers people across WhatsApp, email and LinkedIn; internships, deadlines and a weekly plan are not described.</p></div></div>
+    <div class="alt"><div class="ini-group"><i class="ini" style="background:#16a34a">T</i><i class="ini" style="background:#7c3aed">Hu</i></div><div><span class="name">Teal · Huntr</span><span class="price">paid plans $29–$40/mo</span><p>Job trackers: contacts and follow-ups are typed by hand. Strong on résumés, which we do not do.</p></div></div>
+    <div class="alt"><div class="ini-group"><i class="ini" style="background:#0a66c2">in</i><i class="ini" style="background:#5b3df5">H</i><i class="ini" style="background:#e4572e">12</i></div><div><span class="name">LinkedIn Premium · Handshake · 12twenty</span><p>Each works on its own platform's data; no memory of a student's other conversations described.</p></div></div>
+   </div>
+   <div>
+    <span class="lbl">What this app does differently</span>
+    <div class="diffs">
+     <div class="diff"><span class="num">1</span><b>One memory across channels</b><p>Mail, chats, exports, invites and postings land on the same two boards, each person linked to the internship they can help with.</p></div>
+     <div class="diff"><span class="num">2</span><b>A weekly plan with evidence</b><p><i>Plan my week</i> ranks open actions with why now and a first step; every saved fact carries the exact quote it came from, checked in code.</p></div>
+     <div class="diff"><span class="num">3</span><b>Read-only by design</b><p>No agent has a sending tool; drafts wait in an Outbox. One wrong message to a recruiter costs more than any time saved.</p></div>
+    </div>
+    <p class="weaker"><b>Where we are weaker:</b> no résumé or autofill tools, far less job data than LinkedIn or Simplify, and chat auto-sync needs a Mac.</p>
+   </div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">“Not described”: not on the official pages we read, Oct 26, 2026</span></div>
+ </div>
+</section>
+
+<!-- ============================== 4. AGENTS + DIAGRAM ============================== -->
+<section id="agents">
+ <div class="slide">
+  <p class="kicker">How the agents work</p>
+  <h2>Five AI agents on gpt-6-luna; code does the exact work</h2>
+  <div class="body" style="grid-template-columns: 712px 1fr; gap: 34px">
+   <figure class="diagram">{{SVG:architecture}}</figure>
+   <div class="points">
+    <div class="point"><b>Career coach (boss)</b> plans the week and answers chat. It may rank only the open actions code derived, after asking two specialists: one level deep, at most 4 questions.</div>
+    <div class="point scout"><b>Specialists read small context:</b> the 10 best-matching records (BM25), and may cite only ids they were given. 30 playbooks (“skills”): built into each agent's instructions, or opened on demand in chat.</div>
+    <div class="point code"><b>Records keeper</b> (code, 0 tokens) is the only writer of cards: every quote, name, link and record id is checked against its source.</div>
+    <div class="point luna"><b>gpt-6-luna only</b>, through the course key, reasoning effort low; an answer from any other model is rejected.</div>
+   </div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Diagram drawn from the code: <code>agents/*.py</code>, <code>keeper.py</code>, <code>main.py</code></span></div>
+ </div>
+</section>
+
+<!-- ============================== 5. DEMO ============================== -->
+<section id="demo">
+ <div class="slide">
+  <p class="kicker">Demo · live site, Oct 26 · <span class="run">run {{V:plan_run}}</span></p>
+  <h2>One real run: <i>Plan my week</i></h2>
+  <div class="strip">
+   <div class="step"><span class="t">0.1 s</span>Starts from 23 open actions code derived</div>
+   <div class="step"><span class="t">2.2 s</span>Asks both specialists, in parallel</div>
+   <div class="step"><span class="t">2.3 s</span>Each reads 10 of its 12 records (BM25)</div>
+   <div class="step"><span class="t">12.9 s · 13.8 s</span>Scout {{V:scout_in}} in / {{V:scout_out}} out; Network {{V:network_in}} / {{V:network_out}}</div>
+   <div class="step"><span class="t">{{V:plan_secs}} s</span>5 ranked actions; code checks every cited id</div>
+  </div>
+  <div class="totals"><span><b>{{V:plan_calls}}</b> model calls</span><span><b>{{V:plan_in}}</b> input ({{V:plan_cached}} cached)</span><span><b>{{V:plan_out}}</b> output</span><span><b>{{V:plan_secs}}</b> s</span><span class="cost">{{V:plan_cost4}}</span></div>
+  <div class="shots2">
+   <figure style="width:490px"><img data-shot="05_plan_my_week.png" data-width="1000" data-crop="1,1066" alt="Plan my week result">
+    <figcaption><b>The plan:</b> top two of five actions, with their evidence.</figcaption></figure>
+   <figure style="width:492px"><img data-shot="06_plan_trace.png" data-width="1000" data-crop="1,1040" alt="How the coach decided">
+    <figcaption><b>How the coach decided:</b> delegation and record searches.</figcaption></figure>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Tokens per agent: shown in the trace and in <code>runs.json</code></span></div>
+ </div>
+</section>
+
+<!-- ============================== 6. COST ============================== -->
+<section id="cost">
+ <div class="slide">
+  <p class="kicker">Tokenomics · real measured runs</p>
+  <h2>Cost: a fifth of a cent per weekly plan</h2>
+  <div class="body" style="grid-template-columns: minmax(0, 1fr) 384px; gap: 28px">
+   <div class="stack">
+    <div class="card accent">
+     <span class="lbl">Measured · Plan my week · run {{V:plan_run}}</span>
+     <div style="display:flex;align-items:baseline;gap:18px"><span class="big">{{V:plan_cost5}}</span><span class="runline">{{V:plan_in}} input ({{V:plan_cached}} cached) · {{V:plan_out}} output · {{V:plan_calls}} calls</span></div>
+     <p class="formula">({{V:plan_uncached}} uncached × $0.10 + {{V:plan_cached}} cached × $0.01 + {{V:plan_out}} output × $0.50) ÷ 1,000,000. Output is {{V:out_cost_share}} of the cost but {{V:out_token_share}} of the tokens.</p>
+    </div>
+    <div class="card">
+     <span class="lbl grey">Median cost per request · live database, {{V:live_requests}} requests, {{V:live_calls}} model calls</span>
+     <div class="chips">{{V:median_chips}}</div>
+    </div>
+    <div>
+     <table class="scale">
+      <thead><tr><th style="width:52%">Per month <span class="tag est">estimate</span></th><th class="num">Per student</th><th class="num">100 students</th><th class="num">10,000 students</th></tr></thead>
+      <tbody>{{V:scale_rows}}</tbody>
+     </table>
+     <p class="note">Measured cost per request × estimated use (no pilot month yet); tokens only. With paid hosting ($32 or $75 a month), 10,000 typical students ≈ {{V:typical_10k_hosted}} a month, about 6 cents each. Cap: at most {{V:day_cap}} per student per day.</p>
+    </div>
+   </div>
+   <figure><img data-shot="16_usage_costs.png" data-width="800" data-crop="1,1480" alt="Usage page">
+    <figcaption><b>The app's Usage page</b>, same session: each run's input, cached and output tokens, time and cost, and the price source.</figcaption></figure>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Prices: OpenAI's gpt-6-luna list, Oct 26 · Portkey's fee not included</span></div>
+ </div>
+</section>
+
+<!-- ============================== 7. SAFETY ============================== -->
+<section id="safety">
+ <div class="slide">
+  <p class="kicker">Safety · attack samples run on the live site</p>
+  <h2>Attacks stopped before any model read them</h2>
+  <div class="body" style="grid-template-columns: 580px 1fr; gap: 30px">
+   <div>
+    <div class="attack"><div class="hd">Attack 1 · instructions in a job posting<span class="run">run fa319fb53b37</span></div>
+     <figure><img data-shot="07_attack_injected_instructions.png" data-width="1232" data-crop="1118,1500" alt="Injected instructions quarantined"></figure>
+     <div class="res">✓ Only the real posting was saved, as not started; no fake recruiter added.</div></div>
+    <div class="attack" style="margin-bottom:0"><div class="hd">Attack 2 · white 1-px text in a web page<span class="run">run 2bbe610b4159</span></div>
+     <figure><img data-shot="08_attack_hidden_text.png" data-width="1232" data-crop="1118,1425" alt="Hidden text removed"></figure>
+     <div class="res">✓ Saved as a new opportunity, not as an offer; nothing else changed.</div></div>
+   </div>
+   <div>
+    <span class="lbl">Layered defences, enforced in code</span>
+    <div class="defs">
+     <div class="def"><span class="ic">1</span><span><b>Shield:</b> hidden text and lines that read like instructions to an AI are removed before any model sees them, and shown to the student (0 tokens).</span></div>
+     <div class="def"><span class="ic">2</span><span><b>Records keeper:</b> rejects any quote, person, link or record id that is not in the source.</span></div>
+     <div class="def"><span class="ic">3</span><span><b>Nothing is sent:</b> no agent has a sending tool; drafts wait in an Outbox for the student.</span></div>
+     <div class="def"><span class="ic">4</span><span><b>Isolation and budgets:</b> another student's data returns 404; 300,000 tokens per student per day, then 429; a kill switch; caps on loops.</span></div>
+     <div class="def proof"><span class="ic">✓</span><span><b>Shown working:</b> 72 automated tests pass with no key; a live check of every agent and guardrail passed 19 of 19; two adversarial reviews, all confirmed findings fixed.</span></div>
+    </div>
+    <p class="limit"><b>Honest limit:</b> the shield is pattern matching, so new wording could get through. A model that obeyed would still have no tool to send, and nothing it invented would pass the keeper's quote check.</p>
+   </div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Contact details in the attack were masked on screen</span></div>
+ </div>
+</section>
+
+<!-- ============================== 8. IMPACT ============================== -->
+<section id="impact">
+ <div class="slide">
+  <p class="kicker">Impact</p>
+  <h2>Fast and cheap today; the user test will show the minutes</h2>
+  <div class="body" style="grid-template-columns: 1fr 600px; gap: 32px">
+   <div>
+    <span class="lbl">Measured today, without a user <span class="tag ok">measured</span></span>
+    <div class="meas">
+     <div class="m"><b class="n">{{V:plan_secs}} s</b> to turn 23 open actions into 5 ranked moves, each with why now, a first step and evidence.</div>
+     <div class="m"><b class="n">{{V:intake_min}} to {{V:intake_max}} s</b> to capture one pasted text: one model call, quotes checked.</div>
+     <div class="m"><b class="n">{{V:callprep_secs}} s</b> for a call brief; <b class="n">{{V:doors_secs}} s</b> to find warm paths after checking 10 people.</div>
+     <div class="m"><b class="n">8</b> organisations' public job boards searched in {{V:discover_secs}} s; <b class="n">1</b> real MBA internship saved (Robinhood Ventures).</div>
+     <div class="m">Reading the student no longer does: only <b class="n">29 of 150</b> emails, <b class="n">23 of 125</b> WhatsApp and <b class="n">3 of 36</b> iMessage conversations passed the filter (author's accounts, counts only).</div>
+    </div>
+    <p class="protocol"><b>User test: not run yet.</b> Protocol ready (<code>docs/impact/PROTOCOL.md</code>): the same tester does each chore today's way, then in the app, with the same real material. The first tester will be the author, who is also the builder.</p>
+   </div>
+   <div>
+    <div class="placeholder">
+     <div class="ph-title">[insert after user test: task, minutes before vs after, follow-ups found, quote]</div>
+     <div class="task"><b class="t">Capture 6 real items · B1 → A1</b>Before <span class="ph">[insert]</span> min → after <span class="ph">[insert]</span> min · fields right / wrong / missed vs own rows: <span class="ph">[insert]</span></div>
+     <div class="task"><b class="t">Decide the week: 3 most valuable actions · B2 → A2</b>Before <span class="ph">[insert]</span> min → after <span class="ph">[insert]</span> min · coach actions the tester would really do (0–5): <span class="ph">[insert]</span> · follow-ups their own list missed: <span class="ph">[insert]</span></div>
+     <div class="task"><b class="t">Prepare the next call · B3 → A3</b>Before <span class="ph">[insert]</span> min → after <span class="ph">[insert]</span> min · usefulness vs own notes (1–5): <span class="ph">[insert]</span></div>
+     <div class="task"><b>Quote:</b> “<span class="ph wrap">[insert after user test: the tester's own words, with permission to quote, named or anonymous]</span>”</div>
+     <div class="task"><b>Weekly projection</b> <span class="tag est">estimate</span>: <span class="ph wrap">[insert after user test: minutes saved per task × the tester's own count of items, plans and calls per week]</span></div>
+    </div>
+   </div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Every measured number: a run id or a file in <code>docs/evidence/</code></span></div>
+ </div>
+</section>
+
+<!-- ============================== 9. LIMITS + NEXT STEPS ============================== -->
+<section id="next">
+ <div class="slide s-end">
+  <p class="kicker">Limits and next steps</p>
+  <h2>What does not work yet, and the next month</h2>
+  <div class="body" style="grid-template-columns: 1fr 1fr; gap: 40px">
+   <div>
+    <span class="lbl" style="color:#d70015">Not yet</span>
+    <div class="lim">
+     <div class="l"><b>No real user test yet.</b> The first tester will be the author, who is also the builder; one tester is not a sample.</div>
+     <div class="l"><b>Chat auto-sync is half verified.</b> Gmail syncs on its own; iMessage and WhatsApp wait for Full Disk Access, not yet verified. It needs a Mac.</div>
+     <div class="l"><b>Free hosting sleeps</b> (cold start 32 s), and GitHub runs the keep-awake schedule only sporadically.</div>
+     <div class="l"><b>Not measured:</b> retrieval recall at scale, the chat filter's misses, and a Duolingo posting the scout read but did not save.</div>
+    </div>
+   </div>
+   <div>
+    <span class="lbl">With another month</span>
+    <ol class="next">
+     <li><b>Measure:</b> run the protocol with 5 to 10 classmates and publish times, ratings and quotes.</li>
+     <li><b>An evaluation set:</b> 50 fictional messages and postings with known answers, scored on every change.</li>
+     <li><b>One-click connection:</b> a signed Mac menu-bar app instead of a Terminal script, and the known interface fixes.</li>
+     <li><b>A career-office pilot:</b> always-on hosting ($32 a month), school sign-in, school postings with permission.</li>
+    </ol>
+   </div>
+  </div>
+  <div class="links" style="margin-top:14px">
+   <div class="row"><span class="k">Code · public repo</span><span><a href="https://github.com/aymonpadillahernandez/summer_internship_coach_aymon">https://github.com/aymonpadillahernandez/summer_internship_coach_aymon</a></span></div>
+   <div class="row"><span class="k">Live app</span><span><a href="https://summer-internship-coach.onrender.com">https://summer-internship-coach.onrender.com</a> <span class="s" style="display:inline;margin-left:8px">· Try the demo, no account needed</span></span></div>
+  </div>
+  <div class="foot"><span>Summer Internship Coach · Aymon Padilla Hernández · MGT 409</span><span class="r">Thank you</span></div>
+ </div>
+</section>
+
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.2.1/dist/reveal.js"></script>
+<script>
+if (window.Reveal) {
+  Reveal.initialize({
+    width: 1280, height: 720, margin: 0, minScale: 0.2, maxScale: 2.0, center: false,
+    hash: true, controls: true, progress: true, slideNumber: false, transition: 'fade', backgroundTransition: 'none',
+    keyboard: true, overview: true, help: true
+  });
+} else {
+  document.body.classList.add('noreveal');
+}
+</script>
+</body>
+</html>

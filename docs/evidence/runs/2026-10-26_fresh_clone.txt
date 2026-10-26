@@ -1,0 +1,55 @@
+Fresh-clone acceptance test (REQUIREMENTS.md section 17, repo part), Oct 26 2026, 08:16:21 to 08:18:43 ET
+Commit tested: e54fa73 (origin/main, "Usage page shows the price and its source")
+Layout: submissions/.env (one line, PORTKEY_API_KEY only, copied without printing) + submissions/summer_internship_coach_aymon/
+        cloned from https://github.com/aymonpadillahernandez/summer_internship_coach_aymon. No .env two folders up.
+Shell: PORTKEY_API_KEY, DATABASE_URL and OPENAI_API_KEY not set in the environment (and unset explicitly for the server),
+       so every value came from the .env one folder above the repo.
+Machine: macOS (arm64), Python 3.14.7 (python3), Node 24.20.0, npm 11.19.0.
+
+STEPS (README "Run it locally", exactly as written; only the port changed: 8031 instead of 8020, which was in use for development)
+  git clone                                         1 s
+  1. .env one folder above the repo                 (done before the clone steps)
+  2. cd backend; python3 -m venv .venv;
+     .venv/bin/python -m pip install -r requirements.txt     7 s   (pip cache warm)
+  3. cd ../frontend; npm ci; npm run build          1 s + 2 s  (127 packages; built 491.7 kB JS, 50.1 kB CSS)
+  4. cd ../backend; .venv/bin/python -m uvicorn main:app --port 8031     ready in 2 s
+  5. http://127.0.0.1:8031 -> HTTP 200 (built site served by FastAPI); JS and CSS assets 200
+  Setup, clone to server ready: 13 s.
+  Cold rerun (second clone, same commands, empty pip and npm caches: 96 Python files and 127 npm packages downloaded):
+  clone 1 s, venv + pip 10 s, npm ci 1 s, build 2 s = 14 s on this connection. Far inside the 10-minute rule.
+
+CHECKS
+  [PASS] /api/health -> {"ok":true,"model":"gpt-6-luna","portkey_key_set":true,"env_file":"one folder above the repo","database":"sqlite"}
+  [PASS] check_setup.py (README) -> ".env used: one folder above the repo", PORTKEY_API_KEY: set, model answered gpt-6-luna-global,
+         13 input / 0 cached / 5 output tokens, 1.75 s, exit 0
+  [PASS] Try the demo (POST /api/auth/demo, the route the built site's button calls) -> 200 in under 1 s; seeded
+         12 opportunities, 12 people, 4 leads (data/demo/demo_seed.json, tracked in the repo)
+  [PASS] Real paste end to end on the demo: posting sample (data/demo/samples/posting_riverside.txt) -> POST /api/intake 200 in 5.6 s
+         run f0c90e813300: router -> Inbox organizer (1 model request) -> Records keeper
+         1 request · 4,588 input / 3,802 cached input / 366 output tokens (129 reasoning) · $0.00029962 at the prices in config.py
+         Saved: Riverside Arena Group, "MBA Summer Associate, Business Strategy (Summer 2027)", stage not started; 0 rejected;
+         2 fields_not_found (posting status, posting URL). Opportunities 12 -> 13. The Usage log shows the same run and tokens.
+  [PASS] Tests in the clone: backend/.venv/bin/python -m pytest -q tests -> 72 passed in 1.70 s (no key needed, 0 tokens)
+  [PASS] No hidden local file needed: after the steps, the only untracked or ignored files are the ones the steps create
+         (backend/.venv, frontend/node_modules, frontend/dist, data/coach.db on first start, output/setup_check.json, .pytest_cache).
+         Also served from the clone: /connector/coach_connector.py 200, /demo-pages/cobalt-careers.html 200.
+  [PASS] No secrets committed: 164 tracked files; the only env-named file is .env.example (placeholders). The first 8 characters of
+         the real key appear in 0 tracked files at HEAD and in 0 files across all 21 commits of history (searched, not printed).
+         No other secret-shaped strings (sk- keys, Postgres URLs with passwords, app passwords) and no absolute local paths.
+  [PASS] Live URL: https://summer-internship-coach.onrender.com/api/health -> 200 in 0.10 s
+         ({"ok":true,"model":"gpt-6-luna","portkey_key_set":true,"env_file":"none found (using the host's environment variables)",
+         "database":"postgres"}); GET / -> 200.
+
+NOTES
+  npm ci warned that fsevents has install scripts not covered by allowScripts (npm 11); harmless, the build succeeded.
+  pydantic-ai-slim 2.61 requires Python >= 3.11 and macOS's built-in python3 is 3.9.6, so the README now says to check
+  python3 --version (README change below).
+
+README CHANGES (local, not yet committed or pushed)
+  - "Install and start the backend" -> "Install the backend" (step 2 only installs; step 4 starts it).
+  - Added: check python3 --version; macOS's built-in python3 is 3.9, so use a newer one (e.g. python3.13 -m venv .venv).
+  - Added: if port 8020 is busy, any free port works (same number in steps 4 and 5), as this test did with 8031.
+
+CLEANUP
+  uvicorn (pid 3742) stopped; port 8031 free; no process left from the clone folder. submissions/.env deleted (0 .env files
+  left) and the session cookie file deleted. Model calls spent: 2 (one Inbox organizer intake, one check_setup), about $0.0003.

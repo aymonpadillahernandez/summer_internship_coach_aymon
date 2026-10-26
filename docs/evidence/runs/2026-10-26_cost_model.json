@@ -1,0 +1,50 @@
+{
+ "note": "Prices: OpenAI list price for gpt-6-luna (standard tier) read 2026-10-26. Per-request costs: medians of real logged runs on the live database (scripts/token_report.py, 2026-10-26_tokenomics_live.json), except chat = one measured coach chat with a draft. Requests per month are an ESTIMATE (no pilot user measured yet). Token cost only: hosting, Portkey fees and the free-plan limits are separate.",
+ "prices_per_1m": {
+  "input": 0.1,
+  "cached_input": 0.01,
+  "output": 0.5,
+  "source": "OpenAI API pricing, gpt-6-luna standard tier (developers.openai.com/api/docs/pricing), read 2026-10-26"
+ },
+ "cost_per_request_usd": {
+  "intake": 0.00032399,
+  "plan": 0.00184256,
+  "chat": 0.000707,
+  "discover": 0.00104272,
+  "doors": 0.000461,
+  "guide": 0.0004009
+ },
+ "requests_per_month": {
+  "typical": {
+   "intake": 60,
+   "plan": 8,
+   "chat": 20,
+   "discover": 4,
+   "doors": 4,
+   "guide": 2
+  },
+  "heavy": {
+   "intake": 150,
+   "plan": 20,
+   "chat": 60,
+   "discover": 12,
+   "doors": 10,
+   "guide": 4
+  }
+ },
+ "scenarios": {
+  "typical": {
+   "requests": 98,
+   "per_user_month_usd": 0.0551,
+   "users_100_month_usd": 5.51,
+   "users_10000_month_usd": 551.37
+  },
+  "heavy": {
+   "requests": 256,
+   "per_user_month_usd": 0.1466,
+   "users_100_month_usd": 14.66,
+   "users_10000_month_usd": 1465.96
+  }
+ },
+ "worst_case_per_user_day_usd": 0.15
+}

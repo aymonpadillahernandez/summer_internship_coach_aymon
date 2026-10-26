@@ -1,0 +1,114 @@
+/* report.html styles: Apple-like, letter-size print, no external resources (system fonts only). */
+:root {
+  --ink: #1d1d1f; --ink2: #3a3a3c; --muted: #6e6e73; --faint: #8e8e93; --line: #d2d2d7; --soft: #f5f5f7;
+  --accent: #5e5ce6; --accent-soft: #efefff; --green: #248a3d; --red: #d70015; --yellow: #fff6d1; --yellow-line: #e6b800;
+}
+@page {
+  size: Letter;
+  margin: 0.7in 0.7in 0.72in 0.7in;
+  @bottom-left { content: "Summer Internship Coach · Aymon Padilla Hernández · MGT 409"; font: 7.5pt -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; color: #8e8e93; }
+  @bottom-right { content: counter(page) " / " counter(pages); font: 7.5pt -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; color: #8e8e93; }
+}
+* { box-sizing: border-box; }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0; background: #e9e9ee; color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10.5pt; line-height: 1.42; font-kerning: normal;
+}
+main { max-width: 8.5in; margin: 24px auto; background: #fff; padding: 0.7in; box-shadow: 0 2px 18px rgba(0,0,0,.08); border-radius: 10px; }
+@media print { body { background: #fff; } main { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: none; } }
+
+p, li { text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+p { margin: 0 0 7pt; }
+a { color: #0066cc; text-decoration: none; }
+b, strong { font-weight: 650; }
+code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 8.8pt; background: var(--soft); padding: 0 2.5pt; border-radius: 3pt; }
+ul, ol { margin: 0 0 7pt; padding-left: 15pt; }
+li { margin: 0 0 2.5pt; }
+
+section { break-before: auto; margin-top: 16pt; }
+section.first { margin-top: 0; }
+section.pb { break-before: page; margin-top: 0; }
+h2 { font-size: 17pt; letter-spacing: -.2pt; margin: 0 0 8pt; padding-bottom: 5pt; border-bottom: 1.5pt solid var(--ink); break-after: avoid; }
+h2 .n { color: var(--accent); margin-right: 6pt; }
+h3 { font-size: 11.5pt; margin: 12pt 0 4pt; break-after: avoid; }
+h3 + p, h3 + ul, h3 + ol, h3 + table { break-before: avoid; }
+
+/* Cover */
+.toplinks { border: 1pt solid var(--line); border-radius: 9pt; padding: 8pt 11pt; margin-bottom: 16pt; background: var(--soft); }
+.toplinks div { display: grid; grid-template-columns: 0.95in 1fr; gap: 6pt; padding: 3pt 0; text-align: left; }
+.toplinks div + div { border-top: .5pt solid var(--line); }
+.toplinks .k { font-size: 8pt; font-weight: 700; letter-spacing: .6pt; text-transform: uppercase; color: var(--muted); padding-top: 1.5pt; }
+.toplinks a { font-weight: 650; }
+.kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: .8pt; text-transform: uppercase; color: var(--accent); margin: 0 0 4pt; text-align: left; }
+h1 { font-size: 30pt; letter-spacing: -.8pt; line-height: 1.05; margin: 0 0 4pt; }
+.byline { font-size: 11pt; color: var(--muted); margin: 0 0 10pt; text-align: left; }
+.lede { font-size: 12.5pt; line-height: 1.38; margin: 0 0 12pt; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7pt; margin: 0 0 12pt; }
+.stat { background: var(--soft); border-radius: 8pt; padding: 7pt 8pt; }
+.stat b { display: block; font-size: 13pt; letter-spacing: -.2pt; color: var(--ink); }
+.stat span { display: block; font-size: 8pt; color: var(--muted); line-height: 1.3; text-align: left; }
+
+/* Figures */
+figure { margin: 9pt 0 10pt; break-inside: avoid; }
+figure img, figure svg { display: block; width: 100%; height: auto; }
+figure img { border: .6pt solid var(--line); border-radius: 6pt; }
+figcaption { font-size: 8.4pt; line-height: 1.35; color: var(--muted); margin-top: 4pt; text-align: left; }
+figcaption b { color: var(--ink2); }
+.w90 { width: 90%; margin-left: auto; margin-right: auto; }
+.w80 { width: 80%; margin-left: auto; margin-right: auto; }
+.w75 { width: 75%; margin-left: auto; margin-right: auto; }
+.w70 { width: 70%; margin-left: auto; margin-right: auto; }
+.w60 { width: 60%; margin-left: auto; margin-right: auto; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; align-items: start; }
+.grid2 > figure { margin: 0; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9pt; align-items: start; }
+.grid3 > figure { margin: 0; }
+.crop { overflow: hidden; border: .6pt solid var(--line); border-radius: 6pt; }
+.crop img { border: 0; border-radius: 0; }
+.side { display: grid; grid-template-columns: 1fr 3.05in; gap: 12pt; align-items: start; }
+.side > figure { margin: 0; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 8.5pt; line-height: 1.32; margin: 4pt 0 9pt; }
+thead { display: table-header-group; }
+tr { break-inside: avoid; }
+th { text-align: left; font-size: 7.6pt; font-weight: 700; letter-spacing: .3pt; text-transform: uppercase; color: var(--muted); border-bottom: 1pt solid var(--ink); padding: 3pt 5pt; vertical-align: bottom; }
+td { border-bottom: .5pt solid var(--line); padding: 3.2pt 5pt; vertical-align: top; text-align: left; hyphens: manual; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.num { white-space: nowrap; }
+tr.total td { font-weight: 700; border-top: 1pt solid var(--ink); border-bottom: 0; }
+td .sub { display: block; color: var(--muted); font-size: 7.8pt; }
+.tablenote { font-size: 8pt; color: var(--muted); margin: -5pt 0 9pt; text-align: left; }
+table.compact td { padding: 2.6pt 4pt; }
+
+/* Callouts */
+.note { break-inside: avoid; background: var(--soft); border-left: 3pt solid var(--accent); border-radius: 0 6pt 6pt 0; padding: 6pt 9pt; margin: 6pt 0 9pt; font-size: 9.4pt; }
+.note p:last-child { margin-bottom: 0; }
+.estimate { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: #8a5a00; background: #fff1c2; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
+.measured { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: var(--green); background: #e3f6e8; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
+.placeholder { background: var(--yellow); border: 1.2pt solid var(--yellow-line); border-radius: 7pt; padding: 8pt 10pt; margin: 8pt 0 10pt; break-inside: avoid; }
+.placeholder .ph-title { font-weight: 700; font-size: 10pt; margin-bottom: 4pt; text-align: left; }
+.placeholder table { margin-bottom: 4pt; }
+.placeholder td, .placeholder th { border-color: #ead48a; }
+.ph { background: #ffe680; border-radius: 3pt; padding: 0 3pt; font-weight: 600; white-space: nowrap; }
+
+/* Competitor tiles */
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6pt; margin: 6pt 0 10pt; }
+.tile { display: grid; grid-template-columns: 26pt 1fr; gap: 6pt; align-items: center; background: var(--soft); border-radius: 8pt; padding: 5pt 7pt; }
+.tile i { font-style: normal; width: 26pt; height: 26pt; border-radius: 7pt; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 750; font-size: 10pt; letter-spacing: -.3pt; }
+.tile b { display: block; font-size: 9pt; line-height: 1.15; }
+.tile span { display: block; font-size: 7.4pt; color: var(--muted); line-height: 1.2; text-align: left; }
+.ini { display: inline-flex; width: 15pt; height: 15pt; border-radius: 4pt; color: #fff; font-weight: 750; font-size: 6.8pt; align-items: center; justify-content: center; margin-right: 4pt; vertical-align: -3pt; font-style: normal; }
+.chips { display: flex; flex-wrap: wrap; gap: 4pt; margin: 4pt 0 9pt; }
+.chip { font-size: 8.2pt; border: .7pt solid var(--line); border-radius: 20pt; padding: 1.5pt 7pt; background: #fff; }
+.chip.auto { border-color: #9be2ae; background: #effaf2; }
+
+/* Steps */
+ol.steps { list-style: none; padding: 0; counter-reset: s; margin: 4pt 0 8pt; }
+ol.steps li { counter-increment: s; position: relative; padding-left: 20pt; margin-bottom: 3.5pt; }
+ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 0.5pt; width: 13pt; height: 13pt; border-radius: 50%; background: var(--accent); color: #fff; font-size: 7.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 8.6pt; }
+.keep { break-inside: avoid; }
+.small { font-size: 9pt; }

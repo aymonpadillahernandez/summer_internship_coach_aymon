@@ -1,0 +1,174 @@
+{
+  "competitors": [
+    {
+      "name": "Simplify (Copilot, Job Tracker, Networking, Simplify+)",
+      "urls": [
+        "https://simplify.jobs/",
+        "https://simplify.jobs/job-application-tracker",
+        "https://simplify.jobs/networking",
+        "https://help.simplify.jobs/articles/0236686-email-integration",
+        "https://help.simplify.jobs/articles/4158996-find-referral-connections-with-simplify",
+        "https://help.simplify.jobs/articles/5623502-whats-included-in-simplify-features-and-pricing"
+      ],
+      "what_it_does": "AI job-search platform: matches roles, tailors resumes, autofills and (with Autopilot) submits applications, tracks applications, connects Gmail to match recruiting threads to tracked jobs, and finds referral paths at target companies.",
+      "quote": "Simplify proactively matches better-fit roles, customize your resume, and applies for you.",
+      "gap_vs_us": "Closest overlap: Gmail threads matched to tracked jobs with suggested status updates, and referral paths per company. Differences: Simplify is built to act for you (Autopilot submits applications; its Gmail integration can send messages from the tracker), while our app has no sending tool and opens Gmail read-only. Its connection discovery uses connected professional-network data or imported contacts; the pages read do not mention WhatsApp, iMessage or Slack. They do not describe a weekly plan ranking actions across all opportunities and people, or showing the exact quote behind each record.",
+      "price": "Core tools free. Simplify+ standard web plans: $19.99 per week, $39.99 per month, $89.99 per 3 months (help center).",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "ChatGPT (Work agent, connected apps, scheduled tasks)",
+      "urls": [
+        "https://chatgpt.com/pricing/",
+        "https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex",
+        "https://help.openai.com/en/articles/10408842-google-app-data-controls-faq"
+      ],
+      "what_it_does": "General assistant whose Work agent can use connected apps such as Gmail and Slack, run once, on a schedule or on an event (for example a new Gmail message), and on desktop use local files and apps when allowed.",
+      "quote": "Work is an agent designed for longer, multi-step work and finished deliverables.",
+      "gap_vs_us": "Honest overlap: a motivated student could prompt ChatGPT Work to read Gmail and draft a weekly plan. What it does not ship with: a recruiting data model (opportunities and people pipelines, stages, deadlines, MBA eligibility) that persists between chats, facts checked in code against an exact quote, and job-board search scoped to the student's organisations. The student must design and maintain the workflow and prompts. OpenAI's FAQ lists the gmail.modify scope for its Gmail app and Work can take actions after approval; our connector opens the mailbox read-only and no agent can send.",
+      "price": "Free $0/month; Go $8/month; Plus $20/month; Pro from $100/month.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Dex (personal CRM)",
+      "urls": [
+        "https://getdex.com/",
+        "https://getdex.com/pricing/"
+      ],
+      "what_it_does": "Personal CRM that syncs LinkedIn, email, calendar, WhatsApp and messaging into one private contact database with notes, keep-in-touch reminders and MCP access for AI assistants.",
+      "quote": "Dex brings together LinkedIn, email, and all your daily tools.",
+      "gap_vs_us": "Honest overlap: cross-channel relationship memory (its pricing page lists WhatsApp and Messaging sync). Differences: Dex is organised around people for any purpose; the pages read do not tie contacts to internship opportunities, deadlines or eligibility, search job boards, or produce a weekly recruiting plan with the source quote behind each fact. Its Professional plan includes mail merge; our app never sends.",
+      "price": "Premium $20/month billed monthly ($12/month billed annually); Professional $34/month monthly ($20 annually); Team $40/user/month. MBA students: 50% off for two years. 6-day free trial.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "LinkedIn Premium Career (plus LinkedIn Jobs)",
+      "urls": [
+        "https://premium.linkedin.com/careers/career"
+      ],
+      "what_it_does": "Subscription adding AI-powered job-fit insights on job posts, profile writing help, a message proofreader, 5 InMail credits a month, top-applicant jobs and AI-powered coaching with LinkedIn Learning.",
+      "quote": "Assess your fit for a job and get personalized tips to stand out",
+      "gap_vs_us": "Works inside LinkedIn: its AI sees LinkedIn posts, profiles and messages, not the student's Gmail, school mail, WhatsApp or iMessage threads, and the pages read describe no pipeline tying people to opportunities across channels or a weekly priority plan. It is also a sending channel (InMail). Our app reads LinkedIn's own data export (Connections.csv, messages.csv) instead, so it complements LinkedIn.",
+      "price": "From US$39.99/month or US$239.88/year per license.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Handshake (student career network)",
+      "urls": [
+        "https://joinhandshake.com/students/",
+        "https://support.joinhandshake.com/hc/en-us/articles/38856960612631-About-AI-powered-features-in-Handshake-for-students"
+      ],
+      "what_it_does": "Career network for students and early-career job seekers with AI-ranked job recommendations, conversational job search, an AI assistant on some job posts and a resume optimizer.",
+      "quote": "get tailored profile and resume tips for a specific job",
+      "gap_vs_us": "Its AI works on Handshake's own postings, profile and feed; the help article says the assistant uses the job description, your profile and resume and what you type. Nothing in the pages read covers your outside conversations, a relationship memory, or a weekly plan across postings found elsewhere. Our scout does not scrape Handshake (its terms forbid it); students paste postings.",
+      "price": "No student price stated on the pages read (the site's Pricing link is for employers).",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "12twenty (school career platform, Career Services Hub)",
+      "urls": [
+        "https://12twenty.com/",
+        "https://12twenty.com/csh"
+      ],
+      "what_it_does": "Platform licensed by universities and MBA programs to run the career center: job board, interview scheduling, career fairs, events and advising appointments.",
+      "quote": "Show students relevant jobs based on their preferences and activity",
+      "gap_vs_us": "Built for the career office and employers, not as a personal assistant: the pages read describe no AI coach, no reading of a student's own email or chats, and no relationship memory or weekly plan. Complementary: students paste 12twenty postings into the coach.",
+      "price": "Not public; the site offers 'Get a Demo' to universities.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Teal (job tracker + AI resume builder)",
+      "urls": [
+        "https://www.tealhq.com/",
+        "https://www.tealhq.com/tools/job-tracker",
+        "https://www.tealhq.com/pricing"
+      ],
+      "what_it_does": "AI resume builder and job tracker with a Chrome extension that bookmarks jobs from 40+ boards, contacts attached to jobs and 40+ email templates for follow-ups.",
+      "quote": "One place to organize and manage your job search",
+      "gap_vs_us": "Contacts and follow-ups are added by hand and messages come from templates; the pages read do not describe reading the student's email or chats, keeping quotes as evidence, or a weekly priority plan across opportunities and people. Its AI focuses on resumes and cover letters, which our app does not do.",
+      "price": "Free plan; Teal+ $13 every 7 days, $29 every 30 days or $79 every 90 days.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Huntr (job tracker + AI resume tools)",
+      "urls": [
+        "https://huntr.co/",
+        "https://huntr.co/pricing"
+      ],
+      "what_it_does": "Job-search tracker with AI resume, cover-letter and match-score tools, a Chrome job clipper, application autofill and a contact tracker for recruiters and hiring managers.",
+      "quote": "Huntr keeps track of every detail about your job opportunities",
+      "gap_vs_us": "Contacts are stored as entered details; the pages read do not describe reading conversations across channels, tying each fact to a source quote, or ranking a weekly plan. Strong on resumes and autofill, which our app does not do.",
+      "price": "Free (up to 100 jobs); Pro $40/month, or $90 every 3 months, or $160 every 6 months.",
+      "read_on": "2026-10-26"
+    }
+  ],
+  "hosting": [
+    {
+      "name": "Render",
+      "plan": "Web service instance Starter (512 MB RAM, 0.5 CPU)",
+      "price": "$7/month",
+      "url": "https://render.com/pricing",
+      "quote": "Starter | $7/month | 512 MB | 0.5 (instance table cells)",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Render",
+      "plan": "Web service instance Standard (2 GB RAM, 1 CPU)",
+      "price": "$25/month",
+      "url": "https://render.com/pricing",
+      "quote": "Standard | $25/month | 2 GB | 1 (instance table cells)",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Render",
+      "plan": "Web service instance Pro (4 GB RAM, 2 CPU)",
+      "price": "$85/month",
+      "url": "https://render.com/pricing",
+      "quote": "Pro | $85/month | 4 GB | 2 (instance table cells)",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Render",
+      "plan": "Workspace Pro (unlimited seats, horizontal autoscaling)",
+      "price": "$25/month + compute",
+      "url": "https://render.com/pricing",
+      "quote": "For teams deploying production-grade apps and agents.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Render",
+      "plan": "Workspace Hobby + Free instance (what the app uses today)",
+      "price": "$0/month + compute",
+      "url": "https://render.com/docs/free",
+      "quote": "Render spins down a Free web service that goes 15 minutes without receiving any inbound traffic.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Supabase",
+      "plan": "Pro",
+      "price": "From $25/month per organisation; first project included, additional projects from $10/month",
+      "url": "https://supabase.com/pricing",
+      "quote": "Paid plans include $10/mo in compute credits, enough to cover one Micro instance.",
+      "read_on": "2026-10-26"
+    },
+    {
+      "name": "Supabase",
+      "plan": "Free (what the app uses today)",
+      "price": "$0/month",
+      "url": "https://supabase.com/pricing",
+      "quote": "Free projects are paused after 1 week of inactivity. Limit of 2 active projects.",
+      "read_on": "2026-10-26"
+    }
+  ],
+  "notes": [
+    "All facts come from the vendors' own pages, read on 2026-10-26; search results were used only to find those pages. Quotes are exact substrings of the page text.",
+    "Where a gap says a feature is not described, it means the pages listed did not describe it, not that the product cannot do it.",
+    "Supabase Pro includes 100,000 monthly active users (then $0.00325 per MAU), 8 GB disk per project (then $0.125 per GB) and 250 GB egress (then $0.09 per GB). Compute: Micro $10/month (1 GB), Small $15, Medium $60 (4 GB).",
+    "Render's Hobby workspace is $0/month + compute, so a paid instance does not require the Pro workspace; Pro adds team seats and horizontal autoscaling. Render grants 750 Free instance hours per workspace per month.",
+    "Arithmetic from the prices above (not a vendor quote): smallest always-on setup = Render Starter $7 + Supabase Pro $25 = $32/month; a school-wide setup = Render Pro workspace $25 + Standard instance $25 + Supabase Pro $25 = $75/month, before model tokens.",
+    "Today's free tiers carry two risks for a pilot: the Render Free service sleeps after 15 idle minutes (the repo's keep-awake Action covers 8 AM to 1 AM ET) and a Supabase Free project is paused after 1 week of inactivity.",
+    "Also read, not in the main list: Careerflow (https://www.careerflow.ai/networking-tracker, https://www.careerflow.ai/premium) offers a Networking Tracker that imports contacts from LinkedIn, email or CSV with reminders and AI insights; Premium $23.99/month, Premium Plus $44.99/month. Similar position to Teal and Huntr.",
+    "clay.earth now redirects to me.sh, branded Mesh ('Every relationship, remembered.'); Dex was used as the personal-CRM example.",
+    "Not read: openai.com/chatgpt-work/ returned an error page; Handshake student pricing is not stated. Teal, Handshake help and ChatGPT pages blocked plain HTTP requests and were read in a normal visible browser (no login, no forms)."
+  ]
+}

@@ -11,7 +11,7 @@ import OutboxPanel from "./OutboxPanel";
 type PlanView = CoachPlan & { run_id: string; usage: Usage; seconds: number; trace: TraceStep[]; created_at?: string };
 
 const PLAN_STAGES = [
-  "The Career strategist is reading your candidate actions…",
+  "The Career coach is reading your candidate actions…",
   "Asking the Opportunity scout and Network intelligence…",
   "The specialists are searching your records…",
   "Ranking where your time matters most this week…",
@@ -51,7 +51,7 @@ const TARGETS_TEMPLATE = `My target list for next summer (organisation — role 
 4. 
 5. `;
 
-/** The coach's home: this week's ranked plan (Career strategist) and "Add what's new" (the two specialists).
+/** The coach's home: this week's ranked plan (Career coach) and "Add what's new" (the Inbox organizer).
  *  New accounts first see a three-step guide: profile, targets, people. */
 export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile, onOpenConnect, outboxKey = 0 }: {
   candidates: Candidate[];
@@ -216,7 +216,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
           <header className="panel-head">
             <div>
               <h2>{firstName ? `Your week, ${firstName}` : "Your week"}</h2>
-              <p>The Career strategist ranks your {candidates.length} open actions after consulting both specialists.</p>
+              <p>The Career coach ranks your {candidates.length} open actions after consulting both specialists.</p>
             </div>
             <button className="primary-btn" onClick={makePlan} disabled={planBusy || candidates.length === 0}>
               {planBusy ? "Planning…" : plan ? "Re-plan my week" : "Plan my week"}

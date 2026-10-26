@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Summer Internship Coach · Report · Aymon Padilla Hernández</title>
+<style>
+{{CSS}}
+</style>
+</head>
+<body>
+<main>
+<!-- Source text of report.html. Build: backend/.venv/bin/python docs/report/build_report.py
+     {{TABLE:…}} tables are generated from docs/evidence and docs/research; data-shot images are embedded as base64.
+     Every number in the prose comes from a file named next to it (ledger: docs/evidence/EVIDENCE.md). -->
+
+<!-- ============================== 1. TITLE + LINKS ============================== -->
+<section class="first" id="s1">
+  <div class="toplinks">
+    <div><span class="k">Live app</span><span><a href="https://summer-internship-coach.onrender.com">https://summer-internship-coach.onrender.com</a> · click <b>Try the demo</b>: no account needed, a private sandbox with a fictional MBA student, deleted after 3 days.</span></div>
+    <div><span class="k">Code (public)</span><span><a href="https://github.com/aymonpadillahernandez/summer_internship_coach_aymon">https://github.com/aymonpadillahernandez/summer_internship_coach_aymon</a> · a <b>public</b> GitHub repository: anyone can clone it, no invitation needed. The README explains how to run it locally.</span></div>
+  </div>
+  <p class="kicker">MGT 409 · AI Foundations for Managers · Yale SOM · Fall 2026 · Final project</p>
+  <h1>Summer Internship Coach</h1>
+  <p class="byline">Aymon Padilla Hernández · October 26, 2026</p>
+  <p class="lede">Summer Internship Coach turns the recruiting emails, chats, exports and job postings an MBA student already has into one evidence-backed picture of their internship search, finds openings on public job boards, and tells them where to spend this week, without ever sending anything on their behalf.</p>
+  <div class="stats">
+    <div class="stat"><b>5 AI agents</b><span>plus a Records keeper in code that writes every card</span></div>
+    <div class="stat"><b>gpt-6-luna</b><span>the only model, through the course Portkey key</span></div>
+    <div class="stat"><b>$0.0020</b><span>measured cost of one “Plan my week” run (4 model calls, 22.2 s)</span></div>
+    <div class="stat"><b>72 tests · 19/19</b><span>automated tests pass with no key; live check of every agent and guardrail</span></div>
+  </div>
+  <figure class="w75">
+    <img data-shot="04_today_team.png" data-width="1500" alt="The Today screen of Summer Internship Coach">
+    <figcaption><b>Figure 1. The Today screen on the live site.</b> The team strip shows the five agents and the Records keeper. <i>Your week</i> asks the Career coach for a ranked plan; <i>Add what's new</i> takes a paste, an upload or a link; <i>Find openings</i> sends the Opportunity scout to public job boards. All screenshots in this report come from the live site on Oct 26, 2026, in a “Try the demo” sandbox whose student, Jordan Rivera, is fictional; no real person's data is shown.</figcaption>
+  </figure>
+  <div class="note small">
+    <p><b>How to read this report.</b> Every number names its source: a run id shown in the app or a repo file (mostly <code>docs/evidence/</code>). Estimates are tagged <span class="estimate">estimate</span>; no user test has been run yet, so Section 7's before/after results are marked placeholders. <b>Running it:</b> the free hosting plan sleeps when idle, and GitHub runs our keep-awake schedule only sporadically, so the first visit can take up to a minute (cold start measured 32 s). A fresh clone with the <code>.env</code> one folder above the repo took 13 s of setup and passed all 72 tests.</p>
+  </div>
+</section>
+
+<!-- ============================== 2. MOTIVATION ============================== -->
+<section id="s2">
+  <h2><span class="n">2</span>Motivation</h2>
+  <h3>Who has the problem</h3>
+  <p>MBA students recruiting for summer internships. During the school year they apply to many organisations at once, each with its own deadlines and process, and they build relationships with alumni, recruiters and classmates who can open a door. The information they need is not missing: it is scattered. It arrives in at least nine places, and only some of them can be read automatically (Figure 2).</p>
+  <figure class="w80">
+    <img data-shot="03_channels_overview.png" data-width="1500" alt="The Setup tab's channel overview">
+    <figcaption><b>Figure 2. Where a student's recruiting information lives</b>, as the app's Setup tab presents it. Left: channels the app updates on its own after a one-time setup on the student's Mac. Right: channels whose owners let no outside app read messages, so the student exports or pastes; postings from Handshake or 12twenty are pasted too. Official sources: <code>docs/research/channels.md</code>.</figcaption>
+  </figure>
+  <p>So the hard part is attention and coordination: deciding, every week, which of many applications, people and promised follow-ups deserve the next hour. This project grew out of that problem in the author's own search: he first built a personal tracker for himself, and this app rebuilds it as a separate product any student can use.</p>
+
+  <h3>How students solve it today</h3>
+  <p>The student is the integration layer. They read each channel, retype what matters into a spreadsheet or a job tracker, and decide from memory what to do next. The trackers that exist are typed by hand: Teal's and Huntr's own pages describe contacts and follow-ups that the user enters (Section 3). School platforms such as 12twenty and Handshake hold postings and events, but not the student's conversations. The decision itself, <i>where to spend this week</i>, is still made in the student's head.</p>
+
+  <h3>What the current process costs</h3>
+  <ul>
+    <li><b>Attention.</b> The useful signal is a small share of the noise. On the author's own accounts, the app's local filter (counting only, nothing sent) passed only 29 of 150 recent Gmail emails, 23 of 125 WhatsApp conversations and 3 of 36 iMessage conversations as touching his target organisations, his contacts or recruiting (<code>EVIDENCE.md</code>, Oct 25). Today a student reads all of it to find that part. This is one student's mailbox; it shows the share, not the minutes.</li>
+    <li><b>Quality.</b> A follow-up promised in a chat, or a deadline in a recruiter's email, is easy to lose because it never reaches the tracker. We have not yet measured how often this happens; Section 7 sets out how the user test will.</li>
+    <li><b>Money.</b> Four job-search tools that cover part of the problem charge $29 to $40 a month: Teal+ $29 per 30 days, Simplify+ $39.99, LinkedIn Premium Career $39.99, Huntr Pro $40 (vendor pages, read Oct 26, 2026). None of them reads a student's WhatsApp or iMessage chats.</li>
+  </ul>
+
+  <h3>Why it matters</h3>
+  <p>Recruiting runs on two clocks at once: hard application deadlines and soft relationship timing (a thank-you note within a day, a promised résumé, a contact who offered to flag an application once it is in), both competing with a full course load. A missed follow-up with someone who offered to help, or a deadline noticed two days late, cannot be bought back. A tool that keeps the picture current, shows the evidence for every fact and proposes the few moves worth this week puts scarce attention where it changes outcomes, while every message stays in the student's hands.</p>
+</section>
+
+<!-- ============================== 3. WHAT IS NEW ============================== -->
+<section id="s3">
+  <h2><span class="n">3</span>What is new here</h2>
+  <p>Parts of this app already exist, and we say so. On Oct 26, 2026 we read the official pages of nine alternatives (product sites, help centers and pricing pages only; URLs in the repo's <code>docs/research/competitors.md</code>). “Does not do” means the pages we read do not describe it, not that the product cannot. Initials tiles stand in for logos.</p>
+  <table class="compact">
+    <thead><tr><th style="width:15%">Product</th><th style="width:30%">Where it overlaps with us</th><th style="width:37%">What it does not do, compared with us</th><th style="width:18%">Price (official)</th></tr></thead>
+    <tbody>
+      <tr><td><i class="ini" style="background:#2563eb">S</i><b>Simplify</b></td><td><b>Closest.</b> Connects Gmail to match recruiting threads to tracked jobs and suggest status updates; finds referral paths at target companies.</td><td>Built to act: Autopilot submits applications; its Gmail integration can send from the tracker. No WhatsApp, iMessage or Slack, weekly plan across jobs and people, or quote behind each record described.</td><td>Core free; Simplify+ $39.99/mo ($19.99/wk, $89.99/3 mo)</td></tr>
+      <tr><td><i class="ini" style="background:#10a37f">C</i><b>ChatGPT</b></td><td>High for a motivated student: its Work agent can read Gmail and run on a schedule or when an email arrives.</td><td>No recruiting pipeline (stages, deadlines, eligibility) that lasts between chats; facts not checked against quotes; the student designs the workflow. Its Gmail app asks permission to modify the mailbox.</td><td>Free; Go $8; Plus $20; Pro from $100/mo</td></tr>
+      <tr><td><i class="ini" style="background:#1f2937">D</i><b>Dex</b></td><td>Relationship memory; lists WhatsApp, messaging, email and LinkedIn sync.</td><td>Organised around people for any purpose. Not described: links to internships, deadlines, job-board search, a weekly recruiting plan, source quotes. Its Professional plan has mail merge.</td><td>Premium $20/mo ($12 annual); MBA students 50% off for 2 years</td></tr>
+      <tr><td><i class="ini" style="background:#0a66c2">in</i><b>LinkedIn Premium Career</b></td><td>Job-fit insights, message help.</td><td>Sees only LinkedIn data; no cross-channel pipeline or weekly plan. It is itself a sending channel (InMail); we read its data export instead.</td><td>$39.99/mo or $239.88/yr</td></tr>
+      <tr><td><i class="ini" style="background:#5b3df5">H</i><b>Handshake</b></td><td>AI job ranking, conversational search, profile tips.</td><td>Its AI uses Handshake postings and the student's profile; no outside conversations, relationship memory or weekly plan described.</td><td>No student price on the pages read</td></tr>
+      <tr><td><i class="ini" style="background:#e4572e">12</i><b>12twenty</b></td><td>The school's job board and events.</td><td>Sold to career offices; no student-side AI coach or reading of a student's mail or chats described. Complementary: its postings can be pasted in.</td><td>Not public (demo for schools)</td></tr>
+      <tr><td><i class="ini" style="background:#16a34a">T</i><b>Teal</b></td><td>Job tracker, contacts per job, follow-up templates.</td><td>Contacts and follow-ups typed by hand; no reading of conversations, evidence quotes or weekly plan described. Strong on résumés, which we do not do.</td><td>Free; Teal+ $13/7 days, $29/30 days</td></tr>
+      <tr><td><i class="ini" style="background:#7c3aed">Hu</i><b>Huntr</b></td><td>Job tracker, contact tracker.</td><td>Contacts stored as typed details; no cross-channel reading, quotes or weekly plan described. Strong on résumés and autofill.</td><td>Free (100 jobs); Pro $40/mo</td></tr>
+    </tbody>
+  </table>
+  <p class="tablenote">Also read: Careerflow, a networking tracker that imports contacts from LinkedIn, email or CSV ($23.99 and $44.99 per month), in the same group as Teal and Huntr.</p>
+
+  <h3>What this app does differently</h3>
+  <p>No product we read combines these three things, and each one answers a failure of today's process:</p>
+  <ol>
+    <li><b>One memory across channels, tied to opportunities.</b> People and dated facts from mail, chats, exports, invites and postings land on the same two boards, each person linked to the internship they can help with. Trackers wait for the student to type; Dex remembers people, not internships; Simplify reads Gmail, and its pages do not mention chats.</li>
+    <li><b>A weekly plan with evidence.</b> <i>Plan my week</i> ranks the student's open actions with <i>why now</i>, a <i>first step</i> and the record ids it relied on, and every saved fact carries the exact quote it came from, checked in code. A student can see why the coach says what it says, and correct it.</li>
+    <li><b>Read-only by design.</b> The connector opens Gmail and the iMessage and WhatsApp databases read-only, and no agent has a sending tool: drafts wait in an Outbox for the student. Simplify, LinkedIn, Dex (mail merge) and ChatGPT's agents can send or act. In recruiting, one wrong message to a recruiter costs more than any time saved.</li>
+  </ol>
+  <p><b>ChatGPT is the honest benchmark.</b> A motivated student could connect Gmail to ChatGPT and ask for a weekly summary. They would not get a pipeline that persists and is merged by rules, WhatsApp and iMessage chats filtered on their own computer, facts that must quote their source, or job-board search limited to their targets, at a measured cost below a cent per plan. <b>Where we are weaker:</b> no résumé or autofill tools (Teal, Huntr and Simplify are strong there), far less job data than LinkedIn or Simplify, and automatic syncing of chats needs a Mac.</p>
+</section>
+
+<!-- ============================== 4. THE AGENTS ============================== -->
+<section id="s4">
+  <h2><span class="n">4</span>The agents</h2>
+  <p>Five AI agents do the reading, searching and judging; plain code does everything that must be exact. Each agent has its own small context, its own tools and its own playbooks (“skills”: 30 short Markdown files in <code>backend/skills/</code>).</p>
+  <table>
+    <thead><tr><th style="width:17%">Agent</th><th style="width:37%">What it does</th><th style="width:28%">Tools</th><th style="width:18%">Skills</th></tr></thead>
+    <tbody>
+      <tr><td><b>Setup guide</b></td><td>Step 1 of a new account: walks the student through connecting or exporting each channel, one step at a time, next to a live checklist.</td><td><code>connection_status</code>, <code>next_setup_step</code>, <code>load_skill</code></td><td>11 setup playbooks, opened on demand</td></tr>
+      <tr><td><b>Inbox organizer</b></td><td>Reads one text from any channel (email, chat, export, posting, invite) and returns typed opportunities, leads and people, each with its exact quote. One model call per text.</td><td>None: it sees only the text, after the shield</td><td>6 playbooks (reading each channel, stages), in its instructions</td></tr>
+      <tr><td><b>Opportunity scout</b></td><td>Searches the public job boards of the student's organisations for summer internships and judges fit; answers the coach's questions about opportunities.</td><td><code>search_job_boards</code> (Greenhouse, Lever, Ashby, SmartRecruiters public APIs), <code>read_careers_page</code></td><td>4: source policy, MBA eligibility, reading a posting, fit rubric</td></tr>
+      <tr><td><b>Network intelligence</b></td><td>Relationship questions for the coach, <i>Who can open the door</i> (up to 3 warm paths per opportunity) and call preparation.</td><td>None: reads the records retrieved for it, or one person's dossier</td><td>3: strength, warm intros, call prep</td></tr>
+      <tr><td><b>Career coach</b> (boss)</td><td>Plans the week and answers questions in chat; delegates to the two specialists; writes drafts into the Outbox when asked.</td><td><code>ask_opportunity_scout</code>, <code>ask_network_intel</code>, <code>get_data_checks</code>; in chat also <code>load_skill</code>, <code>save_draft</code></td><td>6 coaching playbooks, on demand</td></tr>
+      <tr style="background:#f7f7f9"><td><b>Records keeper</b> (code)</td><td>The only writer of cards: checks every quote, name, link and record id against its source, applies the merge rules and re-runs the data checks. Zero tokens.</td><td>n/a</td><td>n/a</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Model and why</h3>
+  <p>All five agents run on <b>gpt-6-luna</b> through the course's Portkey key. The course key allows no other model, and gpt-6-luna is the low-cost tier ($0.10 per million input tokens, $0.01 cached, $0.50 output; OpenAI's pricing page, read Oct 26). We designed the work to fit it: agents read short, retrieved context and return typed, structured answers that code validates, so correctness does not rest on the model alone. Every agent runs with reasoning effort “low” and an 8,000-token cap per answer. Every response's model name is checked: Portkey answers as <code>gpt-6-luna-global</code>, and an answer from any other model is rejected (<code>agents/runtime.py</code>, tested).</p>
+
+  <h3>Organisation and delegation</h3>
+  <figure>
+    {{SVG:architecture}}
+    <figcaption><b>Figure 3. Who calls whom</b>, drawn from the code (<code>main.py</code> routes, <code>intake.py</code>, <code>agents/*.py</code>, <code>keeper.py</code>, <code>config.py</code>). Answers from the specialists return to the coach; only the Records keeper writes cards.</figcaption>
+  </figure>
+  <p>The <b>Career coach</b> is the boss for planning and chat. It never reads the database: it may only rank the candidate actions that code derives from the records, and it learns about them by asking the two specialists through tools, at most 4 questions per request. Each specialist answers from the 10 records that best match the question (BM25 search over its own record type) and may cite only ids it was given; specialists have no delegation tools, so delegation is one level deep and cannot loop. The <b>Inbox organizer</b>, <b>Opportunity scout</b> (discovery) and <b>Setup guide</b> work alone, and code routes “Prepare my call with …” and <i>Who can open the door</i> straight to Network intelligence. Several agents are used only where specialization pays, keeping each prompt small; where it did not, we cut: one Inbox organizer call per text replaced two specialists reading the same text.</p>
+
+  <h3>One real run, step by step: <i>Plan my week</i> (run c469f1ee77fc, live site, Oct 26)</h3>
+  <ol class="steps">
+    <li><span class="t">0.1 s</span> The student presses <i>Plan my week</i> and the coach starts with 23 open actions that code derived from the records (deadlines, follow-ups, calls): the only actions it may rank. Zero tokens so far.</li>
+    <li><span class="t">2.2 s</span> The coach asks the <b>Opportunity scout</b> about fit, status, deadlines and missing requirements at Meridian Stadiums, Northbridge Sports Group and Keystone Bank. The scout reads the 10 best-matching of 12 opportunity records.</li>
+    <li><span class="t">2.3 s</span> In parallel, it asks <b>Network intelligence</b> about Tom Becker, Luis Moreno, Sofia Alvarez, Hannah Brooks and anyone who could help at Northbridge or Keystone; it reads 10 of 12 people records. At 2.4 s the coach runs the data checks in code: 0 problems.</li>
+    <li><span class="t">12.9 s</span> The scout answers (1,580 input / 0 cached / 626 output tokens, 10.7 s): Meridian is a strong fit at the interview stage, with the second round on Oct 28. <span class="t">13.8 s</span> Network intelligence answers (1,728 / 0 / 879, 11.5 s): Sofia Alvarez is a strong contact who asked for Jordan's résumé; two others are weak and unanswered.</li>
+    <li><span class="t">22.2 s</span> The coach returns 5 ranked actions, each with <i>why now</i>, <i>first step</i> and record chips, plus 3 watch-outs and 2 questions only the student can answer (2 model calls: 5,801 / 3,634 / 1,258). Code then checks that every action is one of the 23 candidates and every cited id came back from a specialist in this run.</li>
+  </ol>
+  <p><b>Total: 4 model calls, 9,109 input tokens (3,634 cached), 2,763 output, 22.2 s, $0.0020</b>, the same on screen (Figure 4), on the Usage page (Figure 7) and in <code>screenshots/2026-10-26_live/runs.json</code>.</p>
+  <div class="grid2" style="width:78%;margin:0 auto">
+    <figure><img data-shot="05_plan_my_week.png" data-width="1000" alt="Plan my week result">
+      <figcaption><b>Figure 4a. The plan.</b> Five actions with why now, first step and the records behind them (OPP-, CON- chips); the run's tokens and cost at the bottom.</figcaption></figure>
+    <figure><img data-shot="06_plan_trace.png" data-width="1000" alt="How the coach decided">
+      <figcaption><b>Figure 4b. “How the coach decided”</b>, opened under the same plan: the delegation, the BM25 searches, each specialist's tokens and the run total.</figcaption></figure>
+  </div>
+
+  <h3>What the other agents did in the same session</h3>
+  <figure class="w60">
+    <img data-shot="09_find_openings.png" data-width="1500" alt="Find openings result and scout trace">
+    <figcaption><b>Figure 5. Find openings</b> (run 924006932786). The scout searched the public boards of 8 organisations: Duolingo (4 internship postings) and Robinhood (2) on Greenhouse, none for the 6 fictional demo organisations. It read 2 careers pages; on Robinhood's, the shield removed 20 hidden snippets before the model saw it (hidden page elements, not necessarily attacks). The keeper saved 1 real posting, Robinhood's <i>Investment Analyst MBA Intern, Robinhood Ventures (Summer 2027)</i>, with 0 rejected. 3 model calls, 12,071 input (9,615 cached), 829 output, 18.2 s, $0.00076.</figcaption>
+  </figure>
+  <div class="grid3">
+    <figure><div class="crop" style="max-height:3.55in"><img data-shot="11_coach_thank_you_draft.png" data-width="760" data-crop="1340" alt="Coach drafts into the Outbox"></div>
+      <figcaption><b>Figure 6a. Ask your coach.</b> The coach opened its <i>outreach-drafting</i> skill and saved a thank-you draft to the Outbox, not sent (3 calls, 8.1 s).</figcaption></figure>
+    <figure><div class="crop" style="max-height:3.55in"><img data-shot="14_who_can_open_the_door.png" data-width="760" data-crop="1380" alt="Who can open the door"></div>
+      <figcaption><b>Figure 6b. Who can open the door</b> at Northbridge: Network intelligence checked 10 people and found 2 paths, each with what to ask and a first message to send yourself (top part shown; 1 call, 3.3 s).</figcaption></figure>
+    <figure><div class="crop" style="max-height:3.55in"><img data-shot="13_call_prep.png" data-width="760" data-crop="1720" alt="Call prep brief"></div>
+      <figcaption><b>Figure 6c. “Prepare my call with Maya Chen”</b>, routed in code to Network intelligence: why the call matters, a timed call plan and questions (top part shown; 1 call, 12.1 s).</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== 5. TOKENOMICS ============================== -->
+<section id="s5">
+  <h2><span class="n">5</span>Tokenomics</h2>
+  <div class="side">
+    <div>
+      <p>All token counts are what gpt-6-luna reported for each response, logged by the app per agent and per call (failed and cut-off calls included) and shown on its Usage page (Figure 7). Prices are OpenAI's list prices for gpt-6-luna, standard tier: <b>$0.10 per million input tokens, $0.01 per million cached input tokens, $0.50 per million output tokens</b> (pricing page read Oct 26, 2026; set in <code>backend/config.py</code>). Portkey's own fee, if any, is unknown and not included.</p>
+      <p><b>A typical run is <i>Plan my week</i></b>, the app's main decision. Measured on the live site (run c469f1ee77fc): <b>9,109 input tokens, of which 3,634 cached, and 2,763 output tokens</b>, in 4 model calls and 22.2 s. Cost per run = (5,475 uncached × $0.10 + 3,634 cached × $0.01 + 2,763 output × $0.50) ÷ 1,000,000 = <b>$0.00197</b>, about one fifth of a cent. Output is 70% of that cost, although it is only 23% of the tokens.</p>
+      <p>Table 1 lists every run of the screenshot session; Table 2 gives the medians per kind of request over the live database as it stood just before that session, the figures used for the monthly estimate.</p>
+    </div>
+    <figure><img data-shot="16_usage_costs.png" data-width="900" alt="Usage page">
+      <figcaption><b>Figure 7. The Usage page</b> (same session): today's budget, the last 10 runs with input, cached, output, time and cost, and the price source.</figcaption></figure>
+  </div>
+  <div class="keep"><p class="tablenote" style="margin:4pt 0 2pt"><b>Table 1. Every run of the Oct 26 screenshot session</b> (live site, one demo sandbox; <code>screenshots/2026-10-26_live/runs.json</code>). Cost uses the formula above.</p>
+  {{TABLE:runs}}</div>
+  <div class="keep"><p class="tablenote" style="margin:4pt 0 2pt"><b>Table 2. Medians per kind of request, live database before the screenshot session</b> (31 requests, 42 model calls, all successful; <code>runs/2026-10-26_tokenomics_live.json</code>, produced by <code>scripts/token_report.py</code>).</p>
+  {{TABLE:kinds}}</div>
+
+  <h3>Cost per student per month, and for 100 and 10,000 students</h3>
+  <p>Per-request costs are measured; how often a student uses each feature is not, because no pilot user has used the app for a month. The monthly figures are therefore an <span class="estimate">estimate</span>: a <i>typical</i> student adding 60 items, planning 8 times, chatting 20 times, searching job boards 4 times, asking for doors 4 times and the Setup guide twice (98 requests a month), and a <i>heavy</i> student at about 2.6 times that (256 requests). Chat uses one measured coach chat with a draft ($0.000707), above the chat median, to stay conservative (<code>runs/2026-10-26_cost_model.json</code>).</p>
+  {{TABLE:scale}}
+  <p>Two things bound the risk. A hard cap: the daily budget of 300,000 tokens per student limits anyone to $0.15 a day even if every token were output. And hosting, not tokens, dominates at small scale. The app runs on free plans today ($0); always-on paid plans would cost <b>$32 a month</b> (Render Starter $7 + Supabase Pro $25) for a small pilot, or <b>$75 a month</b> for a school-wide setup (Render Pro workspace $25 + Standard instance $25 + Supabase Pro $25): our arithmetic from the vendors' list prices, read Oct 26. Whether one Standard instance carries 10,000 students has not been load-tested. Even so, at the typical estimate 10,000 students would cost about $626 a month in total, roughly 6 cents each, against $29 to $40 a month for one paid job-search plan (Section 2).</p>
+
+  <h3>What we did to reduce cost, and why</h3>
+  <table class="compact">
+    <thead><tr><th style="width:36%">Optimisation, and why</th><th style="width:64%">Measured effect, and what it did to quality</th></tr></thead>
+    <tbody>
+      <tr><td><b>Retrieve 10 records, not the database</b> (BM25, <code>retrieval.py</code>). Input tokens dominate; the author's earlier, private tracker sent a whole-database snapshot of about 29K tokens with every question (its own handoff notes, not in this repo).</td><td>The specialists read 1,580 and 1,728 input tokens in the plan run. <i>Quality:</i> a record outside the top 10 is not seen; with 12 records they read 10, so recall on a large account is <b>not yet measured</b>.</td></tr>
+      <tr><td><b>No length limits in output schemas</b>; people's next dates added to records. Answers that broke a limit failed validation and were re-generated whole.</td><td>Same plan, before → after: 6 → 4 model calls, input 14,047 → 7,514 (−47%), output 4,229 → 2,773 (−34%), 63.4 → 17.6 s (−72%). <i>Quality improved:</i> the first plan called the Meridian interview date unknown; the second cited it (<code>runs/2026-10-25_first_backend_runs.json</code>).</td></tr>
+      <tr><td><b>One Inbox call per text</b> instead of two specialists each reading it.</td><td>Requests per text 2 → 1. Uncached, a demo email cost about the same ($0.00094 in 2 calls, $0.00096 in 1), because the organizer carries its playbooks; the saving comes from caching them: Oct 26 intakes cost $0.00016–$0.00050.</td></tr>
+      <tr><td><b>Stable, cacheable prefix</b> for pipeline agents; <b>skills on demand</b> for chat agents (<code>agents/skills.py</code>). Cached input costs a tenth of the price.</td><td>Inbox organizer: 3,802 of about 4,520 input tokens cached on every Oct 26 intake (84%); whole live database 44%. No quality effect expected: the text is identical.</td></tr>
+      <tr><td><b>Filter exports in code</b> before any model (<code>intake.py</code>, <code>signals.py</code>, connector). Most of an export or chat history is not about recruiting.</td><td>Tests: LinkedIn messages reduced to 1 of 301 conversations; a 601-row connections export to the 1 row at a tracked organisation. Author's real data: WhatsApp 125 → 23 conversations, iMessage 36 → 3. <i>Risk:</i> a relevant chat could be dropped; <b>not measured</b>.</td></tr>
+      <tr><td><b>Zero-token code</b> for exact work: shield, router, Records keeper, data checks, Action plan.</td><td>Deriving the 23 candidate actions, routing and every validation cost 0 tokens, with no quality loss: code is deterministic.</td></tr>
+      <tr><td><b>Only internship postings, 700 characters each</b>, reach the scout; 120K-token cap for discovery. A review found a full 8-organisation search could exceed the 60K cap and save nothing.</td><td>The Oct 26 search of 8 organisations used 12,071 input tokens (9,615 cached), $0.00076. <i>Possible quality cost:</i> on Oct 25 the scout saved Duolingo's Product Manager MBA Intern posting; on Oct 26 it read a Duolingo posting page and saved nothing. Whether the cut or ordinary model variation caused it is not established.</td></tr>
+      <tr><td><b>Reasoning effort low</b>, an 8,000-token answer cap and daily budgets (<code>config.py</code>). Reasoning tokens are billed as output, the most expensive kind.</td><td>On the setup check (cache bypass added at the same time), output fell from 15 to 5 tokens, 0 of them reasoning. Effect on plan quality <b>not measured separately</b>.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Did any cut hurt quality?</b> The one before/after measured on the main run improved quality and cost together. The Duolingo miss is the only sign of a possible loss, and it is unresolved; retrieval recall at scale, the chat filter's misses and low reasoning effort are not yet measured (Section 8's evaluation set). One choice deliberately costs more: Portkey's response cache is bypassed on every call, so no measured run is a free replay.</p>
+</section>
+
+<!-- ============================== 6. SAFETY ============================== -->
+<section id="s6">
+  <h2><span class="n">6</span>Safety</h2>
+  <p>The app reads text written by strangers (recruiters, web pages, job boards) and holds a student's private relationships. The risks that matter are those that would hurt a student: a hidden instruction changing their plan, a made-up fact, a message sent in their name, their data reaching someone else, a runaway bill. Each defence below is enforced in code, not just requested in a prompt.</p>
+  <table class="compact">
+    <thead><tr><th style="width:19%">Risk</th><th style="width:81%">Defence actually implemented (where) · <span style="color:#248a3d">shown working</span></th></tr></thead>
+    <tbody>
+      <tr><td><b>Prompt injection</b> in a paste, email or chat</td><td>Lines that read like instructions to an AI are removed before any model sees them and shown to the student (<code>safety.quarantine</code>, 0 tokens); text reaches the model inside “untrusted” delimiters; if a line slipped through, no agent could send and the keeper would still write only quoted facts. <span style="color:#248a3d">Shown: Figure 8a (live); test <i>injected instructions never reach the model and cannot act</i>.</span></td></tr>
+      <tr><td><b>Hidden text</b> in web pages and job boards</td><td>HTML is reduced to what a person would see: white, 1-px, hidden and zero-size text is removed and listed (<code>safety.visible_text</code>); the same for linked pages and careers pages the scout reads. <span style="color:#248a3d">Shown: Figure 8b (live); Figure 5 (20 snippets removed); 2 tests.</span></td></tr>
+      <tr><td><b>Hallucinated facts</b></td><td>The Records keeper rejects any quote not in the source, any person not named in it, any link not in it and any record id that is not the student's (<code>merge.py</code>); a posting must quote what a job-board tool returned in that run; a plan may rank only candidate actions, citing ids the specialists returned. <span style="color:#248a3d">Shown: “Not stated in the text” lists in Figures 8a/8b; tests on invented quotes, people, postings and actions.</span></td></tr>
+      <tr><td><b>Wrong actions</b>, such as sending</td><td>No agent has a sending tool (a test fails if one ever does). Drafts go to the Outbox, at most 2 per request and only to people in the records, with email addresses and phone numbers removed; the Outbox has no “sent” state. The connector reads Gmail, iMessage and WhatsApp read-only. <span style="color:#248a3d">Shown: Figure 9; live check: “sent” refused (422).</span></td></tr>
+      <tr><td><b>Data leakage</b> between students or out through links</td><td>Every query is scoped to the signed-in student; another student's records, Outbox and runs return 404. Replies cannot load images (a classic way to leak data through a URL). Emails and phone numbers are never stored. Only chats that matter leave the Mac, with numbers masked; groups over 8 people are skipped. <span style="color:#248a3d">Shown: Live check: 2 × 404; test <i>one student cannot see another's records</i>.</span></td></tr>
+      <tr><td><b>Runaway loops</b></td><td>Per agent run: 6 model requests, 6 tool calls, 60,000 tokens and a 90-second timeout (job-board search: 8, 12, 120,000, 120 s); delegation one level deep with at most 4 questions; caps on skills (3), drafts (2), pages (3) and job-board requests (24); an agent failing 3 times in a row is paused for 15 minutes. <span style="color:#248a3d">Shown: Tests: looping agent stopped; delegation cap; failing agent paused.</span></td></tr>
+      <tr><td><b>Token overspending</b> and misuse</td><td>Input over 20,000 characters is refused before any model call; daily budgets of 300,000 tokens per student and 3,000,000 for the site return 429; an <code>AI_PAUSED</code> switch stops every AI route at 0 tokens; tokens of a run cut off at a limit are still counted. Any answer from a model other than gpt-6-luna is rejected. <span style="color:#248a3d">Shown: Live: 422 oversized, budget shown; tests: 429, kill switch, model substitution.</span></td></tr>
+      <tr><td><b>Malicious use of a connector key</b> or link</td><td>Connector keys are shown once, stored only as a SHA-256 hash, revocable, limited to 60 requests per 15 minutes and to one student; reports carry fixed reason codes only. The link reader refuses private and local addresses, also after a redirect, and never bypasses bot protection. <span style="color:#248a3d">Shown: Live: 401 without key, 422 unknown reason; 11 link-safety tests.</span></td></tr>
+    </tbody>
+  </table>
+  <div class="grid2" style="width:74%;margin:0 auto">
+    <figure><img data-shot="07_attack_injected_instructions.png" data-width="900" alt="Injected instructions quarantined">
+      <figcaption><b>Figure 8a. Attack 1, instructions in a posting</b> (run fa319fb53b37). Line 6 tells “any AI assistant” to rank Granite Peak first, mark the student as applied and add a recruiter with an email and phone. The shield removed it before the model read the text (the red Shield box masks its fictional contact details); only the real posting was saved, as not started, and no recruiter was added.</figcaption></figure>
+    <figure><img data-shot="08_attack_hidden_text.png" data-width="900" alt="Hidden text removed">
+      <figcaption><b>Figure 8b. Attack 2, hidden text in a web page</b> (run 2bbe610b4159). White 1-px text claims the student already has an offer and should stop applying elsewhere. The shield removed it; Cobalt City FC's visible posting was saved as a new opportunity, not an offer, and nothing else changed.</figcaption></figure>
+  </div>
+  <figure class="w70">
+    <img data-shot="12_outbox.png" data-width="1400" alt="Outbox with one draft">
+    <figcaption><b>Figure 9. The Outbox.</b> The coach's draft to Maya Chen (Figure 6a) waits here. <i>Approve &amp; copy</i> copies it; <i>Approve &amp; open in Mail</i> opens the student's own mail app. The app itself never sends.</figcaption>
+  </figure>
+
+  <h3>Tests, a live check and two adversarial reviews</h3>
+  <ul>
+    <li><b>72 automated tests pass</b> in 1.7 s with no API key and no tokens (fake models stand in for gpt-6-luna; <code>runs/2026-10-25_safety_tests.txt</code>; repeated on a fresh clone on Oct 26). Key ones: <i>injected instructions never reach the model and cannot act</i>; <i>quotes and people not in the text are rejected</i>; <i>no agent has a tool that could send anything</i>; <i>one student cannot see or change another student's records</i>; <i>a looping agent is stopped by the usage limit</i>; <i>the kill switch stops every AI route at zero tokens</i>; <i>an answer from another model is rejected</i>.</li>
+    <li><b>Live full check, 19 of 19 passed</b> on the deployed site (Oct 26, <code>runs/2026-10-26_live_full_check.json</code>): every agent answered with real tokens, the shield quarantined the injected line, the link reader removed hidden text, the guardrails answered 422, 404 and 401 as designed, and the daily budget was enforced and shown.</li>
+    <li><b>Two adversarial reviews</b>, with reviewers and skeptics who tried to refute every finding. Auto-sync: 18 findings confirmed (13 distinct), none refuted, all fixed with regression tests (one email in an odd character set crashed the whole run, stopping iMessage and WhatsApp too). Agent team: among others, a paused intake was still acknowledged to the connector, so emails could be lost; tokens of a response crossing a limit went uncounted; a page could create people. All confirmed findings were fixed before the live check.</li>
+  </ul>
+  <p><b>Honest limits of these defences.</b> The shield is pattern matching, so an instruction worded in a new way could reach the model. That is why the defences are layered: a model that obeyed would still have no tool to send, and nothing it invented would pass the keeper's quote check. A student who pastes a convincing but false posting will get a card for it; the quote shows exactly where it came from.</p>
+</section>
+
+<!-- ============================== 7. IMPACT ============================== -->
+<section id="s7">
+  <h2><span class="n">7</span>Impact</h2>
+  <p>The strongest evidence is a real student doing their own recruiting chores the old way and then in the app. That test has <b>not been run yet</b>. The protocol is ready (<code>docs/impact/PROTOCOL.md</code>, with a timer): the same tester does three chores twice with the same real material, first today's way, then in the app. The first tester will be the author, who is also the builder, and will be reported as such. Until then the results are placeholders, and nothing here is extrapolated from them.</p>
+  <h3>What can be measured today, without a user</h3>
+  <table>
+    <thead><tr><th style="width:30%">Metric</th><th style="width:47%">Value</th><th style="width:23%">Source</th></tr></thead>
+    <tbody>
+      <tr><td>Turnaround: deciding the week</td><td><span class="measured">measured</span> 22.2 s from 23 open actions to 5 ranked moves, each with why now, first step and evidence</td><td>run c469f1ee77fc</td></tr>
+      <tr><td>Turnaround: capturing one item</td><td><span class="measured">measured</span> 3.6 to 9.3 s per pasted text, one model call, quotes checked</td><td>runs.json (4 intakes)</td></tr>
+      <tr><td>Turnaround: call prep and warm paths</td><td><span class="measured">measured</span> call brief 12.1 s; <i>Who can open the door</i> 3.3 s after checking 10 people</td><td>runs.json</td></tr>
+      <tr><td>Postings found that the student did not paste</td><td><span class="measured">measured</span> 8 organisations searched in 18.2 s, 1 real MBA internship saved (Robinhood Ventures). On Oct 25: 2 saved from Robinhood, Duolingo and Airbnb; none, correctly, from Stripe, Figma, Ramp and Notion (engineering, PhD or high-school roles)</td><td>runs.json; <code>2026-10-25_agent_team_runs.json</code></td></tr>
+      <tr><td>Reading the student no longer does</td><td><span class="measured">measured</span> on the author's accounts, counts only: Gmail 29 of 150 emails, WhatsApp 23 of 125 conversations, iMessage 3 of 36 conversations passed the filter</td><td><code>EVIDENCE.md</code>, Oct 25</td></tr>
+      <tr><td>Fewer manual steps</td><td><span class="estimate">design count</span> the manual capture sheet asks for 8 fields per item (organisation, role, person, stage, deadline, next step, its date, notes); in the app the student pastes once. Time saved: user test</td><td><code>manual_capture_template.csv</code></td></tr>
+      <tr><td>Channels reachable</td><td>9 channels with a free route; 4 update on their own from a Mac (Figure 2)</td><td>Setup tab; <code>channels.md</code></td></tr>
+      <tr><td>Money</td><td><span class="measured">measured</span> $0.0020 per weekly plan; <span class="estimate">estimate</span> $0.055 per student per month in tokens</td><td>Section 5</td></tr>
+    </tbody>
+  </table>
+  <h3>What the user test will add</h3>
+  <div class="placeholder">
+    <div class="ph-title">[insert after user test: task, minutes before vs after, follow-ups found, quote]</div>
+    <table>
+      <thead><tr><th style="width:34%">Task (PROTOCOL.md)</th><th class="num" style="width:15%">Before (min)</th><th class="num" style="width:15%">After (min)</th><th style="width:36%">Quality, judged by the tester</th></tr></thead>
+      <tbody>
+        <tr><td><b>Capture</b> 6 real recruiting items (2 emails, 2 chats, 2 postings) · B1 → A1</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Fields right / wrong / missed vs own rows: <span class="ph">[insert]</span></td></tr>
+        <tr><td><b>Decide the week</b>: 3 most valuable actions · B2 → A2</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Coach actions the tester would really do (0–5): <span class="ph">[insert]</span>; important follow-ups found that the tester's own list missed: <span class="ph">[insert]</span></td></tr>
+        <tr><td><b>Prepare the next call</b> · B3 → A3</td><td class="num"><span class="ph">[insert]</span></td><td class="num"><span class="ph">[insert]</span></td><td>Usefulness vs own notes (1–5): <span class="ph">[insert]</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:4pt 0 2pt;text-align:left"><b>Quote:</b> “<span class="ph">[insert after user test: the tester's own words, with permission to quote, named or anonymous]</span>”</p>
+    <p style="margin:0;text-align:left"><b>Weekly projection</b> <span class="estimate">estimate</span>: <span class="ph">[insert after user test: minutes saved per task × the tester's own count of items, plans and calls per week]</span></p>
+  </div>
+
+  <p>The measurements above show that the app makes fast, at well under a cent each, several things that today take a student's own reading and judgment. They do not yet show the number that matters most, minutes and missed follow-ups for a real student. The protocol produces exactly that, and the yellow box will be filled with its results, not with estimates.</p>
+</section>
+
+<!-- ============================== 8. LIMITS + NEXT STEPS ============================== -->
+<section id="s8">
+  <h2><span class="n">8</span>Limits and next steps</h2>
+  <h3>What does not work yet, and current limitations</h3>
+  <ul>
+    <li><b>No real user test yet.</b> The impact numbers are placeholders, and the first tester will be the author, who is also the builder. One tester is not a sample; classmates should follow.</li>
+    <li><b>Auto-sync of chats is half verified.</b> Under macOS's scheduler Gmail syncs on its own, but iMessage and WhatsApp are refused until the scheduled Python gets Full Disk Access. The refusal and the app's instructions were verified; a real grant was not, so chats may need syncing by hand. It also needs a Mac.</li>
+    <li><b>Free hosting.</b> Render sleeps after 15 idle minutes (cold start 32 s). A GitHub Action should ping it every 10 minutes from 8 AM to 1 AM Eastern, but GitHub ran it only 4 times on Oct 25–26 (<code>runs/2026-10-26_keep_awake_runs.txt</code>); a free Supabase project pauses after a week without activity.</li>
+    <li><b>Job boards are found by name.</b> The scout guesses each organisation's board address on Greenhouse, Lever, Ashby and SmartRecruiters from its name, so a board under a different name is missed. Handshake and LinkedIn Jobs forbid scraping, so their postings are pasted.</li>
+    <li><b>Slack, LinkedIn and Android texts are manual</b> (export or paste), because their owners allow no outside app to read messages.</li>
+    <li><b>Cost and quality gaps.</b> Portkey's fee is unknown; the monthly usage is an estimate; retrieval recall at scale, the chat filter's misses and the Duolingo miss (Section 5) are unmeasured. The shield is pattern matching (Section 6).</li>
+    <li><b>Known interface flaws</b>, seen in this session's screenshots: the boss is called “Career strategist” on some screens and “Career coach” on others; the Usage table shows the raw labels “guide” and “discover”; in Figure 4a, item 1's date chip reads Oct 29 while its text says the interview is Oct 28; Robinhood has two cards, the target-list card and the scout's posting; on a phone the tab row runs off the screen.</li>
+  </ul>
+  <h3>What we would build next with another month</h3>
+  <ol>
+    <li><b>Measure.</b> Run the protocol with 5 to 10 classmates and publish times, ratings and quotes.</li>
+    <li><b>An evaluation set.</b> 50 fictional messages and postings with known answers, scoring extraction, retrieval recall, the chat filter and plan quality on every change (and settling the Duolingo miss).</li>
+    <li><b>One-click connection.</b> A signed Mac menu-bar app instead of a Terminal script, with Full Disk Access verified end to end; Gmail through Google's sign-in once the app passes Google's review.</li>
+    <li><b>Fix the flaws above</b>: one name for the coach, merged target and posting cards, readable Usage labels, a mobile tab row, and boards matched by the posting links the student already has, not only by name.</li>
+    <li><b>A career-office pilot.</b> Always-on hosting ($32 a month), school sign-in, and postings from the school's own platform with its permission.</li>
+  </ol>
+</section>
+</main>
+</body>
+</html>

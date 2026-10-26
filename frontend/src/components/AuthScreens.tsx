@@ -5,7 +5,7 @@ const message = (e: unknown) => (e instanceof ApiError ? e.message : "Something 
 
 const PROMISES = [
   { title: "One picture of your search", text: "Paste emails, chats, postings or your LinkedIn export. The agents file opportunities, people and dated facts, each with its quote." },
-  { title: "Where to spend this week", text: "The Career strategist asks the Opportunity scout and Network intelligence, then ranks your next best actions." },
+  { title: "Where to spend this week", text: "The Career coach asks the Opportunity scout and Network intelligence, then ranks your next best actions." },
   { title: "Safe by design", text: "Nothing is ever sent for you. Instructions hidden in pasted text are caught, and every fact must match its source." },
 ];
 
