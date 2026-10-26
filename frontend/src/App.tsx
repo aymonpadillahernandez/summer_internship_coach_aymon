@@ -12,16 +12,17 @@ import ContactSheet from "./components/ContactSheet";
 import DetailSheet from "./components/DetailSheet";
 import { ChatIcon, MoonIcon, SearchIcon, SunIcon } from "./components/Icons";
 import TodayView from "./components/TodayView";
+import ConnectView from "./components/ConnectView";
 import UsagePanel from "./components/UsagePanel";
 import ProfilePanel from "./components/ProfilePanel";
 import type { User } from "./api";
 
-type Tab = "today" | "internships" | "networking" | "plan";
+type Tab = "today" | "internships" | "networking" | "plan" | "connect";
 type Area = "internships" | "networking";
 type Tier = "all" | "A" | "B";
 type Source = "all" | "email" | "chat" | "linkedin" | "posting" | "note" | "demo";
 const INACTIVE = new Set(["not_started", "rejected"]);
-const TABS: Tab[] = ["today", "internships", "networking", "plan"];
+const TABS: Tab[] = ["today", "internships", "networking", "plan", "connect"];
 const tabFromHash = (): Tab => TABS.find((t) => window.location.hash === `#${t}`) ?? "today";
 const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 /** The action plan, as the only actions the Career strategist may rank (it can never invent one). */
@@ -355,6 +356,9 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
           <button role="tab" aria-selected={tab === "plan"} className={tab === "plan" ? "is-active" : ""} onClick={() => setTab("plan")}>
             Action plan <span>{allActions.length}</span>
           </button>
+          <button role="tab" aria-selected={tab === "connect"} className={tab === "connect" ? "is-active" : ""} onClick={() => setTab("connect")}>
+            Connect
+          </button>
         </div>
         <dl className="stats">
           {tab === "plan" ? (
@@ -413,7 +417,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
         </div>
       </header>
 
-      {tab === "today" ? null : tab === "plan" ? (
+      {tab === "today" || tab === "connect" ? null : tab === "plan" ? (
         <div className="toolbar">
           <div className="segmented subtabs" role="tablist" aria-label="Action plan area">
             {(["internships", "networking"] as Area[]).map((a) => (
@@ -473,7 +477,9 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
         </div>
       )}
 
-      {tab === "today" ? (
+      {tab === "connect" ? (
+        <ConnectView onChanged={reloadAll} onGoToday={() => setTab("today")} />
+      ) : tab === "today" ? (
         <TodayView
           candidates={candidates}
           onOpenRecord={openRecord}
@@ -483,6 +489,7 @@ export default function App({ user, onSignOut }: { user: User; onSignOut: () => 
           counts={{ opportunities: apps.length, people: contacts.length }}
           profileFilled={profileFilled}
           onOpenProfile={() => setShowProfile(true)}
+          onOpenConnect={() => setTab("connect")}
         />
       ) : tab === "plan" ? (
         <ActionPlan actions={planActions} onDone={completeAction} onOpen={openAction} readOnly={readOnly} />

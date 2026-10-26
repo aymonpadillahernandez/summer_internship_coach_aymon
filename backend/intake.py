@@ -22,6 +22,7 @@ import config
 import db
 import merge
 import safety
+import signals
 from agents import network, scout
 from agents.runtime import CoachRun, ModelSubstituted
 
@@ -31,10 +32,50 @@ CONVERSATION = re.compile(r"(^\[?\d{1,2}[/.]\d{1,2}[/.]\d{2,4},?\s+\d{1,2}:\d{2}
                           r"\b(thanks|thank you|best,|cheers|coffee|catch up|intro(duce|duction)?|connect you|great (chatting|speaking)|"
                           r"call|zoom|reply|let me know)\b)", re.I | re.M)
 LINKEDIN_CSV = re.compile(r"^\s*first name\s*,\s*last name\s*,", re.I | re.M)
+LINKEDIN_MESSAGES = re.compile(r"^\s*conversation id\s*,", re.I | re.M)  # messages.csv from "Download your data"
+MESSAGES_BUDGET_CHARS = 18_000  # what Network intelligence may read from one LinkedIn messages file
 
 
 def is_linkedin_export(text: str) -> bool:
-    return bool(LINKEDIN_CSV.search(text[:3000]))
+    head = text[:3000]
+    return bool(LINKEDIN_CSV.search(head) or LINKEDIN_MESSAGES.search(head))
+
+
+def filter_linkedin_messages(text: str, user_id: int) -> tuple[str, int, int]:
+    """Keep only LinkedIn conversations with the student's people, about their organisations, or about recruiting;
+    newest first, within MESSAGES_BUDGET_CHARS; profile URLs never reach the model. Zero tokens.
+    Returns (text, conversations kept, conversations in the file)."""
+    lines = text.splitlines()
+    start = next(i for i, line in enumerate(lines) if LINKEDIN_MESSAGES.match(line))
+    rows = [{k.strip().upper(): (v or "").strip() for k, v in r.items() if k} for r in csv.DictReader(io.StringIO("\n".join(lines[start:])))]
+    ctx = signals.context(user_id)
+    people = [signals.norm(p) for p in ctx["people"] if len(p) >= 4]
+    topic = signals.topic_regex(ctx["organisations"])
+    convs: dict[str, list[dict]] = {}
+    for r in rows:
+        convs.setdefault(r.get("CONVERSATION ID") or r.get("CONVERSATION TITLE", ""), []).append(r)
+
+    def relevant(msgs: list[dict]) -> bool:
+        names = signals.norm(" ".join(m.get("FROM", "") + " " + m.get("TO", "") for m in msgs))
+        body = " ".join(m.get("SUBJECT", "") + " " + m.get("CONTENT", "") for m in msgs)
+        if signals.AUTOMATED.search(body):
+            return False
+        return any(p in names for p in people) or bool(topic.search(body))
+
+    kept = sorted((m for m in convs.values() if relevant(m)), key=lambda m: max(x.get("DATE", "") for x in m), reverse=True)
+    out, used, n = [], 0, 0
+    for msgs in kept:
+        block = [f"Conversation: {msgs[0].get('CONVERSATION TITLE') or 'LinkedIn messages'}"]
+        for m in sorted(msgs, key=lambda x: x.get("DATE", "")):
+            content = re.sub(r"<[^>]+>", " ", m.get("CONTENT", ""))
+            block.append(f"[{m.get('DATE', '')}] {m.get('FROM', '')} → {m.get('TO', '')}: {m.get('SUBJECT', '')} {content}".strip())
+        piece = "\n".join(block) + "\n"
+        if used + len(piece) > MESSAGES_BUDGET_CHARS:
+            break
+        out.append(piece)
+        used += len(piece)
+        n += 1
+    return "\n".join(out), n, len(convs)
 
 
 def filter_linkedin(text: str, user_id: int) -> tuple[str, int, int]:
@@ -86,7 +127,17 @@ async def process(user_id: int, text: str, kind: str, label: str, page_url: str 
         run.step("shield", "hidden_text_removed" if hidden else "html_cleaned",
                  f"{len(hidden)} hidden snippet(s) removed from the page" if hidden else "Page reduced to its visible text",
                  hidden=hidden[:5])
-    if is_linkedin_export(text):
+    linkedin = is_linkedin_export(text)
+    if linkedin and LINKEDIN_MESSAGES.search(text[:3000]):
+        text, kept, total = filter_linkedin_messages(text, user_id)
+        run.step("router", "export_filtered", f"LinkedIn messages: kept {kept} of {total} conversations, those with your people, "
+                 "about your organisations or about recruiting (no profile links)")
+        if kept == 0:
+            return {**run.finish("ok", "LinkedIn messages: nothing relevant"), "routes": [], "flagged": [], "hidden": [],
+                    "saved": {}, "rejected": [], "fields_not_found": ["No conversation in this file is with your people, about your "
+                                                                      "organisations or about recruiting."]}
+        kind = "conversation"
+    elif linkedin:
         text, kept, total = filter_linkedin(text, user_id)
         run.step("router", "export_filtered", f"LinkedIn export: kept {kept} of {total} connections, those at organisations "
                  "you track (name, company, position, date only)")
@@ -115,7 +166,7 @@ async def process(user_id: int, text: str, kind: str, label: str, page_url: str 
     saved: dict = {}
     rejected: list[dict] = []
     not_found: list[str] = []
-    origin = "linkedin" if LINKEDIN_CSV.search(text[:2000]) else None
+    origin = "linkedin" if linkedin else None
     for route, out in zip(routes, outputs):
         if out is None:
             continue

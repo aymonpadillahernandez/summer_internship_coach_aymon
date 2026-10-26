@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
-  ApiError, fetchLatestPlan, fetchSamples, runIntake, runIntakeLink, runPlan,
+  ApiError, fetchLatestPlan, fetchSamples, fileToBase64, runIntake, runIntakeFile, runIntakeLink, runPlan,
   type Candidate, type CoachPlan, type IntakeResult, type Sample, type TraceStep, type Usage,
 } from "../api";
 import { formatDate } from "../format";
@@ -51,7 +51,7 @@ const TARGETS_TEMPLATE = `My target list for next summer (organisation — role 
 
 /** The coach's home: this week's ranked plan (Career strategist) and "Add what's new" (the two specialists).
  *  New accounts first see a three-step guide: profile, targets, people. */
-export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile }: {
+export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, firstName, counts, profileFilled, onOpenProfile, onOpenConnect }: {
   candidates: Candidate[];
   onOpenRecord: (id: string) => void;
   onChanged: () => Promise<void> | void;
@@ -60,6 +60,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   counts: { opportunities: number; people: number };
   profileFilled: boolean;
   onOpenProfile: () => void;
+  onOpenConnect: () => void;
 }) {
   const [plan, setPlan] = useState<PlanView | null>(null);
   const [planBusy, setPlanBusy] = useState(false);
@@ -82,8 +83,8 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
       action: "Write your profile", onClick: onOpenProfile },
     { done: counts.opportunities > 0, title: "Add your targets", text: "Paste your target list (one line per organisation and role), or a posting or careers-page link.",
       action: "Use a target-list template", onClick: () => { setText(TARGETS_TEMPLATE); setLabel("My target list"); setKind("opportunity"); textRef.current?.focus(); } },
-    { done: counts.people > 0, title: "Add your people", text: "Paste a recent email or chat with a contact, your coffee-chat notes, or upload LinkedIn's Connections.csv.",
-      action: "Upload a file", onClick: () => fileRef.current?.click() },
+    { done: counts.people > 0, title: "Add your people", text: "Connect Gmail and Messages, upload a WhatsApp or LinkedIn export, or paste a recent conversation.",
+      action: "Connect your channels", onClick: onOpenConnect },
   ];
   const doneCount = steps.filter((x) => x.done).length;
   const showGuide = !guideHidden && doneCount < steps.length;
@@ -139,6 +140,18 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
   function onFile(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
+    if (/\.(zip|pdf|eml)$/i.test(f.name)) {  // binary or MIME files are read on the server
+      setIntakeBusy(true);
+      setIntakeError(null);
+      setIntake(null);
+      fileToBase64(f)
+        .then((b64) => runIntakeFile(f.name, b64, kind))
+        .then(async (r) => { setIntake(r); await onChanged(); })
+        .catch((err) => setIntakeError(errorText(err, "That upload didn't work. Try again.")))
+        .finally(() => setIntakeBusy(false));
+      e.target.value = "";
+      return;
+    }
     if (f.size > 1_000_000) {
       setIntakeError("That file is too large. Paste the relevant part instead.");
       return;
@@ -294,7 +307,7 @@ export default function TodayView({ candidates, onOpenRecord, onChanged, onAsk, 
               ))}
             </div>
             <button className="toggle" onClick={() => fileRef.current?.click()}>Upload a file</button>
-            <input ref={fileRef} type="file" accept=".txt,.csv,.eml,.html,.htm,.md" hidden onChange={onFile} />
+            <input ref={fileRef} type="file" accept=".txt,.csv,.eml,.html,.htm,.md,.ics,.zip,.pdf" hidden onChange={onFile} />
             <span className="char-count">
               {link ? "A link · the coach reads the page itself" : isLinkedInExport(text) ? "LinkedIn export · filtered to your organisations first" : `${text.length.toLocaleString()} / ${MAX_PASTE.toLocaleString()}`}
             </span>

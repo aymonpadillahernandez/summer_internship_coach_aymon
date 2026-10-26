@@ -10,12 +10,15 @@ chat) check the user's and the site's daily token budget first, and return the a
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import re
+import time
 from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -24,7 +27,9 @@ import checks
 import config
 import db
 import demo
+import files
 import intake
+import signals
 import web
 from agents import network, strategist
 from agents.runtime import CoachRun, ModelSubstituted
@@ -95,6 +100,23 @@ class IntakeBody(BaseModel):
     text: str = Field(min_length=20, max_length=config.MAX_EXPORT_CHARS)
     kind: Literal["auto", "opportunity", "conversation"] = "auto"
     label: str = Field(default="Pasted text", max_length=120)
+
+
+class FileBody(BaseModel):
+    filename: str = Field(min_length=1, max_length=200)
+    data_b64: str = Field(min_length=4, max_length=7_000_000)  # ~5 MB file
+    kind: Literal["auto", "opportunity", "conversation"] = "auto"
+
+
+class KeyBody(BaseModel):
+    label: str = Field(default="My computer", max_length=80)
+
+
+class ConnectorIntakeBody(BaseModel):
+    channel: Literal["gmail", "imessage", "whatsapp", "other"]
+    text: str = Field(min_length=20, max_length=config.MAX_INPUT_CHARS)
+    label: str = Field(default="", max_length=120)
+    items: int = Field(default=1, ge=0, le=500)
 
 
 class LinkBody(BaseModel):
@@ -301,6 +323,89 @@ async def intake_route(body: IntakeBody, user: dict = Depends(auth.require_user)
                                  f"{config.MAX_INPUT_CHARS:,}, or upload a LinkedIn connections export.")
     require_budget(user)
     return await intake.process(user["id"], body.text, body.kind, body.label)
+
+
+@app.post("/api/intake/file")
+async def intake_file(body: FileBody, user: dict = Depends(auth.require_user)):
+    """An uploaded file (WhatsApp export ZIP, PDF, .eml, .ics, LinkedIn CSV…) turned into text in code, then the intake."""
+    try:
+        text = files.extract(body.filename, base64.b64decode(body.data_b64, validate=True))
+    except (binascii.Error, ValueError):
+        raise HTTPException(422, "The file could not be decoded.") from None
+    except files.FileError as e:
+        raise HTTPException(422, str(e)) from None
+    text = text.strip()
+    if len(text) < 20:
+        raise HTTPException(422, "That file has almost no text in it.")
+    if len(text) > config.MAX_INPUT_CHARS and not intake.is_linkedin_export(text):
+        raise HTTPException(422, f"That file has {len(text):,} characters of text; the limit is {config.MAX_INPUT_CHARS:,}. "
+                                 "Export a shorter chat or paste the relevant part.")
+    require_budget(user)
+    return await intake.process(user["id"], text[: config.MAX_EXPORT_CHARS], body.kind, body.filename)
+
+
+# ─── Coach Connector: a script the student runs on their own computer (Gmail, iMessage) ──
+def connector_user(request: Request) -> dict:
+    """The student behind a connector key (Authorization: Bearer sic_…); rate-limited per key."""
+    header = request.headers.get("authorization", "")
+    raw = header[7:].strip() if header.lower().startswith("bearer ") else ""
+    found = db.user_for_connector_key(raw) if raw.startswith("sic_") else None
+    if found is None:
+        raise HTTPException(401, "Unknown or revoked connector key. Create a new one on the Connect page.")
+    user, key_id = found
+    if not auth._hit(f"connector:{key_id}", config.CONNECTOR_REQUESTS_PER_15_MIN, time.monotonic()):
+        raise HTTPException(429, "Too many connector requests. Try again in a few minutes.")
+    return auth.public(user)
+
+
+@app.post("/api/connector/keys")
+def create_connector_key(body: KeyBody, user: dict = Depends(auth.require_user)):
+    raw, key_id = db.create_connector_key(user["id"], body.label)
+    return {"id": key_id, "key": raw, "note": "Shown once. Paste it into the connector's setup; it can be revoked here."}
+
+
+@app.get("/api/connector/keys")
+def list_connector_keys(user: dict = Depends(auth.require_user)):
+    return {"keys": db.list_connector_keys(user["id"])}
+
+
+@app.delete("/api/connector/keys/{key_id}")
+def revoke_connector_key(key_id: int, user: dict = Depends(auth.require_user)):
+    if not db.revoke_connector_key(user["id"], key_id):
+        raise HTTPException(404, "Key not found")
+    return {"ok": True}
+
+
+@app.get("/api/connector/status")
+def connector_status(user: dict = Depends(auth.require_user)):
+    return {"syncs": db.list_syncs(user["id"]), "keys": db.list_connector_keys(user["id"])}
+
+
+@app.get("/api/connector/context")
+def connector_context(user: dict = Depends(connector_user)):
+    """The student's organisations, people and recruiting words, so the connector filters on their computer."""
+    return signals.context(user["id"])
+
+
+@app.post("/api/connector/intake")
+async def connector_intake(body: ConnectorIntakeBody, user: dict = Depends(connector_user)):
+    """A batch the connector already filtered on the student's computer; same shield, agents and checks as a paste."""
+    require_budget(user)
+    label = body.label or {"gmail": "Gmail", "imessage": "Messages", "whatsapp": "WhatsApp"}.get(body.channel, "Connector")
+    kind = "conversation" if body.channel in ("imessage", "whatsapp") else "auto"
+    r = await intake.process(user["id"], body.text, kind, label)
+    counts = {k: (len(v) if isinstance(v, list) else v) for k, v in r["saved"].items()}
+    db.record_sync(user["id"], body.channel, body.items, r["run_id"],
+                   ", ".join(f"{v} {k.replace('_', ' ')}" for k, v in counts.items() if v) or "nothing new")
+    return {"status": r["status"], "run_id": r["run_id"], "saved": counts, "rejected": len(r["rejected"]),
+            "shield": len(r["flagged"]) + len(r["hidden"]), "usage": r["usage"]}
+
+
+@app.get("/connector/coach_connector.py")
+def connector_script():
+    """The connector itself, so a student can download it with one command (it is also in the public repo)."""
+    path = config.ROOT / "connector" / "coach_connector.py"
+    return PlainTextResponse(path.read_text(encoding="utf-8"), media_type="text/x-python; charset=utf-8")
 
 
 @app.post("/api/intake/link")

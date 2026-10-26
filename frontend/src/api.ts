@@ -110,6 +110,24 @@ export type IntakeResult = RunResult & {
   fields_not_found: string[];
 };
 export const runIntake = (text: string, kind: string, label: string) => post<IntakeResult>("/api/intake", { text, kind, label });
+/** An uploaded file (WhatsApp ZIP, PDF, .eml, .ics, LinkedIn CSV…): read in code on the server, then the same intake. */
+export const runIntakeFile = (filename: string, data_b64: string, kind = "auto") =>
+  post<IntakeResult>("/api/intake/file", { filename, data_b64, kind });
+export const fileToBase64 = (f: File) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",", 2)[1] ?? "");
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(f);
+  });
+
+// ─── Coach Connector (a script the student runs on their own computer) ──
+export type ConnectorKey = { id: number; label: string; created_at: string; last_used_at: string | null; revoked_at: string | null };
+export type ConnectorSync = { channel: string; synced_at: string; items: number; summary: string };
+export const fetchConnectorStatus = () => request<{ syncs: ConnectorSync[]; keys: ConnectorKey[] }>("/api/connector/status");
+export const createConnectorKey = (label: string) => post<{ id: number; key: string; note: string }>("/api/connector/keys", { label });
+export const revokeConnectorKey = (id: number) => request<{ ok: boolean }>(`/api/connector/keys/${id}`, { method: "DELETE" });
+
 /** A careers page or posting link: the server reads the page itself (public addresses only), then the same shield. */
 export const runIntakeLink = (url: string, kind: string) => post<IntakeResult>("/api/intake/link", { url, kind });
 

@@ -14,6 +14,8 @@ WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ backend/
+# The Coach Connector script students download from the Connect tab.
+COPY connector/ connector/
 # Only the fictional demo dataset: real users' data lives in the database (DATABASE_URL).
 COPY data/demo/ data/demo/
 COPY --from=site /app/frontend/dist frontend/dist

@@ -9,8 +9,10 @@ agent trace), model_runs (one per agent run, with real token counts) and plans (
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import secrets
 
 from store import connect, insert_id, is_postgres
 
@@ -37,7 +39,7 @@ NETWORK_KEYS = [s["key"] for s in NETWORK_STAGES]
 FOLLOW_UP_DAYS = 14
 
 DATA_TABLES = ["events", "leads", "contacts", "applications", "actions_done", "profiles", "plans", "model_runs",
-               "agent_runs", "sessions"]  # deletion order (children first)
+               "agent_runs", "connector_syncs", "connector_keys", "sessions"]  # deletion order (children first)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -185,6 +187,27 @@ CREATE TABLE IF NOT EXISTS plans (
     run_id     TEXT NOT NULL,
     plan       TEXT NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+-- Keys for the Coach Connector, a script the student runs on their own computer (Gmail, iMessage). Only the
+-- SHA-256 hash of each key is stored; the student sees the key once.
+CREATE TABLE IF NOT EXISTS connector_keys (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    key_hash     TEXT NOT NULL UNIQUE,
+    label        TEXT NOT NULL DEFAULT '',
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    last_used_at TEXT,
+    revoked_at   TEXT
+);
+-- What the connector last sent, per channel (shown on the Connect page).
+CREATE TABLE IF NOT EXISTS connector_syncs (
+    user_id   INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    channel   TEXT NOT NULL,
+    synced_at TEXT NOT NULL DEFAULT (datetime('now')),
+    items     INTEGER NOT NULL DEFAULT 0,
+    run_id    TEXT NOT NULL DEFAULT '',
+    summary   TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (user_id, channel)
 );
 CREATE TABLE IF NOT EXISTS meta (
     key   TEXT PRIMARY KEY,
@@ -432,6 +455,58 @@ def delete_user_data(user_id: int, delete_account: bool = True) -> None:
             conn.execute(f"DELETE FROM {table} WHERE user_id = ?", (user_id,))
         if delete_account:
             conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+
+
+# ─── Coach Connector keys and syncs ─────────────────────────────────────
+def create_connector_key(user_id: int, label: str) -> tuple[str, int]:
+    """Returns the raw key (shown to the student once) and its id; only the hash is stored."""
+    raw = "sic_" + secrets.token_urlsafe(32)
+    with connect() as conn:
+        key_id = insert_id(conn, "INSERT INTO connector_keys (user_id, key_hash, label) VALUES (?, ?, ?)",
+                           (user_id, hashlib.sha256(raw.encode()).hexdigest(), label[:80]))
+    return raw, key_id
+
+
+def list_connector_keys(user_id: int) -> list[dict]:
+    with connect() as conn:
+        return [dict(r) for r in conn.execute(
+            "SELECT id, label, created_at, last_used_at, revoked_at FROM connector_keys WHERE user_id = ? ORDER BY id DESC",
+            (user_id,))]
+
+
+def revoke_connector_key(user_id: int, key_id: int) -> bool:
+    with connect() as conn:
+        cur = conn.execute("UPDATE connector_keys SET revoked_at = datetime('now') WHERE id = ? AND user_id = ? AND revoked_at IS NULL",
+                           (key_id, user_id))
+        return cur.rowcount > 0
+
+
+def user_for_connector_key(raw: str) -> tuple[dict, int] | None:
+    """(user, key id) for a valid, unrevoked key; also records when it was last used."""
+    with connect() as conn:
+        row = conn.execute(
+            """SELECT u.*, k.id AS key_id FROM connector_keys k JOIN users u ON u.id = k.user_id
+               WHERE k.key_hash = ? AND k.revoked_at IS NULL""", (hashlib.sha256(raw.encode()).hexdigest(),)).fetchone()
+        if row is None:
+            return None
+        conn.execute("UPDATE connector_keys SET last_used_at = datetime('now') WHERE id = ?", (row["key_id"],))
+    return dict(row), row["key_id"]
+
+
+def record_sync(user_id: int, channel: str, items: int, run_id: str, summary: str) -> None:
+    with connect() as conn:
+        conn.execute(
+            """INSERT INTO connector_syncs (user_id, channel, synced_at, items, run_id, summary)
+               VALUES (?, ?, datetime('now'), ?, ?, ?)
+               ON CONFLICT(user_id, channel) DO UPDATE SET synced_at = excluded.synced_at, items = excluded.items,
+               run_id = excluded.run_id, summary = excluded.summary""",
+            (user_id, channel, items, run_id, summary[:300]))
+
+
+def list_syncs(user_id: int) -> list[dict]:
+    with connect() as conn:
+        return [dict(r) for r in conn.execute("SELECT channel, synced_at, items, summary FROM connector_syncs WHERE user_id = ?",
+                                              (user_id,))]
 
 
 def new_id(conn, sql: str, params: tuple | list) -> int:

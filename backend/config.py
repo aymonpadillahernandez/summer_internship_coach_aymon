@@ -66,7 +66,8 @@ DAILY_TOKEN_BUDGET = int(os.getenv("DAILY_TOKEN_BUDGET", "300000"))  # per user 
 GLOBAL_DAILY_TOKEN_BUDGET = int(os.getenv("GLOBAL_DAILY_TOKEN_BUDGET", "3000000"))  # whole site per UTC day
 RETRIEVAL_TOP_K = 10  # records a specialist reads per question (BM25), instead of the whole database
 DEMO_TTL_DAYS = 3  # demo accounts (and their data) are deleted after this many days
-SIGNUP_CODE = os.getenv("SIGNUP_CODE", "").strip()  # optional: when set, sign-up asks for it
+SIGNUP_CODE = os.getenv("SIGNUP_CODE", "").strip()
+CONNECTOR_REQUESTS_PER_15_MIN = 60  # Coach Connector calls per key; it batches items, so a normal sync needs a few  # optional: when set, sign-up asks for it
 
 
 def key_is_set() -> bool:
