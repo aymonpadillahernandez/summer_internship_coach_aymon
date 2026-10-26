@@ -18,6 +18,7 @@ and three agents keep one evidence-backed picture of your search and tell you wh
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
 | **Ask your coach** | Chat with the Career strategist; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
+| **Connect** | Free ways to bring every channel in, step by step. **Automatic:** the Coach Connector, a small script on your own Mac, reads Gmail and Messages (iMessage / SMS) read-only, filters them on your computer and sends only what matches your targets, people and recruiting topics. **Upload:** WhatsApp's Export chat (.zip), LinkedIn's data download (Connections.csv, messages.csv), emails (.eml), calendar invites (.ics), Messages printed to PDF. Slack and job boards: copy and paste. |
 | **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent. |
 
 It never sends anything on your behalf: drafts are for you to send.
@@ -84,6 +85,24 @@ Developing the frontend with hot reload: run step 4, then `cd frontend && npm ru
   created on first start, git-ignored). Set `DATABASE_URL` to a Postgres URL to use Postgres instead (the live app
   uses Supabase). The pasted texts themselves are never stored, only the facts and the quotes that back them.
 
+## Connecting channels (Connect tab)
+
+All free and read-only; nothing is ever sent from a student's accounts.
+
+- **Coach Connector** (`connector/coach_connector.py`, Python standard library only, works with macOS's built-in
+  `python3`). The student creates a connector key on the Connect tab (shown once, stored hashed, revocable), then:
+  `curl -fsSL <site>/connector/coach_connector.py -o ~/coach_connector.py`, `python3 ~/coach_connector.py setup`,
+  `python3 ~/coach_connector.py run --dry-run` (shows counts, sends nothing), `python3 ~/coach_connector.py run`.
+  Gmail uses an app password kept in the macOS Keychain (IMAP, read-only, messages stay unread); Messages needs Full
+  Disk Access for Terminal and opens `chat.db` read-only. Only matches go to the server, in batches, through the
+  same shield and specialists as a paste.
+- **Uploads** go to `POST /api/intake/file`: `.zip` (WhatsApp export, zip-bomb limits), `.pdf`, `.eml` (sender name
+  only, hidden HTML removed), `.ics`, `.csv`, `.txt`, `.html`; 5 MB max. LinkedIn `messages.csv` is filtered in code
+  to conversations with the student's people, about their targets or about recruiting.
+- **Why not automatic everywhere:** WhatsApp, iMessage and LinkedIn have no API for personal messages (WhatsApp's
+  terms forbid automated copying), school Slack workspaces only allow admin-approved apps, and Handshake / LinkedIn
+  Jobs forbid scraping. Official sources: `docs/research/channels.md`.
+
 ## Environment variables
 
 | Variable | Needed | What for |
@@ -100,11 +119,13 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 25 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 31 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
-addresses (also after a redirect), bot protection, invented quotes and people, a 600-row LinkedIn export filtered in code, one student
+addresses (also after a redirect), bot protection, invented quotes and people, a 600-row LinkedIn export filtered in code, connector keys (hashed, revocable, one
+student only), file uploads (WhatsApp zip, email, zip bombs, unsupported types refused at 0 tokens), LinkedIn
+messages filtered to the student's people and targets, one student
 reading another's data, runaway delegation and tool loops, invented actions, model substitution, oversized input
 and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_LIMIT`, `MAX_DELEGATIONS_PER_RUN`,
 `AGENT_TOTAL_TOKENS_LIMIT`, `MAX_INPUT_CHARS`, `DAILY_TOKEN_BUDGET`, …).
@@ -114,8 +135,9 @@ and the daily token budget. Limits live in `backend/config.py` (`AGENT_REQUEST_L
 ```
 backend/   FastAPI app (main.py), agents/ (strategist, scout, network, runtime), prompts/, safety.py, merge.py,
            intake.py, web.py (link reader), retrieval.py (BM25), db.py + store.py (SQLite / Postgres), auth.py,
-           demo.py, check_setup.py
-frontend/  React + Vite + TypeScript (Today, boards, action plan, chat, usage)
+           files.py (uploads), signals.py (what to keep), demo.py, check_setup.py
+connector/ coach_connector.py, the free local Gmail + Messages reader students download from the Connect tab
+frontend/  React + Vite + TypeScript (Today, boards, action plan, Connect, chat, usage)
 data/demo/ the fictional test dataset and paste samples
 tests/     safety tests (pytest)
 docs/      evidence (token runs, test output, screenshots) used in the report
