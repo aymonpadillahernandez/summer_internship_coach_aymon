@@ -405,11 +405,17 @@ def finish_run(run_id: str, status: str, seconds: float, trace: list[dict], summ
                      (status, round(seconds, 2), json.dumps(trace, ensure_ascii=False), summary[:500], run_id))
 
 
-def failure_streak(user_id: int, agent: str, minutes: int) -> int:
-    """Consecutive failed runs of one agent for one student, counted only if the latest is recent (circuit breaker)."""
+def failure_streak(user_id: int, agent: str, minutes: int, kind: str | None = None) -> int:
+    """Consecutive failed runs of one agent for one student in one kind of request (so failed job-board searches never
+    pause the coach's questions to the scout), counted only if the latest is recent (circuit breaker)."""
+    sql = ("SELECT m.status, m.created_at FROM model_runs m LEFT JOIN agent_runs a ON a.run_id = m.run_id "
+           "WHERE m.user_id = ? AND m.agent = ?")
+    params: list = [user_id, agent]
+    if kind:  # (built in code: Postgres cannot type a bare "? IS NULL" parameter)
+        sql += " AND (a.kind IS NULL OR a.kind = ?)"
+        params.append(kind)
     with connect() as conn:
-        rows = conn.execute("SELECT status, created_at FROM model_runs WHERE user_id = ? AND agent = ? ORDER BY id DESC LIMIT 10",
-                            (user_id, agent)).fetchall()
+        rows = conn.execute(sql + " ORDER BY m.id DESC LIMIT 10", params).fetchall()
     if not rows:
         return 0
     latest = datetime.strptime(str(rows[0]["created_at"])[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")

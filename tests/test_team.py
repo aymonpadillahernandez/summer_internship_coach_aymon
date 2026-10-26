@@ -300,3 +300,13 @@ def test_a_page_or_posting_never_creates_people(demo_client, accept_test_model):
     with inbox.agent().override(model=FunctionModel(lambda m, i: ModelResponse(parts=[TextPart(json.dumps(reply))]))):
         demo_client.post("/api/intake", json={"text": text, "kind": "opportunity", "label": "posting"})
     assert "Dana Whitfield" not in {c["name"] for c in db.list_contacts(_uid(demo_client))}
+
+
+def test_failed_job_board_searches_do_not_pause_the_coachs_questions_to_the_scout(demo_client):
+    uid = _uid(demo_client)
+    for i in range(config.FAILURE_PAUSE_AFTER):
+        db.start_run(f"disc-{i}", uid, "discover")
+        db.record_model_run({"run_id": f"disc-{i}", "user_id": uid, "agent": "scout", "model": "gpt-6-luna", "requests": 1,
+                             "input_tokens": 1, "cached_tokens": 0, "output_tokens": 0, "reasoning_tokens": 0, "seconds": 1, "status": "error"})
+    assert db.failure_streak(uid, "scout", config.FAILURE_PAUSE_MINUTES, "discover") == config.FAILURE_PAUSE_AFTER
+    assert db.failure_streak(uid, "scout", config.FAILURE_PAUSE_MINUTES, "chat") == 0

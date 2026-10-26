@@ -197,6 +197,7 @@ async def discover(run: CoachRun, user_id: int, companies: list[str]) -> tuple[D
         kept = []
         for o in report.opportunities:
             o.status_signal = "none"  # a public job board cannot know where the student's own application stands
+            o.match_id = None  # it was never shown the student's cards: the keeper matches by organisation + role
             if _norm_url(o.url) in deps.board_links:
                 kept.append(o)
             else:

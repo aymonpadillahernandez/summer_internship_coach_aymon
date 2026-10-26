@@ -94,7 +94,7 @@ async def run_agent(run: CoachRun, name: str, agent: Agent, user_prompt: str, de
     if config.AI_PAUSED:
         run.step(name, "paused", "AI is paused on this server (AI_PAUSED)")
         return None
-    if db.failure_streak(run.user_id, name, config.FAILURE_PAUSE_MINUTES) >= config.FAILURE_PAUSE_AFTER:
+    if db.failure_streak(run.user_id, name, config.FAILURE_PAUSE_MINUTES, run.kind) >= config.FAILURE_PAUSE_AFTER:
         run.step(name, "paused_after_failures",
                  f"{config.FAILURE_PAUSE_AFTER} failed runs in a row: paused for {config.FAILURE_PAUSE_MINUTES} minutes")
         return None

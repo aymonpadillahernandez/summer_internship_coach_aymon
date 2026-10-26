@@ -156,7 +156,7 @@ documented in `backend/config.py`). Variables already set by the host (e.g. Rend
 ## Safety and limits (tested)
 
 ```bash
-backend/.venv/bin/python -m pytest tests -v     # 71 tests, no API key needed, no tokens spent
+backend/.venv/bin/python -m pytest tests -v     # 72 tests, no API key needed, no tokens spent
 ```
 
 They cover prompt injection in pasted text, hidden text in web pages and linked pages, links to private or local
