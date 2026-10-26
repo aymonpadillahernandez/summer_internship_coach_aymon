@@ -152,6 +152,7 @@ All free and read-only; nothing is ever sent from a student's accounts.
 | `DAILY_TOKEN_BUDGET` | no | Tokens per student per UTC day (default 300,000). Over it, AI routes return 429. |
 | `GLOBAL_DAILY_TOKEN_BUDGET` | no | Tokens for the whole site per UTC day (default 3,000,000). |
 | `SIGNUP_CODE` | no | If set, creating an account asks for it. |
+| `AI_PAUSED` | no | Kill switch: `1` stops every AI route (503, zero tokens); the rest of the app keeps working. |
 
 `.env` lookup order: the repo folder, then one folder above it (a third, workspace-only fallback two folders up is
 documented in `backend/config.py`). Variables already set by the host (e.g. Render) win.
