@@ -5,10 +5,27 @@
 > The free hosting plan sleeps after 15 idle minutes: the first visit can take up to a minute while it wakes. A
 > scheduled GitHub Action pings it, but GitHub runs schedules only sporadically, so open the URL a minute ahead.
 
-From scattered opportunities and conversations to the next best career action. An AI career operating system for MBA
-students recruiting for summer internships. Connect or export your channels (Gmail, Messages, WhatsApp, LinkedIn,
-Slack, calendar, postings): five agents keep one evidence-backed picture of your search, find openings on public job
-boards, and tell you where to spend this week. Nothing is ever sent for you.
+**A one-stop shop for MBA students looking for a summer internship.** Instead of a spreadsheet, email, LinkedIn,
+WhatsApp, iMessage, job boards and school platforms, one place follows the whole search:
+
+1. **Tell it what you want.** A preferences form opens every new account (school, timing, industries, roles, cities,
+   target organisations); each target becomes a card, and the Setup guide walks you through every channel.
+2. **Find.** The Opportunity scout searches the whole web (OpenAI's web search, through the course key) and the public
+   job boards (Greenhouse, Lever, Ashby, SmartRecruiters) for internships that fit you; the Records keeper opens every
+   result's own page and saves it only if the page confirms it.
+3. **Shortlist and people.** Fit is judged against your profile; Network intelligence finds the key people and the
+   alumni of your school at each target on public pages, and who in your own network can open the door.
+4. **Stay current.** One dashboard (Opportunities, Networking, Action plan) kept up to date from Gmail, Messages and
+   WhatsApp Desktop (the Coach Connector, auto-sync every 30 minutes), uploads (WhatsApp, LinkedIn, .eml, .ics) and
+   pastes, through the Inbox organizer and the Records keeper.
+5. **Act.** The Career coach plans your week, answers any question (citing its web sources), prepares coffee chats and
+   calls (talking points, the person's background, questions, a follow-up draft) and drafts notes into an Outbox.
+
+Five AI agents on `gpt-6-luna` do the reading, searching and judging; code checks every fact against its source. The
+Usage page shows tokens and dollars per run. **Nothing is ever sent for you.** "The whole web" has honest limits:
+LinkedIn, Handshake, 12twenty and Symplicity are never read (their terms forbid it), pages that need JavaScript cannot
+be confirmed, and the alum flag is the agent's reading of a public page (code checks that the page names the person, not
+where they studied).
 
 ## For graders: run it, then explore everything (about 5 minutes)
 
@@ -31,13 +48,14 @@ boards, and tell you where to spend this week. Nothing is ever sent for you.
 
 | Screen | What you get |
 |---|---|
-| **Today** | **Plan my week**: the Career coach ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the Inbox organizer files opportunities, people and dated facts, each with the exact quote it came from. New accounts get a three-step guide. **Find openings**: the Opportunity scout searches the public job boards of your organisations. **Outbox**: drafts the coach wrote, never sent by the app. |
-| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Who can open the door**: Network intelligence finds up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
+| **Preferences** (first screen of a new account; Setup → Edit) | School, timing, industries, roles, cities and target organisations. Every agent reads them; each target organisation becomes a card on the board (code, no AI). |
+| **Today** | **Find openings**: *Search the whole web* (the Opportunity scout with OpenAI's web search proposes up to 8 internships that fit, also at organisations you don't track yet; only those confirmed on their own page are saved, with the link) or *Search my organisations' job boards* (Greenhouse, Lever, Ashby, SmartRecruiters public APIs). **Plan my week**: the Career coach ranks your open actions after consulting both specialists, with *why now*, *first step* and the records it relied on. **Add what's new**: paste or upload text, or paste a careers-page link; the Inbox organizer files opportunities, people and dated facts, each with the exact quote it came from. **Outbox**: drafts the coach wrote, never sent by the app. |
+| **Opportunities** | Pipeline board (Not started → Offer / Rejected) with deadlines, MBA eligibility, fit and the page check. On each card, **Key people and alumni**: Network intelligence searches public pages for the team behind the role, the recruiting lead and alumni of your school (saved as *To contact* only if a public page names them; never LinkedIn; no contact details). **Who can open the door**: up to 3 ways in from people you know, with what to ask and a first message you send yourself. |
 | **Networking** | People pipeline (To contact → Keep warm) with sources, next steps and follow-up timing. |
 | **Action plan** | Every to-do worked out from your records in code (deadlines, nudges, follow-ups, calls): zero tokens. |
-| **Ask your coach** | Chat with the Career coach; "Prepare my call with …" goes to Network intelligence's call-prep expert. |
-| **Setup** (step 1 for new accounts) | The **Setup guide** agent walks you through it next to a checklist. Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only, filters on your computer and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
-| **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent. |
+| **Ask your coach** | Ask anything: the Career coach answers from your records and, when they can't, searches the web and cites its sources. "Prepare my call with …" goes to Network intelligence: why the call matters, a timed plan, talking points, the person's background (your records, plus public pages), questions and a follow-up draft. "Draft a thank-you to …" puts a draft in the Outbox. |
+| **Setup** (step 1 for new accounts) | Your preferences, then the **Setup guide** agent next to a checklist. Which channels update on their own and which need an export, then step-by-step setup, all free. **Updates on its own:** the Coach Connector, a small script on your own Mac, reads Gmail (plus school mail forwarded to it), Messages (iMessage / SMS) and WhatsApp Desktop read-only and, with auto-sync on, checks every 30 minutes and sends only what's new. **Export or paste:** LinkedIn's data download (Connections.csv, messages.csv), Slack, Android texts, calendar invites (.ics), WhatsApp's Export chat without a Mac, job postings. Live status per channel (on, needs Full Disk Access, not connected). |
+| **Usage** | Every AI run with the real input, cached input and output tokens the model reported, per agent, and its cost in dollars (web search fees included). The two web-search buttons stop at 20 web requests per student per day. |
 
 It never sends anything on your behalf: drafts are for you to send.
 

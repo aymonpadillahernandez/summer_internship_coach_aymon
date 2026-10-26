@@ -1,5 +1,5 @@
 {
- "note": "Prices: OpenAI's list price for gpt-6-luna (standard tier) and web search ($10 per 1,000 calls), read 2026-10-26. Per-request costs: medians of real logged runs on the live database, plus the measured runs of the web features (docs/evidence/screenshots/2026-10-26_live_web/runs.json: web shortlist, key people, a coach answer that searched the web). Requests per month are an ESTIMATE (no pilot user measured yet). Web search fees dominate: about 90% of the typical month. Hosting and Portkey fees are separate.",
+ "note": "Prices: OpenAI's list price for gpt-6-luna (standard tier) and web search ($10 per 1,000 calls), read 2026-10-26. Per-request costs: medians of real logged runs on the live database (except chat: the cost of one logged coach chat that consulted a specialist, run dbc5b7ad586f; the median over chats and call prep in 2026-10-26_tokenomics_live.json is $0.00062), plus the measured runs of the web features (docs/evidence/screenshots/2026-10-26_live_web/runs.json: web shortlist, key people, a coach answer that searched the web). Requests per month are an ESTIMATE (no pilot user measured yet). Web search fees dominate: about 90% of the typical month. Hosting and Portkey fees are separate.",
  "prices_per_1m": {
   "input": 0.1,
   "cached_input": 0.01,

@@ -2,11 +2,14 @@
 
 Inputs (all in the repo):
   docs/report/report_source.html   the text of the report, with {{CSS}}, {{SVG:name}} and {{TABLE:name}} markers and
-                                   <img data-shot="file.png" data-width="px" [data-crop="px"]> for screenshots
+                                   <img data-shot="file.png" data-width="px" [data-crop="bottom" | "top,bottom"]> for
+                                   screenshots; a bare file name is looked up in SHOT_DIRS (in order), or give
+                                   "folder/file.png" relative to docs/evidence/screenshots/
   docs/report/report.css           styles (letter-size print)
   docs/report/architecture.svg     the delegation diagram, drawn from the code
   docs/evidence/...                the numbers behind the generated tables (never typed by hand):
-    screenshots/2026-10-26_live/runs.json, runs/2026-10-26_tokenomics_live.json, runs/2026-10-26_cost_model.json,
+    screenshots/2026-10-26_live/runs.json (morning session), screenshots/2026-10-26_live_web/runs.json (web features),
+    runs/2026-10-26_tokenomics_live.json, runs/2026-10-26_cost_model.json (v2, web search fees included),
     docs/research/competitors.json (hosting prices)
 
 Output: ../submission/report.html next to the repo (the Canvas file), or --out PATH.
@@ -34,7 +37,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-SHOTS = REPO / "docs" / "evidence" / "screenshots" / "2026-10-26_live"
+SHOT_ROOT = REPO / "docs" / "evidence" / "screenshots"
+SHOTS = SHOT_ROOT / "2026-10-26_live"  # the morning session (runs.json used by the report and the slides)
+SHOTS_WEB = SHOT_ROOT / "2026-10-26_live_web"  # the afternoon session: preferences form and the web features
+SHOT_DIRS = (SHOTS, SHOTS_WEB)
 RUNS = REPO / "docs" / "evidence" / "runs"
 RESEARCH = REPO / "docs" / "research"
 DEFAULT_OUT = REPO.parent / "submission" / "report.html"
@@ -53,6 +59,9 @@ RUN_LABELS = {
     "6939e33cfb41": ("Ask your coach", "thank-you draft"),
     "2780889ce0f4": ("Ask your coach", "call prep"),
     "affe3255c214": ("Who can open the door", "Northbridge"),
+    "d1161ab12736": ("Search the whole web", "shortlist, 2 of 4 confirmed"),
+    "be2afd11acd4": ("Key people and alumni", "DICK'S Sporting Goods"),
+    "692b493b6c59": ("Ask your coach", "NBA internship, web"),
 }
 AGENT_SHORT = {"strategist": "Coach", "scout": "Scout", "network": "Network", "inbox": "Inbox", "guide": "Guide"}
 KIND_LABELS = {
@@ -60,7 +69,11 @@ KIND_LABELS = {
     "intake": "Add what's new (one text)", "doors": "Who can open the door", "guide": "Setup guide answer",
 }
 KIND_ORDER = ["plan", "discover", "chat", "intake", "doors", "guide"]
-SHORT_KIND = {"intake": "items", "plan": "plans", "chat": "chats", "discover": "searches", "doors": "doors", "guide": "guide"}
+SHORT_KIND = {"intake": "items", "plan": "plans", "chat": "chats", "discover": "searches", "doors": "doors", "guide": "guide",
+              "chat_with_web": "web chats", "web_shortlist": "web shortlists", "key_people": "people searches"}
+SCALE_KIND = {"discover": "job-board searches", "guide": "Setup guide"}  # clearer labels in the report's scale table
+WEB_KINDS = ("web_shortlist", "key_people", "chat_with_web")  # cost_model.json v2: the requests that search the web
+CHAT_COST_RUN = "dbc5b7ad586f"  # cost_model.json "chat" ($0.000707) is this live-database run's cost, not a median (checked Oct 26)
 
 
 def load(path: Path) -> dict:
@@ -80,33 +93,58 @@ def esc(s: str) -> str:
 
 
 # ─── Tables generated from the evidence files ──────────────────────────────────────────────────────────────────
-def table_runs(runs: dict) -> str:
-    rows, tot = [], {"input": 0, "cached": 0, "output": 0, "requests": 0, "cost": 0.0}
-    for r in runs["runs"]:
-        what, detail = RUN_LABELS.get(r["run_id"], (r["kind"], ""))
-        u = r["usage"]
-        agents = ", ".join(f"{AGENT_SHORT.get(a['agent'], a['agent'])} ({a['requests']})" for a in r["per_agent"])
-        code = [a for a in r["agents_in_trace"] if a in ("shield", "router", "keeper")]
-        if code:
-            agents += " · code: " + ", ".join(code)
-        rows.append(
-            f"<tr><td><b>{esc(what)}</b> · {esc(detail)}<span class='sub'>run {r['run_id']}</span></td>"
-            f"<td>{esc(agents)}</td><td class='num'>{n(u['input'])}</td><td class='num'>{n(u['cached'])}</td>"
-            f"<td class='num'>{n(u['output'])}</td><td class='num'>{u['requests']}</td><td class='num'>{r['seconds']:.1f}</td>"
-            f"<td class='num'>{usd(u['cost_usd'])}</td></tr>")
-        for k in ("input", "cached", "output", "requests"):
-            tot[k] += u[k]
-        tot["cost"] += u["cost_usd"]
-    t = runs["total"]
-    assert (tot["input"], tot["cached"], tot["output"], tot["requests"]) == (t["input"], t["cached"], t["output"], t["requests"]), \
-        "runs.json totals do not match the sum of its runs"
-    rows.append(f"<tr class='total'><td>Total, {len(runs['runs'])} requests</td><td></td><td class='num'>{n(tot['input'])}</td>"
-                f"<td class='num'>{n(tot['cached'])}</td><td class='num'>{n(tot['output'])}</td><td class='num'>{tot['requests']}</td>"
-                f"<td></td><td class='num'>{usd(tot['cost'])}</td></tr>")
-    head = ("<thead><tr><th style='width:34%'>Request</th><th style='width:24%'>AI agents (model calls)</th>"
+def token_cost(u: dict, prices: dict) -> float:
+    return ((u["input"] - u["cached"]) * prices["input_per_m"] + u["cached"] * prices["cached_input_per_m"]
+            + u["output"] * prices["output_per_m"]) / 1e6
+
+
+def web_searches(u: dict, prices: dict) -> int:
+    """Searches in a run: (logged cost - token cost) / $0.01 per search (OpenAI's price), checked to be a whole number."""
+    fee = u["cost_usd"] - token_cost(u, prices)
+    k = round(fee / WEB_SEARCH_PRICE)
+    assert abs(fee - k * WEB_SEARCH_PRICE) < 1e-6, f"cost does not split into tokens + whole searches: {u}"
+    return k
+
+
+WEB_SEARCH_PRICE = 0.01  # backend/config.py PRICE_WEB_SEARCH_PER_CALL: "$10.00 / 1k calls"
+
+
+def table_runs(*sessions: tuple[str, dict]) -> str:
+    """Every run of each session (runs.json files), totals checked against each file's own total."""
+    rows, grand = [], {"input": 0, "cached": 0, "output": 0, "requests": 0, "web": 0, "cost": 0.0, "n": 0}
+    for title, runs in sessions:
+        prices = runs["prices"]
+        rows.append(f"<tr class='group'><td colspan='9'>{esc(title)}</td></tr>")
+        tot = {"input": 0, "cached": 0, "output": 0, "requests": 0}
+        for r in runs["runs"]:
+            what, detail = RUN_LABELS.get(r["run_id"], (r["kind"], ""))
+            u = r["usage"]
+            k = web_searches(u, prices)
+            agents = ", ".join(f"{AGENT_SHORT.get(a['agent'], a['agent'])} ({a['requests']})" for a in r["per_agent"])
+            code = [a for a in r["agents_in_trace"] if a in ("shield", "router", "keeper")]
+            if code:
+                agents += " · code: " + ", ".join(code)
+            rows.append(
+                f"<tr><td><b>{esc(what)}</b> · {esc(detail)}<span class='sub'>run {r['run_id']}</span></td>"
+                f"<td>{esc(agents)}</td><td class='num'>{n(u['input'])}</td><td class='num'>{n(u['cached'])}</td>"
+                f"<td class='num'>{n(u['output'])}</td><td class='num'>{u['requests']}</td><td class='num'>{k or '–'}</td>"
+                f"<td class='num'>{r['seconds']:.1f}</td><td class='num'>{usd(u['cost_usd'], 5 if u['cost_usd'] < 0.01 else 3)}</td></tr>")
+            for key in tot:
+                tot[key] += u[key]
+            grand["web"] += k
+            grand["cost"] += u["cost_usd"]
+            grand["n"] += 1
+        t = runs["total"]
+        assert all(tot[key] == t[key] for key in tot), "runs.json totals do not match the sum of its runs"
+        for key in tot:
+            grand[key] += tot[key]
+    rows.append(f"<tr class='total'><td>Total, {grand['n']} requests</td><td></td><td class='num'>{n(grand['input'])}</td>"
+                f"<td class='num'>{n(grand['cached'])}</td><td class='num'>{n(grand['output'])}</td><td class='num'>{grand['requests']}</td>"
+                f"<td class='num'>{grand['web']}</td><td></td><td class='num'>{usd(grand['cost'], 3)}</td></tr>")
+    head = ("<thead><tr><th style='width:31%'>Request</th><th style='width:23%'>AI agents (model calls)</th>"
             "<th class='num'>Input</th><th class='num'>Cached</th><th class='num'>Output</th><th class='num'>Calls</th>"
-            "<th class='num'>Seconds</th><th class='num'>Cost</th></tr></thead>")
-    return f"<table class='compact'>{head}<tbody>{''.join(rows)}</tbody></table>"
+            "<th class='num'>Web searches</th><th class='num'>Seconds</th><th class='num'>Cost</th></tr></thead>")
+    return f"<table class='compact runs'>{head}<tbody>{''.join(rows)}</tbody></table>"
 
 
 def table_kinds(live: dict) -> str:
@@ -130,8 +168,13 @@ def table_kinds(live: dict) -> str:
     return f"<table class='compact'>{head}<tbody>{''.join(rows)}</tbody></table>"
 
 
-def table_scale(cost: dict, research: dict) -> str:
+def table_scale(cost: dict, research: dict, live: dict | None = None) -> str:
+    """Measured cost per request x an ESTIMATED month of use (cost_model.json), plus the paid-hosting arithmetic.
+    Called by build_slides.py too, so its checks run on both builds."""
     per = cost["cost_per_request_usd"]
+    if live:  # the non-web costs are Table 3's medians, except the coach chat (labelled in the note)
+        for k in ("plan", "discover", "intake", "doors", "guide"):
+            assert abs(per[k] - live["by_kind"][k]["median_cost_usd"]) < 1e-6, f"cost_model.json {k} is not Table 3's median"
     hosting = {h["plan"]: h for h in research["hosting"]}
     small = 7 + 25   # Render Starter + Supabase Pro (list prices in competitors.json "hosting")
     school = 25 + 25 + 25  # Render Pro workspace + Standard instance + Supabase Pro
@@ -145,20 +188,30 @@ def table_scale(cost: dict, research: dict) -> str:
         s = cost["scenarios"][name]
         calc = sum(mix[k] * per[k] for k in mix)
         assert abs(calc - s["per_user_month_usd"]) < 0.0001, "cost_model.json scenario does not match its own inputs"
-        mix_txt = " · ".join(f"{mix[k]} {SHORT_KIND[k]}" for k in ("intake", "plan", "chat", "discover", "doors", "guide"))
+        assert sum(mix.values()) == s["requests"], "cost_model.json request count does not match its mix"
+        web = sum(mix[k] * per[k] for k in WEB_KINDS if k in mix)
+        if "web_share" in s:
+            assert abs(web / calc - s["web_share"]) < 0.005, "cost_model.json web share does not match its inputs"
+        mix_txt = " · ".join(f"{mix[k]} {SCALE_KIND.get(k, SHORT_KIND[k])}" for k in mix if mix[k])
         t100, t10k = calc * 100, calc * 10_000
         rows.append(
             f"<tr><td><b>{name.capitalize()} student</b> <span class='estimate'>estimate</span><span class='sub'>{s['requests']} requests a month "
-            f"({esc(mix_txt)})</span></td><td class='num'>{usd(calc, 3)}</td><td class='num'>{usd(t100, 2)}</td>"
-            f"<td class='num'>{usd(t10k, 0)}</td><td class='num'>{usd(t100 + small, 2)}<span class='sub'>{usd((t100 + small) / 100, 2)} per student</span></td>"
-            f"<td class='num'>{usd(t10k + school, 0)}<span class='sub'>{usd((t10k + school) / 10_000, 3)} per student</span></td></tr>")
-    head = ("<thead><tr><th style='width:31%'>Scenario (measured cost per request × estimated use)</th>"
-            "<th class='num' style='width:12%'>Per student / month</th><th class='num' style='width:11%'>100 students</th>"
-            "<th class='num' style='width:12%'>10,000 students</th><th class='num' style='width:16%'>100 + hosting $32</th>"
-            "<th class='num' style='width:18%'>10,000 + hosting $75</th></tr></thead>")
-    note = (f"<p class='tablenote'>Per-request costs used: plan {usd(per['plan'])}, job-board search {usd(per['discover'])}, chat "
-            f"{usd(per['chat'])}, intake {usd(per['intake'])}, doors {usd(per['doors'])}, Setup guide {usd(per['guide'])}. "
-            "Hosting columns add the paid-plan arithmetic described below; Portkey's fee is not included.</p>")
+            f"({esc(mix_txt)})</span></td><td class='num'>{usd(calc, 2)}</td><td class='num'>{web / calc:.0%}</td>"
+            f"<td class='num'>{usd(t100, 2)}</td><td class='num'>{usd(t10k, 0)}</td>"
+            f"<td class='num'>{usd(t100 + small, 2)}<span class='sub'>{usd((t100 + small) / 100, 2)} per student</span></td>"
+            f"<td class='num'>{usd(t10k + school, 0)}<span class='sub'>{usd((t10k + school) / 10_000, 2)} per student</span></td></tr>")
+    head = ("<thead><tr><th style='width:33%'>Scenario (measured cost per request × estimated use)</th>"
+            "<th class='num' style='width:9%'>Per student / month</th><th class='num' style='width:8%'>Web share</th>"
+            "<th class='num' style='width:10%'>100 students</th><th class='num' style='width:10%'>10,000 students</th>"
+            "<th class='num' style='width:14%'>100 + hosting $32</th><th class='num' style='width:16%'>10,000 + hosting $75</th></tr></thead>")
+    web_txt = ", ".join(f"{label} {usd(per[k], 3)}" for k, label in
+                        (("web_shortlist", "web shortlist"), ("key_people", "key people"), ("chat_with_web", "chat that searched the web")) if k in per)
+    note = (f"<p class='tablenote'><b>Table 4. Cost per month.</b> Per-request costs used (medians of logged live runs except the coach chat; web features: the measured runs of Table 2): "
+            f"plan {usd(per['plan'])}, job-board search {usd(per['discover'])}, coach chat {usd(per['chat'])} (not a median: one logged coach "
+            f"chat that consulted a specialist, run {CHAT_COST_RUN}" + (f"; Table 3's chat median, call prep included, is "
+            f"{usd(live['by_kind']['chat']['median_cost_usd'])}" if live else "") + f"), intake {usd(per['intake'])}, "
+            f"doors {usd(per['doors'])}, Setup guide {usd(per['guide'])}" + (f"; {web_txt}" if web_txt else "") +
+            ". <i>Web share</i> = the share of the month spent on the three web features, search fees and their tokens. Portkey's fee is not included.</p>")
     return f"<table class='compact' style='table-layout:fixed'>{head}<tbody>{''.join(rows)}</tbody></table>{note}"
 
 
@@ -168,17 +221,30 @@ def png_size(path: Path) -> tuple[int, int]:
     return int.from_bytes(b[16:20], "big"), int.from_bytes(b[20:24], "big")
 
 
-def encode_image(path: Path, width: int, crop: int | None, tmp: Path) -> tuple[str, str]:
-    """(mime, base64) of the screenshot, scaled to `width` px and optionally cropped to its top `crop` px."""
+def shot_path(name: str) -> Path:
+    """A screenshot by bare file name (searched in SHOT_DIRS, in order) or as "folder/file.png" under SHOT_ROOT."""
+    if "/" in name:
+        return SHOT_ROOT / name
+    for d in SHOT_DIRS:
+        if (d / name).is_file():
+            return d / name
+    return SHOTS / name
+
+
+def encode_image(path: Path, width: int, crop: int | tuple[int, int] | None, tmp: Path) -> tuple[str, str]:
+    """(mime, base64) of the screenshot, scaled to `width` px and optionally cropped: to its top `crop` px, or to the
+    rows top..bottom when crop is a (top, bottom) pair."""
     w, h = png_size(path)
+    top, bottom = (0, crop) if isinstance(crop, int) else (crop or (0, None))
+    bottom = min(bottom or h, h)
     if shutil.which("sips"):
         src = path
-        if crop and crop < h:
-            src = tmp / f"crop_{path.name}"
+        if crop and (top > 0 or bottom < h):
+            src = tmp / f"crop_{top}_{bottom}_{path.name}"
             # sips treats an offset of 0 as "not set" and centres the crop; 1 px from the top keeps the top part
-            subprocess.run(["sips", "--cropToHeightWidth", str(crop), str(w), "--cropOffset", "1", "0", str(path),
-                            "--out", str(src)], check=True, capture_output=True)
-        out = tmp / (path.stem + ".jpg")
+            subprocess.run(["sips", "--cropToHeightWidth", str(bottom - top), str(w), "--cropOffset", str(max(top, 1)), "0",
+                            str(path), "--out", str(src)], check=True, capture_output=True)
+        out = tmp / f"{path.stem}_{top}_{bottom}.jpg"
         cmd = ["sips", "-s", "format", "jpeg", "-s", "formatOptions", str(JPEG_QUALITY)]
         if w > width:
             cmd += ["--resampleWidth", str(width)]
@@ -187,11 +253,11 @@ def encode_image(path: Path, width: int, crop: int | None, tmp: Path) -> tuple[s
     try:
         from PIL import Image  # optional
         im = Image.open(path).convert("RGB")
-        if crop and crop < im.height:
-            im = im.crop((0, 0, im.width, crop))
+        if crop:
+            im = im.crop((0, top, im.width, bottom))
         if im.width > width:
             im = im.resize((width, round(im.height * width / im.width)))
-        out = tmp / (path.stem + ".jpg")
+        out = tmp / f"{path.stem}_{top}_{bottom}.jpg"
         im.save(out, "JPEG", quality=JPEG_QUALITY, optimize=True)
         return "image/jpeg", base64.b64encode(out.read_bytes()).decode()
     except ImportError:
@@ -206,11 +272,14 @@ def embed_images(doc: str, tmp: Path) -> tuple[str, list[str]]:
         name = re.search(r'data-shot="([^"]+)"', tag).group(1)
         width_m = re.search(r'data-width="(\d+)"', tag)
         width = int(width_m.group(1)) if width_m else 1400
-        crop_m = re.search(r'data-crop="(\d+)"', tag)
-        path = SHOTS / name
+        crop_m = re.search(r'data-crop="(\d+)(?:,(\d+))?"', tag)
+        crop = None
+        if crop_m:
+            crop = (int(crop_m.group(1)), int(crop_m.group(2))) if crop_m.group(2) else int(crop_m.group(1))
+        path = shot_path(name)
         if not path.is_file():
             raise SystemExit(f"Missing screenshot: {path}")
-        mime, data = encode_image(path, width, int(crop_m.group(1)) if crop_m else None, tmp)
+        mime, data = encode_image(path, width, crop, tmp)
         used.append(name)
         tag = re.sub(r'\sdata-(shot|width|crop)="[^"]*"', "", tag)
         return tag.replace("<img", f'<img src="data:{mime};base64,{data}"', 1)
@@ -223,6 +292,7 @@ def build(out: Path) -> Path:
     doc = (HERE / "report_source.html").read_text(encoding="utf-8")
     css = (HERE / "report.css").read_text(encoding="utf-8")
     runs = load(SHOTS / "runs.json")
+    web_runs = load(SHOTS_WEB / "runs.json")
     live = load(RUNS / "2026-10-26_tokenomics_live.json")
     cost = load(RUNS / "2026-10-26_cost_model.json")
     research = load(RESEARCH / "competitors.json")
@@ -230,7 +300,9 @@ def build(out: Path) -> Path:
     svg = re.sub(r"<!--.*?-->", "", svg, flags=re.S).strip()
 
     doc = re.sub(r"<!--(?!\s*\[).*?-->", "", doc, flags=re.S)  # source comments stay in the source
-    tables = {"runs": table_runs(runs), "kinds": table_kinds(live), "scale": table_scale(cost, research)}
+    tables = {"runs": table_runs(("Morning session, Oct 26 (screenshots 01–20): every agent", runs),
+                                 ("Afternoon session, Oct 26 (screenshots 21–25): the web features", web_runs)),
+              "kinds": table_kinds(live), "scale": table_scale(cost, research, live)}
     doc = doc.replace("{{CSS}}", css).replace("{{SVG:architecture}}", svg)
     for name, t in tables.items():
         doc = doc.replace("{{TABLE:" + name + "}}", t)

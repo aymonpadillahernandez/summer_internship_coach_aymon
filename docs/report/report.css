@@ -119,3 +119,47 @@ ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size
 figure.fig5a { grid-template-columns: 2.75fr 1fr; align-items: start; }
 figure.fig5a .crop img { width: 139%; max-width: none; }
 figure.boards .grid2 { align-items: start; }
+
+/* Capability map (Figure 1): the student's journey in 5 steps */
+.journey { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5pt; margin: 2pt 0 4pt; }
+.jstep { position: relative; background: var(--soft); border-radius: 8pt; padding: 6pt 6.5pt 5pt; border-top: 3pt solid var(--accent); }
+.jstep:nth-child(2) { border-top-color: #0a84ff; } .jstep:nth-child(3) { border-top-color: #30b0c7; }
+.jstep:nth-child(4) { border-top-color: #ff9f0a; } .jstep:nth-child(5) { border-top-color: #34c759; }
+.jstep:not(:last-child)::after { content: "›"; position: absolute; right: -6pt; top: 4pt; font-size: 13pt; font-weight: 700; color: var(--faint); }
+.jstep .jn { font-size: 7pt; font-weight: 800; letter-spacing: .6pt; text-transform: uppercase; color: var(--muted); text-align: left; }
+.jstep b.jt { display: block; font-size: 10pt; line-height: 1.15; margin: 1pt 0 2pt; }
+.jstep .who { display: block; font-size: 7.2pt; color: var(--accent); font-weight: 650; line-height: 1.25; margin-bottom: 3pt; text-align: left; }
+.jstep ul { margin: 0; padding-left: 9pt; }
+.jstep li { font-size: 7.6pt; line-height: 1.28; margin: 0 0 2pt; text-align: left; hyphens: manual; }
+.jstep .fg { display: block; font-size: 7pt; color: var(--faint); margin-top: 3pt; text-align: left; }
+.jband { background: #fff; border: .7pt solid var(--line); border-radius: 7pt; padding: 3.5pt 8pt; font-size: 7.8pt; color: var(--ink2); text-align: center; }
+
+/* Capability matrix (Table 1) */
+table.matrix { table-layout: fixed; font-size: 7.6pt; line-height: 1.22; }
+table.matrix th { font-size: 6.8pt; letter-spacing: .1pt; text-align: center; padding: 2pt 2pt; text-transform: none; }
+table.matrix th:first-child { text-align: left; }
+table.matrix td { padding: 2.1pt 2pt; text-align: center; vertical-align: middle; }
+table.matrix td:first-child { text-align: left; font-weight: 600; color: var(--ink2); }
+table.matrix td.us, table.matrix th.us { background: var(--accent-soft); }
+table.matrix th.us { color: var(--accent); }
+.mk { font-size: 9pt; line-height: 1; }
+.mk.y { color: var(--green); } .mk.p { color: #b07a00; } .mk.x { color: var(--red); }
+table.matrix td small { display: block; font-size: 6.4pt; color: var(--muted); line-height: 1.12; margin-top: 1pt; }
+table.matrix tr.price td { font-size: 6.9pt; font-weight: 400; color: var(--ink2); vertical-align: top; }
+table.matrix tr.price td:first-child { font-weight: 600; }
+
+/* Run tables with a group row per session */
+tr.group td { font-size: 7.4pt; font-weight: 700; letter-spacing: .3pt; text-transform: uppercase; color: var(--accent); background: var(--soft); padding: 2pt 4pt; }
+
+/* Two narrow screenshots and a text column */
+.trio { display: grid; grid-template-columns: 1.95in 1.95in 1fr; gap: 10pt; align-items: start; margin: 6pt 0 8pt; }
+.trio > figure { margin: 0; }
+.trio > div p:last-child { margin-bottom: 0; }
+.duo { display: grid; grid-template-columns: 2.85in 1fr; gap: 11pt; align-items: start; margin: 6pt 0 8pt; }
+.duo > figure { margin: 0; }
+h3.step { display: flex; align-items: baseline; gap: 6pt; }
+h3.step .sn { display: inline-flex; align-items: center; justify-content: center; width: 14pt; height: 14pt; border-radius: 50%; background: var(--accent); color: #fff; font-size: 8pt; flex: none; }
+.capcol p { font-size: 8.4pt; line-height: 1.35; color: var(--muted); text-align: left; margin: 0 0 6pt; hyphens: manual; }
+.capcol b { color: var(--ink2); }
+.trio, .duo { break-inside: avoid; }
+code, .mono { hyphens: none; -webkit-hyphens: none; }
