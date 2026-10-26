@@ -98,8 +98,8 @@
   <text class="d" x="298" y="293">(6 playbooks) ·</text>
   <text class="dm" x="368" y="293">save_draft</text>
   <rect class="trig" x="452" y="236" width="184" height="31" rx="8"/>
-  <text class="d" x="460" y="249">Ranked plan or answer; every fact</text>
-  <text class="d" x="460" y="261">cites the record id it came from</text>
+  <text class="d" x="460" y="249">Ranked plan: every action cites the</text>
+  <text class="d" x="460" y="261">record ids it relied on (checked)</text>
   <rect x="452" y="273" width="184" height="33" rx="8" fill="#fff1f0" stroke="#ff6961" stroke-width="1"/>
   <text class="d" x="460" y="287" style="font-weight:600">Outbox: drafts only (≤2 per request)</text>
   <text class="d" x="460" y="299">never sent by the app</text>

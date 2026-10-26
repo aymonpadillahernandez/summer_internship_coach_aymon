@@ -24,6 +24,7 @@ html, body, .reveal-viewport { background: #fff; }
 .kicker .run { color: var(--faint); letter-spacing: .6px; }
 .reveal h1 { font-size: 58px; line-height: 1.03; letter-spacing: -1.4px; font-weight: 750; margin: 0 0 12px; color: var(--ink); }
 .reveal h2 { font-size: 38px; line-height: 1.12; letter-spacing: -.7px; font-weight: 720; margin: 0 0 22px; color: var(--ink); }
+.reveal h2.fit { font-size: 35px; letter-spacing: -.8px; }
 .body { flex: 1; min-height: 0; display: grid; gap: 30px; align-items: start; }
 .foot { position: absolute; left: 56px; right: 56px; bottom: 16px; display: flex; justify-content: space-between;
   gap: 24px; font-size: 16px; color: var(--faint); border-top: 1px solid #e5e5ea; padding-top: 9px; padding-right: 64px; }
@@ -87,12 +88,37 @@ html, body, .reveal-viewport { background: #fff; }
 .diff p { font-size: 17.5px; color: var(--ink2); line-height: 1.32; }
 .weaker { margin-top: 14px; font-size: 16.5px; color: var(--muted); }
 
-/* 4 · Agents */
-.points { display: flex; flex-direction: column; gap: 17px; }
-.point { border-left: 4px solid var(--accent); padding: 2px 0 2px 14px; font-size: 19.5px; line-height: 1.36; }
-.point.code { border-color: #8e8e93; }
-.point.scout { border-color: #0a84ff; }
-.point.luna { border-color: #34c759; }
+/* 4 · Agents: a full-width lane diagram in HTML (the report keeps the SVG, Figure 3) */
+.lanes { display: grid; grid-template-columns: 190px 26px 186px 26px minmax(0, 1fr) 26px 262px; gap: 12px 0; align-items: stretch; }
+.lanes .lh { font-size: 15px; font-weight: 750; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding-bottom: 0; }
+.lanes > :nth-child(1) { grid-column: 1; } .lanes > :nth-child(3) { grid-column: 3; } .lanes > :nth-child(5) { grid-column: 5; } .lanes > :nth-child(7) { grid-column: 7; }
+.bx { border-radius: 12px; padding: 8px 13px 9px; border: 1.5px solid var(--line); background: #fff; display: flex; flex-direction: column; justify-content: center; }
+.bx .t { font-size: 21px; font-weight: 700; line-height: 1.25; color: var(--ink); }
+.bx .d { font-size: 20px; line-height: 1.3; color: var(--ink2); }
+.bx .d.to { margin-top: 6px; font-weight: 600; color: var(--ink); }
+.bx.stu { grid-column: 1; }
+.bx.code { grid-column: 3; background: var(--soft); border-color: #c7c7cc; }
+.bx.code.keeper { grid-column: 7; justify-content: flex-start; }
+.bx.ai { grid-column: 5; }
+.bx.inbox { background: #fff4e5; border-color: #ff9f0a; }
+.bx.scout { background: #e5f1ff; border-color: #0a84ff; }
+.bx.coach { background: #efefff; border-color: #5e5ce6; border-width: 2px; }
+.bx .boss { color: var(--accent); font-weight: 600; }
+.bx .sp { display: flex; gap: 8px; margin: 5px 0 4px; }
+.bx .sp i { white-space: nowrap; font-style: normal; font-size: 20px; font-weight: 650; border-radius: 8px; padding: 2px 9px; border: 1.5px solid; }
+.bx .sp i.scout { background: #e5f1ff; border-color: #0a84ff; }
+.bx .sp i.net { background: #e3f7fa; border-color: #30b0c7; }
+.lanes .res { grid-column: 7; display: flex; flex-direction: column; gap: 8px; }
+.lanes .res .bx { flex: 1; }
+.bx.out { background: #fff1f0; border-color: #ff6961; }
+.ar { display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #8e8e93; }
+.ar.long { grid-column: 2 / 5; position: relative; }
+.ar.long::before { content: ""; position: absolute; left: 6px; right: 14px; top: 50%; border-top: 2px solid #8e8e93; }
+.ar.long::after { content: ""; position: absolute; right: 4px; top: calc(50% - 6px); border: 6px solid transparent; border-left: 10px solid #8e8e93; border-right: 0; }
+.lanes-note { margin-top: 14px !important; font-size: 18px; color: var(--muted); line-height: 1.35; }
+.lanes-note .sw { display: inline-block; width: 16px; height: 16px; border-radius: 4px; vertical-align: -2px; margin: 0 6px 0 0; border: 1.5px solid; }
+.lanes-note .sw.ai { background: #efefff; border-color: #5e5ce6; }
+.lanes-note .sw.code { background: var(--soft); border-color: #c7c7cc; margin-left: 14px; }
 
 /* 5 · Demo */
 .strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
@@ -108,17 +134,24 @@ html, body, .reveal-viewport { background: #fff; }
 .card.accent { background: var(--accent-soft); }
 .big { font-size: 44px; font-weight: 780; letter-spacing: -1px; color: var(--accent); line-height: 1.05; }
 .runline { font-size: 20px; margin-top: 4px; }
-.formula { font-size: 16px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
-.chip { font-size: 15.5px; border: 1px solid var(--line); background: #fff; border-radius: 30px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
+.chip { font-size: 18px; border: 1px solid var(--line); background: #fff; border-radius: 30px; padding: 3px 10px; font-variant-numeric: tabular-nums; }
 .chip b { font-weight: 700; }
 table.scale { width: 100%; border-collapse: collapse; font-size: 19px; margin: 4px 0 6px; }
-table.scale th { text-align: left; font-size: 13.5px; font-weight: 750; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); padding: 4px 8px; vertical-align: bottom; }
+table.scale th { text-align: left; font-size: 15px; font-weight: 750; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); padding: 4px 8px; vertical-align: bottom; }
 table.scale td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
 table.scale .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-table.scale td .sub { display: block; font-size: 15px; color: var(--muted); }
+table.scale td .sub { display: block; font-size: 16px; color: var(--muted); }
 table.scale td b.v { font-size: 22px; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
+.card.caps { background: var(--accent-soft); font-size: 18px; line-height: 1.36; }
+.card.caps b { color: var(--accent); font-size: 20px; }
+
+/* 6 · Boards: two full-width strips, every stage column visible */
+.boards { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+.boards figure { width: 1120px; margin: 0 auto; }
+.boards figcaption { font-size: 19px; color: var(--ink2); margin: 0 0 6px; }
+.boards figcaption b { color: var(--accent); }
 
 /* 7 · Safety */
 .attack { margin-bottom: 14px; }

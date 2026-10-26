@@ -4,9 +4,11 @@ Inputs (all in the repo):
   docs/report/slides_source.html   the slides, with {{CSS}}, {{SVG:architecture}} and {{V:name}} markers, and
                                    <img data-shot="file.png" data-width="px" [data-crop="top,bottom"]> for screenshots
   docs/report/slides.css           styles (same palette as report.css, indigo #5e5ce6)
-  docs/report/architecture.svg     the delegation diagram (shared with the report)
+  docs/report/architecture.svg     the report's delegation diagram (Figure 3); a {{SVG:architecture}} marker embeds it,
+                                   but slide 4 now draws a full-width HTML version so its labels stay large
   docs/evidence/...                the numbers (never typed by hand): screenshots/2026-10-26_live/runs.json,
                                    runs/2026-10-26_tokenomics_live.json, runs/2026-10-26_cost_model.json, docs/research/competitors.json
+  render.yaml                      the live daily token budgets (slide 7's caps, at the output price)
 
 Only reveal.js itself comes from a CDN (reveal.css + reveal.js from jsdelivr, as the brief asks); nothing else is loaded.
 
@@ -81,6 +83,11 @@ def values() -> dict[str, str]:
         "discover_secs": f"{by_id[DISCOVER_RUN]['seconds']:.1f}",
         "day_cap": f"${cost['worst_case_per_user_day_usd']:.2f}",
     }
+    # Both daily caps from render.yaml (the live settings) at the output price: the most a day can cost.
+    yaml = (br.REPO / "render.yaml").read_text(encoding="utf-8")
+    budget = {k: int(x) for k, x in re.findall(r'key:\s*(\w*DAILY_TOKEN_BUDGET)\s*\n\s*value:\s*"(\d+)"', yaml)}
+    assert abs(budget["DAILY_TOKEN_BUDGET"] * p["output"] / 1e6 - cost["worst_case_per_user_day_usd"]) < 1e-9
+    v["site_cap"] = f"${budget['GLOBAL_DAILY_TOKEN_BUDGET'] * p['output'] / 1e6:.2f}"
     intakes = [r["seconds"] for r in runs["runs"] if r["kind"] == "intake"]
     v["intake_min"], v["intake_max"] = f"{min(intakes):.1f}", f"{max(intakes):.1f}"
 

@@ -69,6 +69,8 @@ figcaption b { color: var(--ink2); }
 .crop img { border: 0; border-radius: 0; }
 .side { display: grid; grid-template-columns: 1fr 3.05in; gap: 12pt; align-items: start; }
 .side > figure { margin: 0; }
+figure.sidecap { display: grid; grid-template-columns: 1.6fr 1fr; gap: 11pt; align-items: center; }
+figure.sidecap figcaption { margin-top: 0; }
 
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 8.5pt; line-height: 1.32; margin: 4pt 0 9pt; }
@@ -86,6 +88,8 @@ table.compact td { padding: 2.6pt 4pt; }
 /* Callouts */
 .note { break-inside: avoid; background: var(--soft); border-left: 3pt solid var(--accent); border-radius: 0 6pt 6pt 0; padding: 6pt 9pt; margin: 6pt 0 9pt; font-size: 9.4pt; }
 .note p:last-child { margin-bottom: 0; }
+.oneline { font-size: 11pt; line-height: 1.38; background: var(--accent-soft); border-radius: 7pt; padding: 6pt 10pt; margin: 0 0 9pt; }
+.oneline b { color: var(--accent); }
 .estimate { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: #8a5a00; background: #fff1c2; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
 .measured { display: inline-block; font-size: 7pt; font-weight: 700; letter-spacing: .4pt; text-transform: uppercase; color: var(--green); background: #e3f6e8; border-radius: 3pt; padding: 0 3pt; vertical-align: 1pt; }
 .placeholder { background: var(--yellow); border: 1.2pt solid var(--yellow-line); border-radius: 7pt; padding: 8pt 10pt; margin: 8pt 0 10pt; break-inside: avoid; }
@@ -112,3 +116,6 @@ ol.steps li::before { content: counter(s); position: absolute; left: 0; top: 0.5
 ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 8.6pt; }
 .keep { break-inside: avoid; }
 .small { font-size: 9pt; }
+figure.fig5a { grid-template-columns: 2.75fr 1fr; align-items: start; }
+figure.fig5a .crop img { width: 139%; max-width: none; }
+figure.boards .grid2 { align-items: start; }
