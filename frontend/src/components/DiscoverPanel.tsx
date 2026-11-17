@@ -51,12 +51,12 @@ export default function DiscoverPanel({ onChanged, onOpenRecord }: { onChanged: 
       <header className="panel-head">
         <div>
           <h2>Find openings</h2>
-          <p>The Opportunity scout searches <b>the whole web</b> for internships that fit your profile, including organisations you don't track
-            yet, or the public job boards of the ones you do. The app opens every result's page: only postings it confirms are saved, with their link.</p>
+          <p>The Opportunity scout searches <b>the whole web, in every industry,</b> for internships that fit your profile, including organisations
+            you don't track yet, or the public job boards of the ones you do. The app opens every result's page: only postings it confirms are saved, with their link.</p>
         </div>
       </header>
       <div className="discover-actions">
-        <input value={focus} maxLength={300} placeholder="Optional focus, e.g. sports media strategy in New York" onChange={(e) => setFocus(e.target.value)} />
+        <input value={focus} maxLength={300} placeholder="Optional focus (empty = every industry), e.g. healthcare strategy in Boston" onChange={(e) => setFocus(e.target.value)} />
         <button className="primary-btn" disabled={busy} onClick={goWeb}>{busy ? "Searching…" : "Search the whole web"}</button>
         <button className="toggle" disabled={busy} onClick={go}>Search my organisations' job boards</button>
       </div>

@@ -220,8 +220,10 @@ async def web_shortlist(run: CoachRun, user_id: int, focus: str = "") -> WebShor
     tracked = sorted({a["company"] for a in db.list_applications(user_id) if a["company"].strip()})
     user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\n\nStudent profile:\n{_profile(user_id)}\n\n"
                    f"Organisations already tracked ({len(tracked)}): {', '.join(tracked[:40]) or 'none'}\n\n"
-                   + (f"The student's focus for this search: {focus[:300]}\n" if focus.strip() else ""))
-    run.step(NAME, "searching_web", "Searching the open web for internships that fit the profile" + (f" ({focus[:80]})" if focus else ""))
+                   + (f"The student's focus for this search: {focus[:300]}\n" if focus.strip()
+                      else "No focus given: search every industry, not only the ones in the profile, and return a mix.\n"))
+    run.step(NAME, "searching_web", "Searching the open web for internships that fit the profile"
+             + (f" ({focus[:80]})" if focus.strip() else ", in every industry"))
     report = await run_agent(run, NAME, web_agent(), user_prompt, timeout=config.DISCOVER_TIMEOUT_SECONDS)
     if report is not None:
         report.opportunities = report.opportunities[: config.MAX_WEB_SHORTLIST]
