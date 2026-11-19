@@ -3,14 +3,16 @@
 
 Mark four dimensions match, mismatch or unknown (profile or posting silent):
 - **Function** (e.g. strategy, product, finance, marketing)
-- **Industry** or sector
+- **Industry** or sector: the industries the student names are preferences, not a requirement. One they have not named
+  counts as **open** (neither match nor mismatch); it is a mismatch only if the student says they exclude it.
 - **Location** (city, country, remote)
 - **Timing** (a summer internship in the summer the student is recruiting for)
 
 Thresholds, in this order:
 1. **weak** if: function mismatches; or two or more dimensions mismatch; or `mba_eligible` is "No"; or it is not a summer internship (full-time, co-op, part-time).
 2. **unknown** if the profile states fewer than two of the four dimensions, or the posting does not state the function.
-3. **strong** if function matches, nothing mismatches, and at least three of the four match.
+3. **strong** if function matches, nothing mismatches, and at least three of the four match (an open industry
+   counts as a match here, so a strategy role in an industry the student never named can still be strong).
 4. **possible** otherwise (e.g. function matches but location mismatches, or two dimensions are unknown).
 
 **fit_reason:** one sentence naming what matches and what does not, in the profile's and posting's own words, e.g. "Product role in fintech matches your target; London is outside your stated cities."

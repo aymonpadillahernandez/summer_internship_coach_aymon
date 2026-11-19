@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import random
 from dataclasses import dataclass, field
 from datetime import date
 from functools import lru_cache
@@ -208,22 +209,66 @@ async def discover(run: CoachRun, user_id: int, companies: list[str]) -> tuple[D
 
 
 # ─── The open web: a shortlist beyond the organisations the student tracks ───
+SET_ASIDE_STATUSES = {"rejected"}
+NOT_EMPLOYERS = ("career development", "career office", "club", "school of", "university")
+
+
+def _employer(affiliation: str) -> str:
+    """'Associate · Crescent Ventures' → 'Crescent Ventures'; 'VP at Acme' → 'Acme'; free text without either → ''."""
+    org = affiliation.rsplit(" · ", 1)[1] if " · " in affiliation else \
+        affiliation.rsplit(" at ", 1)[1] if " at " in affiliation else ""
+    org = org.strip(" .,")
+    return "" if not org or any(w in org.lower() for w in NOT_EMPLOYERS) else org
+
+
+def search_insights(user_id: int) -> tuple[str, dict]:
+    """Everything this student has shared, condensed in code (zero tokens) so the web search starts from their own
+    insights in any industry: what they pursue and set aside, where they know people (organisations and counts only,
+    never names) and the tips from their conversations. Returns the brief and its counts for the trace."""
+    apps = db.list_applications(user_id)
+    pursuing = [a for a in apps if not a.get("not_interested_at") and a.get("status") not in SET_ASIDE_STATUSES]
+    set_aside = sorted({a["company"] for a in apps if a.get("not_interested_at") or a.get("status") in SET_ASIDE_STATUSES})
+    tracked = {a["company"].strip().lower() for a in apps}
+    people: dict[str, int] = {}
+    for c in db.list_contacts(user_id):
+        if (org := _employer(c.get("affiliation") or "")):
+            people[org] = people.get(org, 0) + 1
+    tips = [f"{lead['summary']}" + (f" ({lead['when_text']})" if lead.get("when_text") else "")
+            for lead in db.list_leads(user_id)[:8]]
+    orgs = sorted(people.items(), key=lambda kv: (-kv[1], kv[0]))[:15]
+    lines = [f"Pursuing ({len(pursuing)}): " + ("; ".join(f"{a['company']} — {a['role']} ({a['status']})"
+                                                   for a in pursuing[:20]) or "nothing yet"),
+             "Set aside or rejected (do not suggest again): " + (", ".join(set_aside[:20]) or "none"),
+             "Organisations where the student knows people: " + (", ".join(
+                 f"{org} ({n}{', not tracked yet' if org.lower() not in tracked else ''})" for org, n in orgs) or "none yet"),
+             "Tips from the student's conversations: " + (" | ".join(t[:160] for t in tips) or "none yet")]
+    counts = {"pursuing": len(pursuing), "set_aside": len(set_aside), "people_orgs": len(orgs), "tips": len(tips)}
+    return "\n".join(lines), counts
+
+
 @lru_cache(maxsize=1)
 def web_agent() -> Agent:
     return Agent(config.build_model(), output_type=NativeOutput(WebShortlist),
                  instructions=f"{prompt('scout_web')}\n\n{skills.inject(NAME)}",
                  capabilities=[NativeTool(WebSearchTool(search_context_size=config.WEB_SEARCH_CONTEXT))],
-                 model_settings=config.MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
+                 model_settings=config.WEB_MODEL_SETTINGS, retries=config.OUTPUT_RETRIES, defer_model_check=True)
 
 
 async def web_shortlist(run: CoachRun, user_id: int, focus: str = "") -> WebShortlist | None:
     tracked = sorted({a["company"] for a in db.list_applications(user_id) if a["company"].strip()})
+    brief, counts = search_insights(user_id)
+    named = {i.strip().lower() for i in (db.get_prefs(user_id) or {}).get("industries", [])}
+    explore = random.sample([i for i in config.WEB_EXPLORE_INDUSTRIES if i.lower() not in named], config.WEB_EXPLORE_PER_RUN)
     user_prompt = (f"Today is {date.today():%A %Y-%m-%d}.\n\nStudent profile:\n{_profile(user_id)}\n\n"
                    f"Organisations already tracked ({len(tracked)}): {', '.join(tracked[:40]) or 'none'}\n\n"
+                   + safety.wrap_untrusted(brief, "the student's own records: what they pursue, people, tips") + "\n\n"
                    + (f"The student's focus for this search: {focus[:300]}\n" if focus.strip()
-                      else "No focus given: search every industry, not only the ones in the profile, and return a mix.\n"))
-    run.step(NAME, "searching_web", "Searching the open web for internships that fit the profile"
-             + (f" ({focus[:80]})" if focus.strip() else ", in every industry"))
+                      else "No focus given: search every industry, not only the ones in the profile, and return a mix. "
+                           f"Industries the student has not named, picked by the app for this run: {' and '.join(explore)}. "
+                           "Spend at least one search on each of them.\n"))
+    run.step(NAME, "searching_web", "Searching the open web from the student's insights ("
+             f"{counts['pursuing']} pursued, {counts['people_orgs']} organisations where they know people, "
+             f"{counts['tips']} tips)" + (f", focus: {focus[:80]}" if focus.strip() else f", in every industry, exploring {' and '.join(explore)}"))
     report = await run_agent(run, NAME, web_agent(), user_prompt, timeout=config.DISCOVER_TIMEOUT_SECONDS)
     if report is not None:
         report.opportunities = report.opportunities[: config.MAX_WEB_SHORTLIST]

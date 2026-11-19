@@ -385,6 +385,35 @@ def test_web_results_are_saved_only_when_their_page_confirms_them(demo_client, a
     assert card["source_url"] == "https://jobs.example.com/acme-mba" or "acme-mba" in json.dumps(card)
 
 
+def test_the_web_search_starts_from_the_students_own_insights_in_every_industry(demo_client, accept_test_model, monkeypatch):
+    """The scout's brief is built in code from what the student shared: what they pursue and set aside, where they know
+    people (organisations and counts, never names) and their conversation tips; the prompt keeps every industry open."""
+    assert scout._employer("Associate · Crescent Ventures") == "Crescent Ventures"
+    assert scout.web_agent().model_settings["extra_body"]["max_tool_calls"] == 4  # the search cap is enforced by the API
+    assert scout._employer("VP Strategy at Acme Health") == "Acme Health"
+    assert scout._employer("MBA '25, former Northbridge intern") == "" and scout._employer("Career Coach · Career Development Office") == ""
+    real_contacts = scout.db.list_contacts
+    monkeypatch.setattr(scout.db, "list_contacts", lambda uid: real_contacts(uid) + [
+        {"name": "Pat Doe", "affiliation": "Director, Strategy · Acme Health"}])  # someone at an untracked organisation
+    seen = []
+    def model(messages, info):
+        seen.append("\n".join(part.content for m in messages for part in m.parts if isinstance(getattr(part, "content", None), str)))
+        return ModelResponse(parts=[TextPart(json.dumps({"opportunities": [], "searched_for": ["MBA strategy intern"]}))])
+    with scout.web_agent().override(model=FunctionModel(model)):
+        r = demo_client.post("/api/scout/web", json={"focus": ""})
+    assert r.status_code == 200
+    sent = seen[0]
+    assert "Acme Health (1, not tracked yet)" in sent and "Pinecrest Consulting (1)" in sent  # where they know people
+    assert "Velocity Esports" in sent.split("do not suggest again")[1][:80]  # set aside, so never suggested again
+    assert "Northbridge Sports Group virtual info session" in sent  # a tip from their conversations
+    assert "do not suggest again" in sent and "search every industry" in sent
+    assert "Maya Chen" not in sent and "Pat Doe" not in sent  # people's names never go to the web search
+    assert "untrusted_document" in sent  # their records are data, not instructions
+    picked = sent.split("picked by the app for this run: ")[1].split(". Spend")[0].split(" and ")
+    named = {i.lower() for i in db.get_prefs(_uid(demo_client))["industries"]}
+    assert len(picked) == 2 and not named & {i.lower() for i in picked}  # two industries the student never named
+
+
 def test_key_people_need_a_public_page_that_names_them(demo_client, accept_test_model, monkeypatch):
     import keeper
     pages = {"https://acme.example.com/team": "<p>Dana Lee, Head of Strategy at Northbridge Sports Group, is a Yale SOM graduate.</p>"}

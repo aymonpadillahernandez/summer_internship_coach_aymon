@@ -43,6 +43,11 @@ REASONING_EFFORT = "low"  # every agent; fewer hidden reasoning tokens per reque
 AGENT_MAX_OUTPUT_TOKENS = 8_000  # per model response, reasoning included: a runaway answer is cut off (a long, valid
 # structured answer still fits: measured intake answers are ~1,000 output tokens)
 MODEL_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort=REASONING_EFFORT, max_tokens=AGENT_MAX_OUTPUT_TOKENS)
+# The whole-web scout: OpenAI's own cap on built-in tool calls, so "at most 4 searches" is enforced, not just asked
+# (without it one run made 10 searches, $0.10 instead of $0.04).
+WEB_MAX_SEARCHES = 4
+WEB_MODEL_SETTINGS = OpenAIResponsesModelSettings(openai_reasoning_effort=REASONING_EFFORT, max_tokens=AGENT_MAX_OUTPUT_TOKENS,
+                                                  extra_body={"max_tool_calls": WEB_MAX_SEARCHES})
 
 # Price per 1M tokens in USD (None = unknown: the app would show token counts and leave cost blank rather than guess).
 # OpenAI's list price for gpt-6-luna, standard tier (prompts up to 272K input tokens). Portkey may add its own fee.
@@ -89,6 +94,13 @@ DISCOVER_TIMEOUT_SECONDS = 120
 # alumni, and the Career coach's answers. Every saved result is verified in code: its page is read and must contain the quote.
 WEB_SEARCH_CONTEXT = "low"  # less page text fed to the model per search
 MAX_WEB_SHORTLIST = 8  # opportunities the scout may propose from one web search run
+# Every whole-web search without a focus also explores industries the student has not named: code picks these per run
+# (rotating), so coverage does not depend on the model following "search every industry".
+WEB_EXPLORE_INDUSTRIES = ["Consulting", "Investment banking", "Private equity / VC", "Asset management", "Tech",
+                          "Sports", "Media & entertainment", "Consumer brands", "Retail", "Healthcare", "Energy & climate",
+                          "Real estate", "Nonprofit / social impact", "Industrials & manufacturing", "Transportation & logistics",
+                          "Public sector", "Education", "Hospitality & travel", "Insurance", "Telecom", "Food & agriculture"]
+WEB_EXPLORE_PER_RUN = 2
 MAX_STAKEHOLDERS = 5  # people Network intelligence may propose for one organisation
 MAX_VERIFY_PAGES = 8  # source pages the Records keeper reads to verify one run's results
 MAX_WEB_RUNS_PER_DAY = int(os.getenv("MAX_WEB_RUNS_PER_DAY", "20"))  # web-search requests per student per UTC day (search
